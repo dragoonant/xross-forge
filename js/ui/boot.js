@@ -1,11 +1,8 @@
-// js/ui/boot.js: the M0 title screen, and nothing else. Loaded last by index.html.
-// The markup is static in index.html (it reads fine without JS); this file only
-//   * checks the modules it depends on and THROWS when one is missing (no silent fallbacks:
-//     a missing module is a broken build, check-pages enforces the same for js/ui),
-//   * derives the Play button's state and its reason from what actually loaded, the same
-//     way the engine's whyNot will in M2: the reason is a sentence, or null when playable.
-// The game UI (board, hand, log, targeting) lands in M3 and takes this file's place as the
-// entry point.
+// js/ui/boot.js: the entry point, loaded last by index.html. It checks that every module the UI
+// depends on loaded and THROWS when one is missing (no silent fallbacks: a missing module is a
+// broken build; tools/check-pages.mjs enforces the same for js/ui), wires the delegated listeners,
+// and starts a match straight away for the test URLs:
+//   ?autoplay=1&speed=instant&seed=N[&mode=quick|full][&deck0=ST01&deck1=ST02]   bot against bot
 (function () {
   'use strict';
   const XS = globalThis.XS;
@@ -13,33 +10,31 @@
   for (const k of ['Illegal', 'rngNext', 'shuffleInPlace', 'hashSeed']) {
     if (XS[k] === undefined) throw new Error('boot: XS.' + k + ' is missing (check the <!-- engine --> block)');
   }
-
-  // null when the game can be started, else why not. Mirrors XS.whyNot's contract (M2).
-  function playWhyNot() {
-    if (typeof XS.newGame !== 'function') return 'Engine lands in M2';
-    if (XS.ui === undefined || typeof XS.ui.start !== 'function') return 'Game UI lands in M3';
-    return null;
+  for (const k of ['newGame', 'legalActions', 'apply', 'whoActs', 'isTerminal', 'view', 'leaderStats', 'costToPlay', 'whyNot',
+    'previewAttack', 'previewAttackDetail', 'replay']) {
+    if (typeof XS[k] !== 'function') throw new Error('boot: XS.' + k + ' is missing (engine not loaded or the contract changed)');
+  }
+  for (const k of ['CARDS', 'DECKS', 'TAGS']) if (XS[k] === undefined) throw new Error('boot: XS.' + k + ' is missing (data block)');
+  const U = XS.ui;
+  for (const k of ['core', 'logtext', 'cardview', 'preview', 'anim', 'targeting', 'prompt', 'board', 'bot-random', 'game', 'title']) {
+    const probe = { core: 'el', logtext: 'logText', cardview: 'cardEl', preview: 'preview', anim: 'anim', targeting: 'targeting', prompt: 'prompt',
+      board: 'board', 'bot-random': 'makeRandomBot', game: 'game', title: 'title' }[k];
+    if (U[probe] === undefined) throw new Error('boot: js/ui/' + k + '.js did not load');
   }
 
-  function byId(id) {
-    const e = document.getElementById(id);
-    if (e === null) throw new Error('boot: #' + id + ' is missing from index.html');
-    return e;
+  U.preview.init();
+  U.anim.init();
+  U.game.init();
+  U.title.init();
+
+  const p = U.params();
+  if (p.get('autoplay') === '1') {
+    const seedRaw = p.get('seed');
+    U.game.start({
+      decks: [p.get('deck0') || 'ST01', p.get('deck1') || 'ST02'],
+      mode: p.get('mode') === 'quick' ? 'quick' : 'full',
+      seed: seedRaw === null ? undefined : Number(seedRaw),
+      spectate: true,
+    });
   }
-
-  const btn = byId('play');
-  const note = byId('play-why');
-  const status = byId('lt-status');
-  const why = playWhyNot();
-  btn.disabled = why !== null;
-  note.hidden = why === null;
-  if (why !== null) note.textContent = why;
-  if (why === null) btn.addEventListener('click', () => XS.ui.start());
-
-  const ok = document.createElement('span');
-  ok.className = 'ok';
-  ok.textContent = 'XS ready';
-  const rest = document.createElement('span');
-  rest.textContent = 'Engine M2 · Game UI M3';
-  status.replaceChildren(ok, rest);
 })();

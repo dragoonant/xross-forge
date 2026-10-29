@@ -13,12 +13,15 @@ const steps = [
   ['build-cards --check', ['tools/build-cards.mjs', '--check']],
   ['validate-data', ['tools/validate-data.mjs']],
   ['validate-data --selftest', ['tools/validate-data.mjs', '--selftest']],
+  ['validate-abilities', ['tools/validate-abilities.mjs']],
+  ['validate-abilities --selftest', ['tools/validate-abilities.mjs', '--selftest']],
+  ['audit-cards', ['tools/audit-cards.mjs']],                 // prints "pending (no docs/sources)" and passes when the gitignored dump is absent (CI)
+  ['audit-cards --selftest', ['tools/audit-cards.mjs', '--selftest']],
+  ['sim', ['tools/sim.mjs', '--games', '200', '--seed', '1']],
 ];
 // Ported from lorecannae but not runnable yet. Turn each on by moving it into `steps`.
 const pending = [
-  ['audit-cards', 'M1/M2'],
   ['replay selftest', 'M1/M2'],
-  ['sim', 'M1/M2'],
   ['check-art', 'M1/M2'],
 ];
 

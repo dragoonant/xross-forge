@@ -11,12 +11,31 @@
 <script src="data/tags.js"></script>
 <script src="data/cards.js"></script>
 <script src="data/decks.js"></script>
+<script src="data/abilities.js"></script>
 <script src="data/art-manifest.js"></script>
 <script src="data/sound-manifest.js"></script>
+<script src="js/engine/state.js"></script>
+<script src="js/engine/log.js"></script>
+<script src="js/engine/doors.js"></script>
+<script src="js/engine/abilities.js"></script>
+<script src="js/engine/attack.js"></script>
+<script src="js/engine/flow.js"></script>
+<script src="js/engine/api.js"></script>
 <!-- /engine -->
+<!-- UI modules under test (headless-safe: no DOM is touched until a function runs). Not part of the engine block. -->
+<script src="js/ui/core.js"></script>
+<script src="js/ui/logtext.js"></script>
+<script src="js/ui/anim.js"></script>
+<script src="js/ui/targeting.js"></script>
+<script src="js/ui/prompt.js"></script>
+<script src="js/ui/bot-random.js"></script>
 <script src="tests/harness.js"></script>
 <script src="tests/00-smoke.js"></script>
 <script src="tests/01-data.js"></script>
+<script src="tests/05-fixtures.js"></script>
+<script src="tests/10-rules.js"></script>
+<script src="tests/20-cards.js"></script>
+<script src="tests/30-ui.js"></script>
 <script>
   (function () {
     const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
