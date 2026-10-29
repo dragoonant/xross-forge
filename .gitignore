@@ -17,6 +17,7 @@ art/masters/
 art/archive/
 art/take*/
 audio/masters/
+audio/archive/
 *.psd
 
 # Generated outputs, traces, sweep sandboxes, OS junk.
