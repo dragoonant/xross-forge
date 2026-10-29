@@ -5,11 +5,11 @@ Status is rewritten (not appended) every session.
 
 ---
 
-## Status — 2026-10-29 (M0-M3 done: playable vs a random bot)
+## Status — 2026-10-29 (M0-M4 done: playable vs the AI)
 
 **The game is playable** on branch `claude/m0-scaffold` (`node tools/serve.mjs`, then
 http://localhost:8232): title → ST01 or ST02, full (best of 3) or quick match → the broadcast
-board vs a seeded random bot → end screen with "Save bug report". Not on Pages yet: the workflow
+board vs the AI (Easy / Normal / Hard; `?bot=random` for the random bot) → end screen with "Save bug report". Not on Pages yet: the workflow
 deploys from `main` (D10, D11).
 
 - **Engine (M2):** contract frozen first (`docs/ENGINE-API.md`), then the rules: one choice door
@@ -25,7 +25,13 @@ deploys from `main` (D10, D11).
 - Rules corrections today: R-053 (the attacked-leader-is-down condition, FAQ #115), R-022/R-038
   confirmed, R-027/R-044 far-right placement (FAQ #70).
 
-**Next: M4 AI** (utility bot scored against doing nothing; beats random ≥ 95% in both seats).
+- **AI (M4):** decides only from `view()` (hidden cards determinized), scores every plan against
+  ending the turn, runs in a Web Worker. Holdout (seeds 10001-10200, 800 matches per pairing):
+  Normal beats random 800/800, Easy 799/800; Hard vs Normal 53.4% (not established). 0 fallbacks,
+  0 illegal actions; e2e 192/192. Details and negative results: `docs/ai.md`.
+
+**Next: M5 art and M6 audio need `GEMINI_API_KEY` and `ELEVENLABS_API_KEY`** (not set in this
+environment yet). M7 polish can start without them.
 
 **Owner, when convenient** (defaults in force meanwhile): D11 (merge milestones to `main` so
 Pages can serve the game?), D15 (starter Energy Charger), Settings → Pages → Source: GitHub
@@ -62,7 +68,7 @@ Actions, and the two API keys before M5.
 | M1 | Card data for ST01/ST02: schema, `build-cards`, English text, validation, `defects.js`, art and sound manifests declared empty and failing | cloud | **done** 2026-10-29 |
 | M2 | Engine: pure `apply`/`legalActions`, rounds and best of 3, PP, attacks and boosts, down/awaken, tactics, deck-out, quick match; one test per card; auditor; sim with invariants; independent rules review | cloud | **done** 2026-10-29 |
 | M3 | **Playable on Pages vs a random bot**: board, public-zone viewers, hover zoom, prompts that say what they decide, animation director, how to play | cloud | **done** 2026-10-29 |
-| M4 | AI (worker, tiers): beats random ≥ 95% in both seats on holdout seeds; scored against do-nothing; empty-turn, awaken and tactics counters | cloud | — |
+| M4 | AI (worker, tiers): beats random ≥ 95% in both seats on holdout seeds; scored against do-nothing; empty-turn, awaken and tactics counters | cloud | **done** 2026-10-29 |
 | M5 | Art (Gemini): audition, both leader sides, every card, playmat, title, UI plates | cloud + key | — |
 | M6 | Audio (ElevenLabs): SFX on log tags, music director with round and match-point tiers, victory/defeat | cloud + key | — |
 | M7 | Polish: phone/touch, save/continue, settings, bug report, deck picker | cloud | — |
