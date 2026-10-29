@@ -212,7 +212,7 @@ When an attack card is played, the attack card's effects and those of the memori
 - Card text that says otherwise wins (e.g. 復活ポータル targets a downed leader) (PM p.17 Q10).
 - If an effect has no legal choice, it does nothing (PM p.16 Q8).
 - "対戦相手の他のリーダー" ("the opponent's *other* leader(s)") means opposing leaders other than the one that received this attack (PM p.14 Q2–Q3, PM p.16 Q8). If the only non-downed opposing leader is the attacked one, such an effect does nothing (PM p.16 Q8).
-- "このアタックを受けたリーダーがダウンしているなら" is true only if the attacked leader was downed by the damage of 【アタックする】, not by a 【アタック後】 effect (PM p.14 Q3).
+- "このアタックを受けたリーダーがダウンしているなら" is true when **the leader that received the attack** is down at the moment the effect resolves, however it went down (including an earlier 【アタック後】 of the same attack that damaged that same leader); it is false when only a different opposing leader went down (PM p.14 Q3; FAQ #18, #115, #123; R-053).
 
 ## 10. Playing a memoria card; Attack Boost duration (PM p.09; QM)
 
@@ -283,7 +283,7 @@ Defined in the manual:
 | 回復 | remove damage counters / untap PP, capped | PM p.16 Q9 |
 | ダウン | downed state (§12) | PM p.08 |
 | 対戦相手の他のリーダー | opposing leaders other than the attacked one | PM p.14 Q2–Q3, PM p.16 Q8 |
-| このアタックを受けたリーダーがダウンしているなら | attacked leader was downed by 【アタックする】 damage | PM p.14 Q3 |
+| このアタックを受けたリーダーがダウンしているなら | the attacked leader itself is down when the effect resolves (not another leader) | PM p.14 Q3; FAQ #18, #115, #123; R-053 |
 | 消費 / 装備 | tactics subtypes consumable / equipment | PM p.03, PM p.10 |
 | ACE (エース) | ACE-icon cards, 8 per deck | PM p.13 |
 | ビルドルール | deck-inclusion condition | PM p.02, PM p.13 |
