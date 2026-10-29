@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Privacy gate: refuse a commit whose added lines carry a home path, a scratch path,
+# or a private pattern. Private patterns (the owner's name, email) live OUTSIDE the
+# repo in <git-common-dir>/privacy-patterns, one extended regex per line, so this file
+# never names them. --git-common-dir also resolves from a worktree, where .git is a file
+# (the gap that let worktree commits skip the check on Murder Squad, KB 2026-10-26).
+set -euo pipefail
+common="$(git rev-parse --git-common-dir)"
+patterns=('C:\\Users\\' '/Users/[A-Za-z]' '/home/[a-z]' '/tmp/claude')
+if [[ -f "$common/privacy-patterns" ]]; then
+  while IFS= read -r p; do [[ -n "$p" && "$p" != \#* ]] && patterns+=("$p"); done < "$common/privacy-patterns"
+else
+  echo "privacy: warning, $common/privacy-patterns missing (only path patterns checked)" >&2
+fi
+added="$(git diff --cached -U0 --no-color -- . ':(exclude).githooks/*' | grep -E '^\+[^+]' || true)"
+fail=0
+for p in "${patterns[@]}"; do
+  if hits="$(printf '%s\n' "$added" | grep -inE -- "$p")"; then
+    echo "privacy: staged lines match /$p/:" >&2; printf '%s\n' "$hits" | head -5 >&2; fail=1
+  fi
+done
+exit $fail
