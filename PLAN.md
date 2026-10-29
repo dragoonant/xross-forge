@@ -9,8 +9,8 @@ Status is rewritten (not appended) every session.
 
 **The game is playable** on branch `claude/m0-scaffold` (`node tools/serve.mjs`, then
 http://localhost:8232): title → ST01 or ST02, full (best of 3) or quick match → the broadcast
-board vs the AI (Easy / Normal / Hard; `?bot=random` for the random bot) → end screen with "Save bug report". Not on Pages yet: the workflow
-deploys from `main` (D10, D11).
+board vs the AI (Easy / Normal / Hard; `?bot=random` for the random bot) → end screen with "Save bug report". Merged to `main` for the owner's
+playtest (D11); Pages deploys from `main` (D10).
 
 - **Engine (M2):** contract frozen first (`docs/ENGINE-API.md`), then the rules: one choice door
   with no auto-pick, per-seat `view` with hidden tactics picks, structured log, all 50 starter
@@ -33,8 +33,7 @@ deploys from `main` (D10, D11).
 **Next: M5 art and M6 audio need `GEMINI_API_KEY` and `ELEVENLABS_API_KEY`** (not set in this
 environment yet). M7 polish can start without them.
 
-**Owner, when convenient** (defaults in force meanwhile): D11 (merge milestones to `main` so
-Pages can serve the game?), D15 (starter Energy Charger), Settings → Pages → Source: GitHub
+**Owner, when convenient** (defaults in force meanwhile): D15 (starter Energy Charger), Settings → Pages → Source: GitHub
 Actions, and the two API keys before M5.
 
 ---
@@ -53,7 +52,7 @@ Actions, and the two API keys before M5.
 | D8 | **First slice: the two original starter decks**, ST01 初の栄冠 (VSPO!) vs ST02 魔王降臨 (Crazy Raccoon), full match (best of 3) and quick match, vs AI. More products after the owner's playtest. Lists: `data/decklists.json`. | owner | 2026-10-29 |
 | D9 | Card text shown in **English, in our own words**, with the Japanese card name shown alongside. | default | 2026-10-29 |
 | D10 | Repo **public**, deployed to GitHub Pages by an Actions workflow (the private KB submodule is never fetched by CI). Needs Settings → Pages → Source: "GitHub Actions" once. | default | 2026-10-29 |
-| D11 | Milestone work is pushed to a `claude/` branch; **pending owner:** push straight to `main` after each gated milestone instead (as on Legion Forge). | default | 2026-10-29 |
+| D11 | **Milestones merge to `main`** (fast-forward from the working branch) once gated, so Pages deploys them. First merge for the owner's playtest. | owner | 2026-10-29 |
 | D12 | Authority order for rules: Playing Manual (2026-04-09) > official FAQ (API) > floor rules > Quick Manual > third-party summaries. Ambiguities go in `docs/rulings.md` as `RULING`s, never block. | default | 2026-10-29 |
 | D13 | Leader affiliation tags (VSPO!, CR, …) are not a field in the card API; for the first slice they come from a hand table sourced from the product pages and card faces (`docs/sources.md`). | default | 2026-10-29 |
 | D14 | Credit **evilgouki**. Never the owner's real name or a home path in any file (pre-commit hook). | owner (standing) | 2026-10-29 |
