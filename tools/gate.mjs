@@ -19,11 +19,13 @@ const steps = [
   ['audit-cards --selftest', ['tools/audit-cards.mjs', '--selftest']],
   ['sim', ['tools/sim.mjs', '--games', '200', '--seed', '1']],
   ['ai-bench --quick', ['tools/ai-bench.mjs', '--quick']],    // normal beats random >= 95% of decisive games in both seats, 0 fallbacks, 0 illegal actions (the full bench stays out of the gate)
+  ['art-prompts lint', ['tools/build-art-prompts.mjs', '--check']],
+  ['art-prompts --selftest', ['tools/build-art-prompts.mjs', '--selftest']],
+  ['check-art', ['tools/check-art.mjs']],                     // "pending (N of 58 faces)" until REQUIRE_ART flips; always fails on corrupt, stray or over-budget art
 ];
 // Ported from lorecannae but not runnable yet. Turn each on by moving it into `steps`.
 const pending = [
   ['replay selftest', 'M1/M2'],
-  ['check-art', 'M1/M2'],
 ];
 
 let bad = 0;

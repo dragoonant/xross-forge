@@ -1,0 +1,5 @@
+{
+  "budgetUSD": 8,
+  "note": "Cost ledger for art generation (PLAN D6: $25 total for art and audio, art at most $8). tools/gen-art.mjs appends one entry per real call: {date, key, model, provider, seconds, estCostUSD, seed, promptSha1}. estCostUSD is an ESTIMATE from the per-model table in tools/art/lib.mjs; replace it with the provider invoice when it differs. Mock runs never write here.",
+  "entries": []
+}
