@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xross Forge</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2304050c'/%3E%3Cpath d='M6 6l20 20' stroke='%2318e4ff' stroke-width='4'/%3E%3Cpath d='M26 6L6 26' stroke='%23ff2bd1' stroke-width='4'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#04050c">
+<link rel="stylesheet" href="styles.css?v=b37a3363b1">
+</head>
+<body>
+<!-- Arena backdrop: pure CSS, no images. -->
+<div class="arena" aria-hidden="true"><div class="floor"></div><div class="vignette"></div></div>
+
+<div id="app">
+  <div class="ticker"><span class="rec">Fan build</span><span>evilgouki</span></div>
+
+  <main class="title" id="title-screen">
+    <h1 class="wordmark"><span class="wm-xross">XROSS</span> <span class="wm-forge">FORGE</span></h1>
+    <p class="subtitle">Unofficial, non-commercial fan project — M0 scaffold</p>
+    <div class="play-wrap">
+      <!-- Disabled until the engine exists. js/ui/boot.js owns the state and the reason (whyNot). -->
+      <button id="play" class="play" type="button" disabled aria-describedby="play-why">Play</button>
+      <p id="play-why" class="why" role="note">Engine lands in M2</p>
+    </div>
+  </main>
+
+  <footer class="lower-third">
+    <span class="lt-tag">M0</span>
+    <span class="lt-main">Scaffold online</span>
+    <span class="lt-sub" id="lt-status">Engine M2 · Game UI M3</span>
+  </footer>
+</div>
+
+<!-- engine -->
+<script src="js/ns.js?v=d16e124dae"></script>
+<script src="js/rng.js?v=dc20b6eb4a"></script>
+<!-- /engine -->
+<!-- UI, in dependency order. Everything under js/ui/ is view layer. -->
+<script src="js/ui/boot.js?v=ef2d3a5e6d"></script>
+</body>
+</html>

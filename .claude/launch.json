@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "xross-forge",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/serve.mjs", "8232"],
+      "port": 8232
+    }
+  ]
+}

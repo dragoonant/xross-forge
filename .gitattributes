@@ -1,0 +1,12 @@
+# Line endings are LF everywhere so tools/stamp-assets.mjs hashes the same bytes on every OS.
+* text=auto eol=lf
+*.bat text eol=crlf
+
+# Binaries: never touched by line-ending conversion.
+*.png  -text
+*.webp -text
+*.mp3  -text
+*.ogg  -text
+*.wav  -text
+*.flac -text
+*.pdf  -text

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>xross-forge tests</title>
+<style>body{font:14px system-ui;background:#10141c;color:#dfe6f0;padding:16px}.f{color:#ff8a80}.p{color:#8ee0ac}</style></head>
+<body>
+<h1>xross-forge tests</h1><pre id="out">running…</pre>
+<!-- engine -->
+<script src="js/ns.js"></script>
+<script src="js/rng.js"></script>
+<!-- /engine -->
+<script src="tests/harness.js"></script>
+<script src="tests/00-smoke.js"></script>
+<script>
+  (function () {
+    const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const r = XS.T.runAll(new URLSearchParams(location.search).get('filter'));
+    document.getElementById('out').innerHTML = r.fails.map((f) => '<span class="f">' + esc(f) + '</span>').join('\n') +
+      '\n<span class="p">' + r.pass + ' passed</span>, ' + r.fail + ' failed';
+  })();
+</script>
+</body>
+</html>

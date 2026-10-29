@@ -1,0 +1,267 @@
+/* xross-forge: esports-broadcast look. Dark arena, neon cyan + magenta, a lower-third bar.
+   Colours are custom properties on :root; rules below use the tokens. */
+:root {
+  color-scheme: dark;
+
+  --bg-0: #04050c;          /* arena floor, darkest */
+  --bg-1: #080b1a;          /* arena mid */
+  --bg-2: #10153a;          /* arena glow */
+  --panel: rgba(8, 11, 26, 0.82);
+  --ink: #eef8ff;           /* primary text */
+  --dim: #9aa4cc;           /* secondary text */
+  --line: rgba(120, 140, 255, 0.28);
+
+  --cyan: #18e4ff;          /* accent 1 */
+  --cyan-glow: rgba(24, 228, 255, 0.55);
+  --magenta: #ff2bd1;       /* accent 2 */
+  --magenta-glow: rgba(255, 43, 209, 0.5);
+
+  --font-display: "Arial Black", "Helvetica Neue", Impact, "Segoe UI", system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --gutter: 16px;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg-0); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg-0);
+  color: var(--ink);
+  font: 16px/1.45 var(--font-body);
+  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---- the arena: fixed backdrop, never scrolls, never widens the page ------------------- */
+.arena {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 38%, var(--bg-2) 0%, transparent 70%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 62%);
+}
+/* stage lights: two crossing beams (the "xross") */
+.arena::before,
+.arena::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  width: 150vmax;
+  height: 150vmax;
+  margin-left: -75vmax;
+  background: conic-gradient(from 0deg at 50% 0%, transparent 0 14deg, var(--cyan-glow) 15deg 16deg, transparent 17deg 360deg);
+  opacity: 0.55;
+  transform-origin: 50% 0;
+}
+.arena::after {
+  background: conic-gradient(from 0deg at 50% 0%, transparent 0 343deg, var(--magenta-glow) 344deg 345deg, transparent 346deg 360deg);
+}
+.floor {
+  position: absolute;
+  left: -50%;
+  right: -50%;
+  bottom: -2%;
+  height: 62%;
+  transform-origin: 50% 100%;
+  transform: perspective(520px) rotateX(62deg);
+  background:
+    linear-gradient(90deg, var(--cyan-glow) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(0deg, var(--magenta-glow) 1px, transparent 1px) 0 0 / 64px 64px;
+  -webkit-mask-image: linear-gradient(0deg, #000 0%, transparent 92%);
+  mask-image: linear-gradient(0deg, #000 0%, transparent 92%);
+  opacity: 0.85;
+  animation: floor-scroll 6s linear infinite;
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, var(--bg-0) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
+}
+@keyframes floor-scroll { to { background-position: 0 64px, 0 64px; } }
+
+/* ---- layout: ticker / title / lower third ---------------------------------------------- */
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding-top: env(safe-area-inset-top);
+}
+
+.ticker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px max(var(--gutter), env(safe-area-inset-right)) 10px max(var(--gutter), env(safe-area-inset-left));
+  font: 700 0.72rem/1 var(--font-body);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, var(--panel), transparent);
+}
+.ticker .rec { color: var(--magenta); }
+.ticker .rec::before { content: ""; display: inline-block; width: 0.55em; height: 0.55em; margin-right: 0.7em; border-radius: 50%; background: var(--magenta); box-shadow: 0 0 10px var(--magenta); animation: blink 1.6s steps(2, jump-none) infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+.title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px var(--gutter);
+  min-width: 0;
+}
+
+/* ---- the wordmark: CSS text only ------------------------------------------------------- */
+.wordmark {
+  position: relative;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font: 900 italic clamp(3.6rem, 21vw, 9.5rem) / 0.86 var(--font-display);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  transform: skewX(-7deg);
+}
+.wordmark .wm-xross {
+  color: var(--ink);
+  text-shadow: 0 0 22px var(--cyan-glow), 0 0 2px var(--cyan), 4px 4px 0 var(--cyan);
+}
+.wordmark .wm-forge {
+  font-size: 0.8em;
+  letter-spacing: 0.06em;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--magenta);
+  text-shadow: 0 0 24px var(--magenta-glow);
+  paint-order: stroke fill;
+}
+/* the cross behind the wordmark: two bars, one per accent */
+.wordmark::before,
+.wordmark::after {
+  content: "";
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  top: 50%;
+  height: 3px;
+  z-index: -1;
+  transform-origin: 50% 50%;
+}
+.wordmark::before { background: linear-gradient(90deg, transparent, var(--cyan), transparent); transform: rotate(17deg); box-shadow: 0 0 14px var(--cyan); }
+.wordmark::after  { background: linear-gradient(90deg, transparent, var(--magenta), transparent); transform: rotate(-17deg); box-shadow: 0 0 14px var(--magenta); }
+
+.subtitle {
+  margin: 22px 0 0;
+  max-width: 60ch;
+  text-wrap: balance;
+  font-size: clamp(0.9rem, 3.6vw, 1.1rem);
+  letter-spacing: 0.04em;
+  color: var(--dim);
+}
+
+/* ---- the Play button: disabled until the engine exists --------------------------------- */
+.play-wrap { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.play {
+  appearance: none;
+  min-width: 11rem;
+  min-height: 48px;
+  padding: 12px 40px;
+  font: 800 1.15rem/1 var(--font-display);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-indent: 0.3em;
+  color: var(--bg-0);
+  background: var(--cyan);
+  border: 0;
+  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+  cursor: pointer;
+  box-shadow: 0 0 28px var(--cyan-glow);
+}
+.play:hover:not(:disabled) { background: var(--magenta); }
+.play:focus-visible { outline: 3px solid var(--magenta); outline-offset: 4px; }
+.play:disabled {
+  cursor: not-allowed;
+  color: var(--dim);
+  background: transparent;
+  /* clip-path would cut a border, so the outline is an inset shadow instead */
+  background-color: var(--panel);
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+.why {
+  margin: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.why::before { content: "LOCKED"; margin-right: 0.9em; padding: 2px 7px; font-weight: 800; letter-spacing: 0.16em; color: var(--magenta); border: 1px solid var(--magenta); }
+
+/* ---- lower third ----------------------------------------------------------------------- */
+.lower-third {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  margin: 0 var(--gutter) max(var(--gutter), env(safe-area-inset-bottom));
+  max-width: 100%;
+}
+.lower-third > * { display: flex; align-items: center; padding: 10px 18px; min-width: 0; }
+.lt-tag {
+  font: 900 1rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  color: var(--bg-0);
+  background: var(--magenta);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  padding-right: 28px;
+}
+.lt-main {
+  font: 800 0.95rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--panel);
+  border-top: 2px solid var(--cyan);
+  margin-left: -10px;
+  padding-left: 22px;
+}
+.lt-sub {
+  flex: 1 1 14rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  background: linear-gradient(90deg, var(--panel), transparent);
+  border-top: 2px solid var(--line);
+}
+.lt-sub { gap: 0.6em; }
+.lt-sub .ok { color: var(--cyan); font-weight: 700; }
+
+/* ---- small screens ---------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .lower-third > * { padding: 9px 14px; }
+  .lt-sub { flex-basis: 100%; border-top-width: 1px; }
+  .lt-main { flex: 1 1 0; }
+  .wordmark .wm-forge { -webkit-text-stroke-width: 1.5px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .title { padding-block: 8px; }
+  .wordmark { font-size: clamp(2.6rem, 14vh, 6rem); }
+  .subtitle { margin-top: 10px; }
+  .play-wrap { margin-top: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .floor, .ticker .rec::before { animation: none; }
+}

@@ -1,0 +1,28 @@
+# The gate on every push and pull request. Same command as the deploy job, no deploy.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      # No submodules: a private knowledge base is mounted at docs/knowledge-base and must
+      # never be fetched by CI.
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Gate
+        run: node tools/gate.mjs
