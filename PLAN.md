@@ -5,19 +5,31 @@ Status is rewritten (not appended) every session.
 
 ---
 
-## Status — 2026-10-29 (M0 in progress)
+## Status — 2026-10-29 (M0 done)
 
-Kickoff done: the owner answered two question batches (decisions D1-D8) and chose lorecannae
-as the scaffold (D3). M0 is landing on branch `claude/m0-scaffold`: `.gitignore` alone first,
-the privacy hook, the shared KB as a submodule, the official card fetcher, the two starter
-decklists, the rules primer, rights research and the scaffold port. Nothing is playable yet;
-the first playable is M3.
+**M0 landed on branch `claude/m0-scaffold`; gate green in a clean worktree.** Nothing is playable
+yet (first playable is M3); `index.html` shows the broadcast-style title with Play locked.
 
-Sources found on day one (details in `docs/sources.md`): the official **Playing Manual**
-(2026-04-09, 19 pages, image-only), Quick Manual, floor rules v1.0.4, play sheet, the
-limited/BAN page, and an **official JSON card API** (808 cards with structured stats, effect
-text, awakened stats; 136 FAQ entries; restriction list). Starter quantities came from the
-official product page images.
+- **Sources** (`docs/sources.md`): the official Playing Manual (2026-04-09, image-only, read page
+  by page), Quick Manual, floor rules v1.0.4, play sheet, limited/BAN page, and an **official
+  JSON card API** (808 cards with stats, printed effect text and awakened stats), **136 official
+  FAQ entries** and the restriction list. `node tools/fetch-cards.mjs` refreshes them.
+- **Starter lists** (`data/decklists.json`) from the official product-page images; each sums to
+  50 and the x2 cards are exactly the API's ACE cards.
+- **Rules** (`docs/rules.md`, every line cited), **52 rulings** (`docs/rulings.md`: 3 open after
+  the FAQ check — R-007, R-018, R-035), **card-text grammar** (`docs/card-text-grammar.md`).
+- **Rights** (`docs/rights.md`, `NOTICE.md`, `docs/takedown.md`): no published policy bans our
+  posture; VSPO! allows AI illustrations with a `#AIイラスト` label, no official art as input and
+  no sexual content; CR, Neo-Porte and REJECT are silent on AI and on games; the project stands on
+  tolerance, stated once in rights.md.
+- **Scaffold** from lorecannae (`docs/PORTING.md` maps every donor file), privacy hook, the KB as
+  a submodule, CI and a Pages workflow.
+
+**Next: M1 card data** for ST01/ST02 (schema, `build-cards`, English text in our own words, the
+affiliation tag table, `defects.js`, empty-but-failing art and sound manifests).
+
+**Owner, when convenient** (defaults are in force meanwhile): D11 (push milestones straight to
+`main`?), D15 (starter Energy Charger), and turning on Settings → Pages → Source: GitHub Actions.
 
 ---
 
@@ -39,12 +51,13 @@ official product page images.
 | D12 | Authority order for rules: Playing Manual (2026-04-09) > official FAQ (API) > floor rules > Quick Manual > third-party summaries. Ambiguities go in `docs/rulings.md` as `RULING`s, never block. | default | 2026-10-29 |
 | D13 | Leader affiliation tags (VSPO!, CR, …) are not a field in the card API; for the first slice they come from a hand table sourced from the product pages and card faces (`docs/sources.md`). | default | 2026-10-29 |
 | D14 | Credit **evilgouki**. Never the owner's real name or a home path in any file (pre-commit hook). | owner (standing) | 2026-10-29 |
+| D15 | **Starters play as sold.** エナジーチャージャー (ST01-020 / ST02-020) has been banned since 2026-07-13 (limited/BAN page), but it is one of exactly five tactics in both starters, so the sanctioned list cannot be built from a starter alone. The first slice plays the starters as printed in the box; a "tournament legal" deck check arrives with the deck picker. | default | 2026-10-29 |
 
 ## Milestones
 
 | | Milestone | Where | State |
 |---|---|---|---|
-| M0 | Hygiene, sources, rights, rules primer, scaffold, porting map | cloud | in progress |
+| M0 | Hygiene, sources, rights, rules primer, scaffold, porting map | cloud | **done** 2026-10-29 |
 | M1 | Card data for ST01/ST02: schema, `build-cards`, English text, validation, `defects.js`, art and sound manifests declared empty and failing | cloud | — |
 | M2 | Engine: pure `apply`/`legalActions`, rounds and best of 3, PP, attacks and boosts, down/awaken, tactics, deck-out, quick match; one test per card; auditor; sim with invariants; independent rules review | cloud | — |
 | M3 | **Playable on Pages vs a random bot**: board, public-zone viewers, hover zoom, prompts that say what they decide, animation director, how to play | cloud | — |
