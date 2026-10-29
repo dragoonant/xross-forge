@@ -1,0 +1,5 @@
+{
+  "note": "Every paid ElevenLabs call (PLAN D5/D6). Appended by tools/gen-audio.mjs; credits are the measured change of the account balance when the key could read it (measured: true), else the estimate. estUSD = credits / 1000 * usdPer1kCredits. Audio may spend at most $17 of the $25 total.",
+  "usdPer1kCredits": 0.2,
+  "entries": []
+}
