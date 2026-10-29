@@ -1,0 +1,160 @@
+{
+ "_source": {
+  "lists": "Official product page https://xross-stars.com/product/st01-02 , card-list images uploads/1788415266-404340-GxFhXbGbUAEToi6 (ST01) and uploads/1788415333-395518-GxFhXxdbUAErgHW (ST02), read by eye 2026-10-29. The images carry the note that they show development images and the product may differ slightly; card text comes from the API, not the images.",
+  "cards": "https://api.xross-stars.com/v1/cards fetched 2026-10-29"
+ },
+ "decks": [
+  {
+   "id": "ST01",
+   "name": "初の栄冠 (First Glory)",
+   "leaders": [
+    "ST01-001",
+    "ST01-002",
+    "ST01-003",
+    "ST01-004"
+   ],
+   "main": [
+    [
+     "ST01-005",
+     2
+    ],
+    [
+     "ST01-016",
+     2
+    ],
+    [
+     "ST01-015",
+     4
+    ],
+    [
+     "ST01-008",
+     4
+    ],
+    [
+     "ST01-011",
+     4
+    ],
+    [
+     "ST01-012",
+     4
+    ],
+    [
+     "ST01-006",
+     4
+    ],
+    [
+     "ST01-007",
+     4
+    ],
+    [
+     "ST01-009",
+     4
+    ],
+    [
+     "ST01-010",
+     2
+    ],
+    [
+     "ST01-013",
+     4
+    ],
+    [
+     "ST01-014",
+     4
+    ],
+    [
+     "ST01-017",
+     4
+    ],
+    [
+     "ST01-018",
+     4
+    ]
+   ],
+   "tactics": [
+    "ST01-019",
+    "ST01-020",
+    "ST01-021",
+    "ST01-022",
+    "ST01-023"
+   ],
+   "ppTicket": "ST01-024"
+  },
+  {
+   "id": "ST02",
+   "name": "魔王降臨 (Advent of the Demon King)",
+   "leaders": [
+    "ST02-001",
+    "ST02-002",
+    "ST02-003",
+    "ST02-004"
+   ],
+   "main": [
+    [
+     "ST02-009",
+     2
+    ],
+    [
+     "ST02-012",
+     2
+    ],
+    [
+     "ST02-014",
+     4
+    ],
+    [
+     "ST02-008",
+     4
+    ],
+    [
+     "ST02-017",
+     4
+    ],
+    [
+     "ST02-018",
+     4
+    ],
+    [
+     "ST02-005",
+     4
+    ],
+    [
+     "ST02-006",
+     4
+    ],
+    [
+     "ST02-007",
+     4
+    ],
+    [
+     "ST02-010",
+     4
+    ],
+    [
+     "ST02-011",
+     4
+    ],
+    [
+     "ST02-013",
+     4
+    ],
+    [
+     "ST02-015",
+     4
+    ],
+    [
+     "ST02-016",
+     2
+    ]
+   ],
+   "tactics": [
+    "ST02-019",
+    "ST02-020",
+    "ST02-021",
+    "ST02-022",
+    "ST02-023"
+   ],
+   "ppTicket": "ST02-024"
+  }
+ ]
+}
