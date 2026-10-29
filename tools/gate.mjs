@@ -10,6 +10,9 @@ const steps = [
   ['tests', ['tools/test.mjs', '--quiet']],
   ['check-pages', ['tools/check-pages.mjs']],
   ['stamp-assets', ['tools/stamp-assets.mjs', '--check']],
+  ['build-cards --check', ['tools/build-cards.mjs', '--check']],
+  ['validate-data', ['tools/validate-data.mjs']],
+  ['validate-data --selftest', ['tools/validate-data.mjs', '--selftest']],
 ];
 // Ported from lorecannae but not runnable yet. Turn each on by moving it into `steps`.
 const pending = [
@@ -25,7 +28,7 @@ for (const [name, args] of steps) {
   const out = ((r.stdout || '') + (r.stderr || '') + (r.error ? 'ERROR ' + r.error.message : '')).trim().split('\n');
   const isBad = (l) => l.startsWith('FAIL') || l.includes('ERROR');
   // The step's own summary line, minus the "name: " prefix it prints itself.
-  const last = (out.filter((l) => !isBad(l)).slice(-1)[0] || '').replace(/^[a-z-]+: /, '');
+  const last = (out.filter((l) => !isBad(l)).slice(-1)[0] || '').replace(/^[a-z -]+: /, '');
   console.log(`${r.status === 0 ? 'ok  ' : 'FAIL'} ${name}: ${last}`);
   if (r.status !== 0) { bad++; for (const l of out.filter(isBad).slice(0, 8)) console.log('     ' + l); }
 }

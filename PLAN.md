@@ -15,7 +15,8 @@ yet (first playable is M3); `index.html` shows the broadcast-style title with Pl
   JSON card API** (808 cards with stats, printed effect text and awakened stats), **136 official
   FAQ entries** and the restriction list. `node tools/fetch-cards.mjs` refreshes them.
 - **Starter lists** (`data/decklists.json`) from the official product-page images; each sums to
-  50 and the x2 cards are exactly the API's ACE cards.
+  50; all four ACE cards are x2, and two non-ACE cards (ST01-010, ST02-016) are x2 too,
+  confirmed on full-size crops.
 - **Rules** (`docs/rules.md`, every line cited), **52 rulings** (`docs/rulings.md`: 3 open after
   the FAQ check — R-007, R-018, R-035), **card-text grammar** (`docs/card-text-grammar.md`).
 - **Rights** (`docs/rights.md`, `NOTICE.md`, `docs/takedown.md`): no published policy bans our
@@ -52,6 +53,7 @@ affiliation tag table, `defects.js`, empty-but-failing art and sound manifests).
 | D13 | Leader affiliation tags (VSPO!, CR, …) are not a field in the card API; for the first slice they come from a hand table sourced from the product pages and card faces (`docs/sources.md`). | default | 2026-10-29 |
 | D14 | Credit **evilgouki**. Never the owner's real name or a home path in any file (pre-commit hook). | owner (standing) | 2026-10-29 |
 | D15 | **Starters play as sold.** エナジーチャージャー (ST01-020 / ST02-020) has been banned since 2026-07-13 (limited/BAN page), but it is one of exactly five tactics in both starters, so the sanctioned list cannot be built from a starter alone. The first slice plays the starters as printed in the box; a "tournament legal" deck check arrives with the deck picker. | default | 2026-10-29 |
+| D16 | **The repo carries our English text, not the printed Japanese text.** `data/cards.js` holds card number, Japanese name (names are allowed, D2), an English name in our own words, type, colour, cost, ATK/HP, awakened ATK/HP, is_ace, tactics type, family id, product, and `text` = our English rendering in our own words (hand-written in `data/text-en.js`). The Japanese printed effect text stays in gitignored `docs/sources/`. Anything that needs the printed text (the printed-vs-compiled auditor, M2) reads `docs/sources/api/all-cards.json` locally and reports `pending (no docs/sources)` when it is absent, as in CI. | default | 2026-10-29 |
 
 ## Milestones
 
