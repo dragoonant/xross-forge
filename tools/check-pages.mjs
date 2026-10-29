@@ -4,7 +4,10 @@
 //  (2) every local script / stylesheet a page references exists, and every tests/*.js on disk
 //      is loaded by tests.html (a test file nobody loads is a test that never runs);
 //  (3) no external URL in any <script src> (the site is static and self-contained);
-//  (4) no silent fallbacks in js/ui (`if (!XS.x)` / `XS.x || {}`): a missing module throws.
+//  (4) no silent fallbacks in js/ui (`if (!XS.x)` / `XS.x || {}`): a missing module throws;
+//  (5) the AI (M4): index.html and tests.html carry the same <!-- ai --> block, js/ai/worker.js importScripts the engine block
+//      followed by the ai block in the same order (a worker that lacks a script is an AI that never loads), and no file under
+//      js/ai uses Math.random (decisions are seeded).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,6 +50,35 @@ if (fs.existsSync(uiDir)) for (const f of fs.readdirSync(uiDir)) {
   // substitutes {} for a missing module is not.
   const reads = code.replace(/(XS\.[A-Za-z_.]+)\s*=\s*\1\s*\|\|\s*\{\s*\}/g, '');
   if (/XS\.[A-Za-z_.]+\s*\|\|\s*\{\s*\}/.test(reads)) fails.push(`js/ui/${f}: silent fallback "XS.x || {}"`);
+}
+
+// ---- (5) the AI block and the worker's script list ----
+const aiBlock = (f) => {
+  const html = read(f);
+  if (!html.includes('<!-- ai -->') || !html.includes('<!-- /ai -->')) { fails.push(`${f}: no <!-- ai --> ... <!-- /ai --> block`); return []; }
+  return [...html.split('<!-- ai -->')[1].split('<!-- /ai -->')[0].matchAll(/<script src="([^"?]+)/g)].map((m) => m[1]);
+};
+const aiA = aiBlock('index.html'), aiB = aiBlock('tests.html');
+if (JSON.stringify(aiA) !== JSON.stringify(aiB)) fails.push(`ai script lists differ:\n  index: ${aiA.join(' ')}\n  tests: ${aiB.join(' ')}`);
+const workerFile = 'js/ai/worker.js';
+if (!fs.existsSync(path.join(ROOT, workerFile))) fails.push(`${workerFile} is missing`);
+else {
+  const w = read(workerFile);
+  const m = /const SCRIPTS = \[([\s\S]*?)\];/.exec(w);
+  if (m === null) fails.push(`${workerFile}: no "const SCRIPTS = [...]" list`);
+  else {
+    const listed = [...m[1].matchAll(/'([^']+)'/g)].map((x) => path.posix.normalize(path.posix.join('js/ai', x[1])));
+    const want = [...a, ...aiA];
+    if (JSON.stringify(listed) !== JSON.stringify(want)) fails.push(`${workerFile} imports differ from the pages' engine + ai blocks:\n  worker: ${listed.join(' ')}\n  pages:  ${want.join(' ')}`);
+    for (const u of listed) if (!fs.existsSync(path.join(ROOT, u))) fails.push(`${workerFile}: missing ${u}`);
+    if (!/importScripts\(\.\.\.SCRIPTS\.map\(\(u\) => u \+ self\.location\.search\)\)/.test(w)) fails.push(`${workerFile}: importScripts must repeat the worker URL's ?v= query`);
+  }
+}
+const aiDir = path.join(ROOT, 'js/ai');
+if (fs.existsSync(aiDir)) for (const f of fs.readdirSync(aiDir)) {
+  if (!f.endsWith('.js')) continue;
+  const code = fs.readFileSync(path.join(aiDir, f), 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+  if (/Math\.random/.test(code)) fails.push(`js/ai/${f}: Math.random (AI decisions are seeded; use XS.rngNext)`);
 }
 
 for (const f of fails) console.log('FAIL ' + f);

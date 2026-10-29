@@ -6,7 +6,7 @@
 <title>Xross Forge</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2304050c'/%3E%3Cpath d='M6 6l20 20' stroke='%2318e4ff' stroke-width='4'/%3E%3Cpath d='M26 6L6 26' stroke='%23ff2bd1' stroke-width='4'/%3E%3C/svg%3E">
 <meta name="theme-color" content="#04050c">
-<link rel="stylesheet" href="styles.css?v=a22823726f">
+<link rel="stylesheet" href="styles.css?v=6b56ae3789">
 </head>
 <body>
 <!-- Arena backdrop: pure CSS, no images. -->
@@ -25,6 +25,12 @@
         <label class="opt"><input type="radio" name="mode" value="full" checked><span class="opt-body"><b>Full match</b><i>Best of 3 rounds</i></span></label>
         <label class="opt"><input type="radio" name="mode" value="quick"><span class="opt-body"><b>Quick match</b><i>One round</i></span></label>
       </fieldset>
+      <fieldset class="opt-group" id="opt-tier">
+        <legend>Opponent <span class="legend-sub">(level)</span></legend>
+        <label class="opt" title="Plays one card at a time and sometimes misjudges."><input type="radio" name="tier" value="easy"><span class="opt-body"><b>Easy</b></span></label>
+        <label class="opt" title="Plans its whole turn before it plays a card."><input type="radio" name="tier" value="normal" checked><span class="opt-body"><b>Normal</b></span></label>
+        <label class="opt" title="Plans its turn, then plays out your reply to check it is safe."><input type="radio" name="tier" value="hard"><span class="opt-body"><b>Hard</b></span></label>
+      </fieldset>
       <fieldset class="opt-group" id="opt-deck">
         <legend>Your deck <span class="legend-sub">(the bot plays the other one)</span></legend>
         <label class="opt"><input type="radio" name="deck" value="ST01" checked><span class="opt-body"><b>ST01 First Glory</b><i>初の栄冠 · VSPO!</i></span></label>
@@ -36,6 +42,7 @@
     <div class="play-wrap">
       <button id="play" class="play" type="button">Play</button>
       <p id="play-why" class="why" role="note" hidden></p>
+      <p id="ai-status" class="ai-status" role="status" hidden></p>
       <button id="howto-open" class="btn ghost" type="button">How to play</button>
     </div>
     <p class="notice-line" id="notice-line"><span id="notice-text"></span> <button class="linkish" id="notice-open" type="button">Read the full notice</button></p>
@@ -124,6 +131,7 @@
 </div>
 <div id="zoom" aria-hidden="true"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="ai-error" role="alert" hidden></div>
 
 <!-- engine -->
 <script src="js/ns.js?v=d16e124dae"></script>
@@ -143,6 +151,13 @@
 <script src="js/engine/flow.js?v=5af106082c"></script>
 <script src="js/engine/api.js?v=45ab9532d9"></script>
 <!-- /engine -->
+<!-- ai: the opponent. js/ai/worker.js importScripts the engine block above plus this block (tools/check-pages.mjs keeps them equal). -->
+<!-- ai -->
+<script src="js/ai/determinize.js?v=0a4954de31"></script>
+<script src="js/ai/eval.js?v=9abe927716"></script>
+<script src="js/ai/policies.js?v=ed7f5483be"></script>
+<script src="js/ai/ai.js?v=3cd8e16f76"></script>
+<!-- /ai -->
 <!-- UI, in dependency order. Everything under js/ui/ is view layer. -->
 <script src="js/ui/core.js?v=8216344311"></script>
 <script src="js/ui/logtext.js?v=fec05a0333"></script>
@@ -153,8 +168,9 @@
 <script src="js/ui/prompt.js?v=9fded582d8"></script>
 <script src="js/ui/board.js?v=3e4b2495ef"></script>
 <script src="js/ui/bot-random.js?v=75e84f3887"></script>
-<script src="js/ui/game.js?v=42d14da037"></script>
-<script src="js/ui/title.js?v=f6c69029fe"></script>
+<script src="js/ui/bot-ai.js?v=fb0c3a1577"></script>
+<script src="js/ui/game.js?v=bc16ce96f9"></script>
+<script src="js/ui/title.js?v=aa9643813f"></script>
 <script src="js/ui/boot.js?v=0fb5c858c3"></script>
 </body>
 </html>

@@ -37,6 +37,13 @@
     return Math.random() < 0.5 ? 'ST01' : 'ST02';
   }
   const pickedMode = () => document.querySelector('input[name="mode"]:checked').value;
+  // ?tier=easy|normal|hard (tests and links) beats the radio group.
+  function pickedTier() {
+    const q = U.params().get('tier');
+    const v = q !== null ? q : document.querySelector('input[name="tier"]:checked').value;
+    if (XS.ai === undefined || XS.ai.TIERS[v] === undefined) throw new Error('title: unknown AI level "' + v + '"');
+    return v;
+  }
 
   function fill(id, rows) {
     const b = $(id);
@@ -54,10 +61,26 @@
     // Remember the last choice (a convenience; the default is already checked so Play is never greyed).
     const saved = U.store.get('title', null);
     if (saved !== null) {
-      for (const [name, val] of [['mode', saved.mode], ['deck', saved.deck]]) {
+      for (const [name, val] of [['mode', saved.mode], ['deck', saved.deck], ['tier', saved.tier]]) {
         const inp = document.querySelector(`input[name="${name}"][value="${val}"]`);
         if (inp !== null) inp.checked = true;
       }
+    }
+    // The AI opponent lives in a Web Worker. Start it now so a failure shows here, before a match, instead of as a bot that never moves.
+    if (U.params().get('bot') === 'random') $('lt-status').textContent = 'vs a random bot';
+    else {
+      if (U.aiClient === undefined) throw new Error('title: js/ui/bot-ai.js did not load');
+      $('lt-status').textContent = 'vs the AI';
+      const show = (st, err) => {
+        const note = $('ai-status'), why = $('play-why');
+        note.hidden = st !== 'loading';
+        note.textContent = 'Loading the opponent…';
+        why.hidden = st !== 'failed';
+        why.textContent = st === 'failed' ? 'The AI opponent did not load: ' + err : '';
+        $('play').disabled = st === 'failed';
+      };
+      U.aiClient.onChange(show);
+      U.aiClient.start().catch(() => { /* shown by the banner and the Play lock */ });
     }
     const nb = $('notice-body');
     nb.replaceChildren(el('p', 'ht-p', Ti.NOTICE_LINE));
@@ -75,11 +98,12 @@
     $('play').addEventListener('click', () => {
       const mode = pickedMode();
       const raw = document.querySelector('input[name="deck"]:checked').value;
-      U.store.set('title', { mode, deck: raw });
+      const tier = pickedTier();
+      U.store.set('title', { mode, deck: raw, tier: document.querySelector('input[name="tier"]:checked').value });
       const mine = pickedDeck();
       const other = mine === 'ST01' ? 'ST02' : 'ST01';
       const seedRaw = U.params().get('seed');
-      U.game.start({ decks: [mine, other], mode, spectate: false, seed: seedRaw === null ? undefined : Number(seedRaw) });
+      U.game.start({ decks: [mine, other], mode, spectate: false, tier, seed: seedRaw === null ? undefined : Number(seedRaw) });
     });
   };
 })();

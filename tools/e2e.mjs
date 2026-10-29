@@ -1,5 +1,5 @@
 // End-to-end checks of the first playable, in a real browser (Playwright, plain chromium.launch()).
-//   node tools/e2e.mjs [--only a|b|c|d] [--keep]
+//   node tools/e2e.mjs [--only a|b|c|d|e|f|g] [--keep]
 // (a) bot vs bot to the end screen, instant speed: full-match seeds 1..5 and quick-match seeds 1..2,
 //     zero console errors, zero page errors, zero UI diagnostics, and the saved trace replays.
 // (b) the human path by real clicks: Play, pick tactics, play an attack card choosing attacker and
@@ -50,9 +50,10 @@ process.on('exit', stopServer);
 process.on('SIGINT', () => { stopServer(); process.exit(130); });
 
 // ---- page helpers ----------------------------------------------------------------------------------
-async function open(browser, url, viewport) {
+async function open(browser, url, viewport, initScript) {
   const ctx = await browser.newContext({ viewport, acceptDownloads: true, hasTouch: viewport.width < 600 });
   const page = await ctx.newPage();
+  if (initScript !== undefined) await page.addInitScript(initScript);
   const errors = [];
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${m.text()}`); });
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
@@ -128,9 +129,11 @@ async function playCardByClicks(page, iid, pickIdx = 0) {
 
 // ---- (a) bot against bot ----------------------------------------------------------------------------
 async function testAutoplay(browser) {
-  const runs = [['full', 1], ['full', 2], ['full', 3], ['full', 4], ['full', 5], ['quick', 1], ['quick', 2]];
-  for (const [mode, seed] of runs) {
-    const { ctx, page, errors } = await open(browser, `${BASE}?autoplay=1&speed=instant&seed=${seed}&mode=${mode}`, { width: 1280, height: 800 });
+  // [mode, seed, extra query]: '&bot=ai' puts the AI (in its Web Worker) in both seats (M4); the others keep the random bot.
+  const runs = [['full', 1], ['full', 2], ['full', 3], ['full', 4], ['full', 5], ['quick', 1], ['quick', 2], ['full', 3, '&bot=ai'], ['quick', 4, '&bot=ai&tier=hard']];
+  for (const [mode, seed, extra = ''] of runs) {
+    const tag = extra === '' ? '' : ` (${extra.slice(1)})`;
+    const { ctx, page, errors } = await open(browser, `${BASE}?autoplay=1&speed=instant&seed=${seed}&mode=${mode}${extra}`, { width: 1280, height: 800 });
     let ended = true;
     try { await page.waitForSelector('#endscreen.open', { timeout: 90000 }); } catch (e) { ended = false; }
     const info = ended ? await page.evaluate(() => {
@@ -144,13 +147,92 @@ async function testAutoplay(browser) {
         head: document.querySelector('.end-head').textContent,
       };
     }) : null;
-    check(`autoplay ${mode} seed ${seed}: reaches the end screen`, ended, ended ? '' : 'timeout');
+    check(`autoplay ${mode} seed ${seed}${tag}: reaches the end screen`, ended, ended ? '' : 'timeout');
     if (info !== null) {
-      check(`autoplay ${mode} seed ${seed}: zero console/page errors`, errors.length === 0, errors.slice(0, 3).join(' | '));
-      check(`autoplay ${mode} seed ${seed}: no UI diagnostics`, info.diag.length === 0, info.diag.slice(0, 2).join(' | '));
-      check(`autoplay ${mode} seed ${seed}: XS.replay(init, actions) reproduces the result (${info.actions} actions, wins ${info.wins})`, info.replayOk);
-      check(`autoplay ${mode} seed ${seed}: bug report has init, actions, ua, date`, info.reportOk);
+      check(`autoplay ${mode} seed ${seed}${tag}: zero console/page errors`, errors.length === 0, errors.slice(0, 3).join(' | '));
+      check(`autoplay ${mode} seed ${seed}${tag}: no UI diagnostics`, info.diag.length === 0, info.diag.slice(0, 2).join(' | '));
+      check(`autoplay ${mode} seed ${seed}${tag}: XS.replay(init, actions) reproduces the result (${info.actions} actions, wins ${info.wins})`, info.replayOk);
+      check(`autoplay ${mode} seed ${seed}${tag}: bug report has init, actions, ua, date`, info.reportOk);
     }
+    await ctx.close();
+  }
+}
+
+// ---- (g) the AI opponent: selector, worker, and the failure path (M4) -------------------------------------------
+async function testAi(browser) {
+  {
+    const { ctx, page, errors } = await open(browser, `${BASE}?speed=instant&seed=11`, { width: 1280, height: 800 });
+    await page.waitForFunction(() => XS.ui.aiClient.status() === 'ready', null, { timeout: 15000 });
+    check('ai: the worker loads on the title screen and reports ready', true);
+    const tiers = await page.$$eval('input[name="tier"]', (ns) => ns.map((n) => [n.value, n.checked]));
+    check('title: a difficulty selector offers Easy / Normal / Hard with Normal pre-picked', JSON.stringify(tiers) === JSON.stringify([['easy', false], ['normal', true], ['hard', false]]), JSON.stringify(tiers));
+    await page.locator('input[name="tier"][value="hard"]').check({ force: true });
+    await page.click('#play');
+    await page.waitForSelector('#game:not([hidden])');
+    const dbgInfo = await page.evaluate(() => { const d = XS.ui.game.debug(); return { tier: d.opts.tier, bots: d.bots }; });
+    check('title: the picked level reaches the match and the bot is the AI at that level', dbgInfo.tier === 'hard' && dbgInfo.bots.join() === 'AI hard', JSON.stringify(dbgInfo));
+    // let the AI take its first turns: answer our own prompts until the bot has acted
+    let acted = false;
+    for (let i = 0; i < 40 && !acted; i++) {
+      if (await waitMyDecision(page)) break;
+      if (await answerPrompt(page)) { await page.waitForTimeout(50); continue; }
+      await press(page.locator('#endturn'));
+      await page.waitForTimeout(100);
+      acted = await page.evaluate(() => XS.ui.game.debug().live.log.some((e) => e.seat === 1 && e.type === 'play'));
+    }
+    check('ai: the Hard opponent answered through the worker (its turn started and the game went on)', acted);
+    check('ai: zero console/page errors with the AI in the worker', errors.length === 0, errors.slice(0, 3).join(' | '));
+    await ctx.close();
+  }
+  {
+    // The worker script is blocked: the page must SAY so, lock Play, and never fall back to a random bot.
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    await ctx.route('**/js/ai/worker.js*', (r) => r.abort());
+    const page = await ctx.newPage();
+    const errs = [];
+    page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+    await page.goto(`${BASE}?speed=instant`);
+    await page.waitForFunction(() => XS.ui.aiClient.status() === 'failed', null, { timeout: 15000 });
+    check('ai failure: the page shows an error banner naming the AI', await page.isVisible('#ai-error') && (await page.textContent('#ai-error')).includes('AI'));
+    check('ai failure: Play is locked and says why (no silent random bot)', await page.isDisabled('#play') && (await page.textContent('#play-why')).includes('did not load'));
+    await ctx.close();
+  }
+  {
+    // The watchdog: a worker whose final answer arrives 7 s late. After 5 s the page must act on the AI's best so far (a 'partial'
+    // message), never on a random move, and the late result must change nothing.
+    const { ctx, page, errors } = await open(browser, `${BASE}?autoplay=1&bot=ai&speed=instant&seed=5&mode=quick`, { width: 1280, height: 800 }, () => {
+      const Real = window.Worker;
+      window.__held = { partials: 0, held: 0, firstPartialAt: null, actionsAtPartial: null };
+      window.Worker = class extends Real {
+        constructor(u) {
+          super(u);
+          const seen = new Set();
+          Object.defineProperty(this, 'onmessage', {
+            set: (fn) => {
+              Real.prototype.__lookupSetter__('onmessage').call(this, (ev) => {
+                const m = ev.data;
+                if (m.type === 'partial') { seen.add(m.id); window.__held.partials++; if (window.__held.firstPartialAt === null) { window.__held.firstPartialAt = performance.now(); window.__held.actionsAtPartial = XS.ui.game.debug().live.actions.length; } }
+                if (m.type === 'result' && seen.has(m.id) && window.__held.held === 0) { window.__held.held++; setTimeout(() => fn(ev), 7000); return; }
+                fn(ev);
+              });
+            },
+            configurable: true,
+          });
+        }
+      };
+    });
+    await page.waitForFunction(() => window.__held.held === 1, null, { timeout: 60000 });
+    const t0 = await page.evaluate(() => window.__held.firstPartialAt);
+    const a0 = await page.evaluate(() => XS.ui.game.debug().live.actions.length);
+    await page.waitForTimeout(4000);
+    const a1 = await page.evaluate(() => XS.ui.game.debug().live.actions.length);
+    await page.waitForTimeout(2300);
+    const a2 = await page.evaluate(() => XS.ui.game.debug().live.actions.length);
+    const failed = await page.evaluate(() => XS.ui.aiClient.status());
+    void t0;
+    check('ai watchdog: nothing happens for the first 4 s while the answer is held back', a1 === a0, `${a0} -> ${a1}`);
+    check('ai watchdog: after 5 s the page plays the AI\'s best-so-far (the game moved on before the late result)', a2 > a1, `${a1} -> ${a2}`);
+    check('ai watchdog: no failure banner, no console errors', failed !== 'failed' && errors.length === 0, errors.slice(0, 2).join(' | '));
     await ctx.close();
   }
 }
@@ -630,6 +712,7 @@ async function testPlayback(browser) {
   const browser = await chromium.launch();
   try {
     if (only === null || only === 'a') await testAutoplay(browser);
+    if (only === null || only === 'g') await testAi(browser);
     if (only === null || only === 'b') { await testHumanPath(browser); await testHumanMatch(browser); }
     if (only === null || only === 'e') await testPrompts(browser);
     if (only === null || only === 'f') await testPhone(browser);

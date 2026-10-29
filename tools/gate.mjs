@@ -18,6 +18,7 @@ const steps = [
   ['audit-cards', ['tools/audit-cards.mjs']],                 // prints "pending (no docs/sources)" and passes when the gitignored dump is absent (CI)
   ['audit-cards --selftest', ['tools/audit-cards.mjs', '--selftest']],
   ['sim', ['tools/sim.mjs', '--games', '200', '--seed', '1']],
+  ['ai-bench --quick', ['tools/ai-bench.mjs', '--quick']],    // normal beats random >= 95% of decisive games in both seats, 0 fallbacks, 0 illegal actions (the full bench stays out of the gate)
 ];
 // Ported from lorecannae but not runnable yet. Turn each on by moving it into `steps`.
 const pending = [

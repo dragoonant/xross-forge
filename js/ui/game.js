@@ -21,10 +21,10 @@
 
   G.running = () => run !== null;
   // Test hook (e2e): the raw engine state and the presented snapshot. Not used by the UI itself.
-  G.debug = () => ({ live: run.live, presented: run.presented, pumping: run.pumping, diagnostics: U.diagnostics });
+  G.debug = () => ({ live: run.live, presented: run.presented, pumping: run.pumping, diagnostics: U.diagnostics, opts: run.opts, bots: Object.keys(run.bots).map((k) => run.bots[k].name) });
 
   // ---- start / stop ---------------------------------------------------------------------------
-  // opts: { decks:[id,id], mode, seed, spectate }
+  // opts: { decks:[id,id], mode, seed, spectate, tier }   tier: 'easy' | 'normal' | 'hard' (the AI's level; default normal)
   G.start = function (opts) {
     const seed = opts.seed === undefined ? (Math.floor(Math.random() * 1e9) + 1) : opts.seed;
     const init = { decks: opts.decks, seed, mode: opts.mode, first: 'random', names: opts.spectate ? ['Bot A', 'Bot B'] : ['You', 'Bot'] };
@@ -36,6 +36,19 @@
     begin({ decks: report.init.decks, mode: report.init.mode, seed: report.init.seed, spectate: false }, report.init, s, s.log.length);
   };
 
+  // Who plays the bot seats. The opponent is the AI (js/ai, in a Web Worker) unless the URL says ?bot=random (the e2e and the
+  // fuzz path). Bot-vs-bot autoplay (the e2e) keeps the random bot unless ?bot=ai. There is no fallback from one to the other.
+  function makeBots(opts, seed) {
+    const kind = U.params().get('bot');
+    if (kind !== null && kind !== 'ai' && kind !== 'random') throw new Error('game: ?bot= is "ai" or "random", got "' + kind + '"');
+    const useAi = kind === 'ai' || (kind === null && !opts.spectate);
+    const tier = opts.tier === undefined ? 'normal' : opts.tier;
+    if (useAi && XS.ai === undefined) throw new Error('game: js/ai did not load');
+    if (useAi && XS.ai.TIERS[tier] === undefined) throw new Error('game: unknown AI level "' + tier + '"');
+    const mk = (seat) => (useAi ? U.makeAiBot({ seat, tier, seed }) : U.makeRandomBot(seed, seat));
+    return opts.spectate ? { 0: mk(0), 1: mk(1) } : { 1: mk(1) };
+  }
+
   function begin(opts, init, s, cursor) {
     if (run !== null) G.stop();
     const seed = init.seed;
@@ -43,7 +56,7 @@
     run = {
       id: Math.random(), live: s, presented: { raw: s, view }, cursor, pumping: false, opts, init,
       spectate: !!opts.spectate, timer: null,
-      bots: opts.spectate ? { 0: U.makeRandomBot(seed, 0), 1: U.makeRandomBot(seed, 1) } : { 1: U.makeRandomBot(seed, 1) },
+      bots: makeBots(opts, seed),
     };
     st = U.targeting.fresh(); ps = U.prompt.fresh();
     endShown = false; drawerLen = -1;
@@ -81,12 +94,13 @@
   }
 
   // ---- apply funnel ---------------------------------------------------------------------------
-  function act(action) {
+  function act(action, bot) {
     if (run === null) return;
     let next;
     try { next = XS.apply(run.live, action); } catch (e) {
       if (e instanceof XS.Illegal) {
         U.diag('The engine rejected ' + JSON.stringify(action) + ': ' + e.message);
+        if (bot !== undefined && bot.think !== undefined) U.aiClient.fail('the AI answered with an action the engine rejected (' + e.message + ').');
         render();
         return;
       }
@@ -139,7 +153,11 @@
     const id = run.id;
     clearTimeout(run.timer);
     const think = U.ms(600);
-    let waited = 0;
+    // An AI bot answers asynchronously (a Web Worker): start the request now, so it thinks while the director plays and during the
+    // think beat. The bot then waits for the director to be idle AND the think beat AND its answer. Past 5 s without an answer the
+    // watchdog takes the AI's best so far; with none it reports the failure (never a random move).
+    const req = bot.think === undefined ? null : bot.think(s);
+    let waited = 0, aiWaited = 0;
     const go = () => {
       if (run === null || run.id !== id) return;
       if (U.anim.busy() || run.pumping) {
@@ -148,7 +166,20 @@
         run.timer = setTimeout(go, 50);
         return;
       }
-      act(bot.choose(run.live));
+      if (req === null) { act(bot.choose(run.live), bot); return; }
+      if (req.error !== null) { U.aiClient.fail(req.error); return; }
+      if (req.answer === null) {
+        aiWaited += 50;
+        if (aiWaited > 5000) {
+          if (req.partial === null) { U.aiClient.fail('no answer within 5 s and no partial result.'); return; }
+          U.aiClient.cancel(req);
+          act(req.partial, bot);
+          return;
+        }
+        run.timer = setTimeout(go, 50);
+        return;
+      }
+      act(req.answer, bot);
     };
     run.timer = setTimeout(go, run.spectate && U.rate() === 0 ? 0 : think);
   }
@@ -347,7 +378,7 @@
     $('viewer').addEventListener('click', (e) => { if (e.target === $('viewer')) $('viewer').classList.remove('open'); });
     $('end-rematch').addEventListener('click', () => {
       const o = run.opts;
-      G.start({ decks: o.decks, mode: o.mode, spectate: o.spectate });
+      G.start({ decks: o.decks, mode: o.mode, spectate: o.spectate, tier: o.tier });
     });
     $('end-title').addEventListener('click', () => G.stop());
     $('end-bug').addEventListener('click', () => saveBug('end of match'));
