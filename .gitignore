@@ -1,0 +1,28 @@
+# Secrets. Ignored in the first commit, before the first tool.
+tokens.txt
+tokens.txt.txt
+*.token
+*.token.*
+.hf_token
+.env
+.env.*
+
+# Raw research: official PDFs, API dumps, rendered manual pages, sandboxes.
+# Official material never enters the repo (docs/rights.md).
+docs/sources/
+scratch/
+
+# Art and audio masters/archives. The repo carries delivery encodes only.
+art/masters/
+art/archive/
+art/take*/
+audio/masters/
+*.psd
+
+# Generated outputs, traces, sweep sandboxes, OS junk.
+tools/out/
+traces/
+e2e-out/
+node_modules
+.DS_Store
+Thumbs.db
