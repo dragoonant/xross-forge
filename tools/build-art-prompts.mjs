@@ -64,21 +64,23 @@ function clauseFor(key, S, problems) {
   if (c.type === 'attack' || c.type === 'memoria') {
     const raw = IDENT.scenes[base];
     if (!raw) { problems.push(`${key}: no scene clause (a subject without one fails the build)`); return null; }
-    const deck = base.slice(0, 4);
     const ids = new Set();
-    const text = raw.replace(/\{(ST0\d-\d{3})(:head)?\}/g, (m, id, head) => {
+    const text = raw.replace(/\{([A-Z]{2}\d{2}-\d{3})(:head)?\}/g, (m, id, head) => {
       ids.add(id);
-      if (id.slice(0, 4) !== deck) problems.push(`${key}: scene uses leader ${id} from another deck`);
       return person(m, id, !!head);
     });
+    // Every leader in the scene must sit in ONE registered deck that plays this card (data/decks.js).
+    if (ids.size && !Object.values(S.DECKS).some((d) => d.main.some(([n]) => n === base) && [...ids].every((id) => d.leaders.includes(id)))) {
+      problems.push(`${key}: scene uses leaders ${[...ids].join(' + ')} that no registered deck plays together with this card (leader from another deck)`);
+    }
     if (ids.size < 1) problems.push(`${key}: scene names no leader of the deck`);
     if (ids.size > 2) problems.push(`${key}: scene names ${ids.size} leaders (at most two)`);
     return { text, anchor: ANCHOR.scene };
   }
   if (c.type === 'tactics' || c.type === 'pp') {
-    const raw = IDENT.objects[base.slice(5)];
+    const raw = IDENT.objects[base] || IDENT.objects[base.slice(5)];
     const accent = IDENT.accents[base.slice(0, 4)];
-    if (!raw) { problems.push(`${key}: no object clause for suffix ${base.slice(5)}`); return null; }
+    if (!raw) { problems.push(`${key}: no object clause for ${base} (full number or suffix ${base.slice(5)})`); return null; }
     if (!accent) { problems.push(`${key}: no accent colours for deck ${base.slice(0, 4)}`); return null; }
     return { text: raw.replace(/\{accent\}/g, accent), anchor: ANCHOR.object };
   }
@@ -95,7 +97,7 @@ export function composeAll(style, uiStyle, S) {
   // Identity entries that name no deck card, scenes/objects for nothing: the table must match the data.
   for (const id of Object.keys(S.IDENT.leaders)) if (!S.CARDS[id] || S.CARDS[id].type !== 'leader') problems.push(`identity leader ${id} is not a leader in data/cards.js`);
   for (const id of Object.keys(S.IDENT.scenes)) if (!S.CARDS[id] || !['attack', 'memoria'].includes(S.CARDS[id].type)) problems.push(`scene ${id} is not an attack/memoria card in data/cards.js`);
-  for (const k of Object.keys(S.IDENT.objects)) if (!Object.keys(S.CARDS).some((n) => n.endsWith('-' + k) && ['tactics', 'pp'].includes(S.CARDS[n].type))) problems.push(`object clause ${k} matches no tactics/pp card`);
+  for (const k of Object.keys(S.IDENT.objects)) if (!Object.keys(S.CARDS).some((n) => (n === k || n.endsWith('-' + k)) && ['tactics', 'pp'].includes(S.CARDS[n].type))) problems.push(`object clause ${k} matches no tactics/pp card`);
   for (const key of keys) {
     const cl = clauseFor(key, S, problems);
     if (!cl) continue;
@@ -170,6 +172,8 @@ function selftest() {
   mutate('photoreal word', (T) => { T.IDENT.leaders['ST02-001'].head += ', a realistic face'; }, 'photoreal');
   mutate('three people', (T) => { T.IDENT.scenes['ST01-005'] = '{ST01-001:head}, {ST01-002:head} and {ST01-003:head} pose together'; }, 'at most two');
   mutate('leader of the other deck', (T) => { T.IDENT.scenes['ST01-006'] = '{ST02-001:head} runs through a doorway'; }, 'another deck');
+  mutate('competitive scene with a leader of a deck that does not play the card', (T) => { T.IDENT.scenes['BP03-017'] = '{BP03-004:head} and {ST01-001:head} charge side by side'; }, 'another deck');
+  mutate('competitive scene with a leader outside every deck of the card', (T) => { T.IDENT.scenes['BP04-066'] = '{BP04-013:head} harvests a field'; }, 'another deck');
   mutate('overlong prompt', (T) => { T.IDENT.scenes['ST01-007'] += ' ' + 'wide '.repeat(200); }, 'over 900');
   mutate('count above two', (T) => { T.IDENT.scenes['ST01-008'] += ', five lanterns'; }, 'count above two');
   mutate('Japanese text', (T) => { T.IDENT.objects['020'] += ' クロス'; }, 'Japanese');

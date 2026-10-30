@@ -35,6 +35,20 @@ if (fs.existsSync(P.manifest)) {
 
 const faces = faceKeys(M.CARDS), uis = uiKeys(M.IDENT), known = new Set([...faces, ...uis]);
 
+// data/art-pending.js (written by tools/build-cards.mjs): faces known to have no art yet. They are allowed to be
+// missing from the manifest (the UI shows its labelled placeholder); a face in neither list is a hole.
+let PENDING = new Set();
+{
+  const pf = path.join(P.root, 'data', 'art-pending.js');
+  if (fs.existsSync(pf)) {
+    const ctx = { console }; ctx.globalThis = ctx; ctx.window = ctx; vm.createContext(ctx);
+    try { vm.runInContext(fs.readFileSync(pf, 'utf8'), ctx, { filename: 'art-pending.js' }); } catch (e) { fail(`art-pending.js does not run: ${e.message}`); }
+    const list = ctx.XS && ctx.XS.ART_PENDING;
+    if (!Array.isArray(list)) fail('art-pending.js does not define XS.ART_PENDING');
+    else for (const k of list) { if (!known.has(k)) fail(`${k}: art-pending entry for a key that is not an emitted face`); else PENDING.add(k); }
+  }
+}
+
 // git-tracked set (real root only; a scratch root is not in git)
 let tracked = null;
 if (!P.scratch) {
@@ -79,7 +93,8 @@ for (const dir of ['cards', 'ui']) {
 }
 // ---- coverage ---------------------------------------------------------------------------------------
 const missFaces = faces.filter((k) => !ART[k]), missUi = uis.filter((k) => !ART[k]);
-if (requireArt) for (const k of [...missFaces, ...missUi]) fail(`${k}: no art entry (REQUIRE_ART is true)`);
+const holes = missFaces.filter((k) => !PENDING.has(k)), pendingFaces = missFaces.filter((k) => PENDING.has(k));
+if (requireArt) for (const k of [...holes, ...missUi]) fail(`${k}: no art entry and not listed in data/art-pending.js (REQUIRE_ART is true)`);
 
 // ---- ledger -----------------------------------------------------------------------------------------
 let spent = 0;
@@ -92,6 +107,7 @@ if (soft.length > 6) console.log(`warn check-art: ... and ${soft.length - 6} mor
 const have = faces.length - missFaces.length, haveUi = uis.length - missUi.length;
 const cover = `${have} of ${faces.length} faces, ${haveUi} of ${uis.length} ui plates; ledger $${spent.toFixed(2)} of $${BUDGET_USD}`;
 if (bad.length) console.log(`check-art: ${bad.length} problem(s) (${cover})`);
+else if (pendingFaces.length && !holes.length && !missUi.length) console.log(`check-art: ok (${cover}; pending art: ${pendingFaces.length} faces listed in data/art-pending.js${soft.length ? '; ' + soft.length + ' warning(s)' : ''})`);
 else if (missFaces.length || missUi.length) console.log(`check-art: pending (${missFaces.length} of ${faces.length} faces, ${missUi.length} of ${uis.length} ui plates not yet in the manifest; REQUIRE_ART is ${requireArt}; ledger $${spent.toFixed(2)} of $${BUDGET_USD})`);
 else console.log(`check-art: ok (${cover}${soft.length ? '; ' + soft.length + ' warning(s)' : ''})`);
 process.exit(bad.length ? 1 : 0);
