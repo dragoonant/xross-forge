@@ -64,6 +64,20 @@
     }
     for (const k of ['chooseFirst/first', 'pickTactics/tactics', 'choose/target', 'choose/heal', 'choose/discard', 'choose/handLimit', 'choose/order']) ok(seen[k], 'never met ' + k);
   });
+  test('AI policies: a hidden-pool question with nothing to pick (min 0, no options) is answered with the empty pick', () => {
+    let s = fx.start({ decks: [fx.deckWith('ST01', [['BP04-028', 4], ['BP04-020', 4]]), 'ST02'] });
+    s = fx.arrange(s, (h) => { h.hand(0, ['BP04-028']); h.top(0, ['ST01-011', 'ST01-012', 'ST01-013']); });   // no cost-0 card among the three
+    s = fx.attack(s, 'BP04-028', 0, 0);
+    eq([s.pending.purpose, s.pending.min, s.pending.options], ['look', 0, []]);
+    const a = AI.answerPending(XS.view(s, 0), { W, stats: {} });
+    eq(a, { type: 'choose', ids: [] });
+    eq(XS.apply(s, a).pending, null, 'legal');
+    let t = fx.start({ decks: [fx.deckWith('ST02', [['BP04-066', 4]]), 'ST01'] });
+    t = fx.arrange(t, (h) => { h.hand(0, ['BP04-066', 'ST02-007', 'ST02-011']); h.top(0, ['ST02-011']); });
+    t = fx.play(t, 'BP04-066'); t = fx.choose(t, ['L10']); t = fx.attack(t, 'ST02-007', 0, 0);
+    eq([t.pending.purpose, t.pending.min, t.pending.options], ['freePlay', 0, []]);
+    eq(AI.answerPending(XS.view(t, 0), { W, stats: {} }), { type: 'choose', ids: [] });
+  });
   test('AI policies: attackPair picks the pair that downs a leader (a hand-built pending: the starters have no On Play attack card)', () => {
     let s = fx.arrange(base(), (h, t) => { h.hand(0, ['ST01-009']); h.damage(1, 2, XS.leaderStats(t, 1, 2).hp - 20); });
     const v = XS.view(s, 0);
@@ -170,6 +184,17 @@
         if (seat === s.active) eq(JSON.stringify(XS.legalActions(w)), JSON.stringify(XS.legalActions(s)), 'the legal actions of the real state');
       }
     }
+  });
+  test('AI determinize: public turn state (先導者の証 +30 ATK, used once-per-turn equipment) survives the rebuild', () => {
+    const decks = [fx.deckWith('ST01', [['BP01-071', 2]]), 'ST02'];
+    let s = fx.arrange(fx.start({ decks }), (h) => h.hand(0, ['BP01-071', 'ST01-011']));
+    s = fx.play(s, 'BP01-071');
+    eq(s.pending, null);
+    const w = AI.determinize(XS.view(s, 0), 3, { decks });
+    eq(XS.leaderStats(w, 0, 0).atk, 60, 'the buff is in the rebuilt world');
+    eq(JSON.stringify(w.players[0].buffs), JSON.stringify(s.players[0].buffs));
+    eq(w.once, s.once); eq(w.lastLoser, s.lastLoser);
+    eq(w.players[0].discards, s.players[0].discards);
   });
   test('AI determinize: every card of both decklists is in exactly one place in a sampled world', () => {
     const s = randomUntil(6, (x) => inMain(x) && x.turn >= 9);

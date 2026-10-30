@@ -315,10 +315,11 @@
     const seats = op.who === 'opp' ? [1 - x.seat] : op.who === 'both' ? [x.seat, 1 - x.seat] : [x.seat];
     const n = op.n;
     const picks = [];
+    const empty = [];   // seats with nothing to discard: their fizzle is logged after the last ask (the op re-runs from the top after every answer)
     for (const seat of seats) {
       const hand = x.s.players[seat].hand;
       const cands = op.filter === undefined ? hand.slice() : hand.filter((i) => XS.matchesFilter(cardIdOf(x, i), op.filter, srcCardId(x)));
-      if (cands.length === 0) { if (op.optional) x.f.did = false; fizzle(x, 'emptyHand'); continue; }
+      if (cands.length === 0) { if (op.optional) x.f.did = false; empty.push(seat); continue; }
       let ids;
       if (op.random === true) {
         if (op.optional) {
@@ -332,6 +333,7 @@
       else ids = D.ask(x.s, x.f, { kind: 'choose', seat, purpose: 'discard', options: cands, min: n, max: n, prompt: `Choose ${plural(n, 'card')} from your hand to discard.` });
       picks.push([seat, ids]);
     }
+    for (let k = 0; k < empty.length; k++) fizzle(x, 'emptyHand');   // every ask is behind us: log once per empty hand (D.ask contract, review fix 2026-10-30)
     let did = false;
     for (const [seat, ids] of picks) {
       let chosen = ids;
@@ -378,9 +380,10 @@
     const lk = x.f.look;
     if (lk === undefined) throw new Error('lookPick without a look');
     const cands = lk.iids.filter((i) => XS.matchesFilter(cardIdOf(x, i), op.filter, srcCardId(x)));
-    if (cands.length === 0) { x.f.did = false; return; }
+    // The looked-at cards are hidden from the other seat (FAQ #95), so whether one of them qualifies must not show: the owner is ALWAYS asked,
+    // with possibly empty options and min 0, and max is the printed number, never capped by the candidates (review fix 2026-10-30, rule 7).
     const min = Math.min(op.min === undefined ? 1 : op.min, cands.length);
-    const max = Math.min(op.max === undefined ? 1 : op.max, cands.length);
+    const max = op.max === undefined ? 1 : op.max;
     const ids = D.ask(x.s, x.f, { kind: 'choose', seat: x.seat, purpose: 'look', to: op.to, options: cands, min, max, limit: op.limit,
       prompt: op.to === 'trash' ? 'You may put the card you looked at into the trash.' : `Choose ${max === 1 ? 'a card' : `up to ${max} cards`} from the cards you looked at to add to your hand.` });
     if (ids.length > 0) {
@@ -409,9 +412,10 @@
   OPS.freePlay = function (x, op) {
     const pool = op.from === 'look' ? (x.f.look === undefined ? [] : x.f.look.iids) : x.s.players[x.seat].hand;
     const cands = pool.filter((i) => XS.matchesFilter(cardIdOf(x, i), op.filter, srcCardId(x)));
-    if (cands.length === 0) { x.f.did = false; return; }
+    // The hand and the looked-at cards are hidden from the other seat (FAQ #4, #95): always ask, with possibly empty options and min 0, so the
+    // question (and its min/max) is the same whether or not a card qualifies. max is the printed number, never capped by the candidates (rule 7).
     const min = Math.min(op.min === undefined ? 0 : op.min, cands.length);
-    const ids = D.ask(x.s, x.f, { kind: 'choose', seat: x.seat, purpose: 'freePlay', options: cands, min, max: Math.min(op.max, cands.length), limit: op.limit,
+    const ids = D.ask(x.s, x.f, { kind: 'choose', seat: x.seat, purpose: 'freePlay', options: cands, min, max: op.max, limit: op.limit,
       prompt: `Choose ${op.max === 1 ? 'a card' : `up to ${op.max} cards`} to play without paying its cost${op.max > 1 ? ', in the order you want them played' : ''}.` });
     for (const i of ids) {
       D.freePlace(x.s, x.seat, i);

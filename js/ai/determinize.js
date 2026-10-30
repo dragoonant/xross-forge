@@ -118,6 +118,7 @@
         pp: { total: V.pp.total, untapped: V.pp.untapped },
         leaders: V.leaders.map((L) => ({ iid: L.iid, cardId: L.cardId, slot: L.slot, damage: L.damage, down: L.down, awakened: L.awakened, equipment: L.equipment.slice() })),
         boosts: V.boosts.slice(), tacPlayed: V.tacPlayed,
+        sideways: V.sideways.slice(), buffs: V.buffs.map((b) => Object.assign({}, b)), discards: V.discards,   // public turn state (docs/ENGINE-API.md)
       };
     });
     return {
@@ -127,6 +128,7 @@
       result: null, winner: null, losing: [],
       players, cards: Object.freeze(cards), pending: null, atk: null, atkSeq: 0, stack: [],
       log: [], seq: view.seq, _via: null,
+      freeQ: [], once: Object.assign({}, view.once), lastLoser: view.lastLoser,
       init: null, actions: [],
     };
   };

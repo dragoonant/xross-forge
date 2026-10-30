@@ -139,6 +139,7 @@
       },
       // Cards looked at on a deck: take the best into the hand (as many as allowed), or decline the optional trash of the top card.
       look(v, pend, ctx) {
+        if (pend.options.length === 0) return { type: 'choose', ids: [] };   // a hidden pool is always asked, also when nothing qualifies (FAQ #95): the empty pick
         if (pend.to === 'trash') return { type: 'choose', ids: pend.options.slice(0, pend.min) };
         const hand = v.players[pend.seat].hand;
         const ranked = pend.options.slice().sort((a, b) => AI.keepValue(v, pend.seat, v.cards[b].id, hand) - AI.keepValue(v, pend.seat, v.cards[a].id, hand));
@@ -155,6 +156,7 @@
       may(v, pend, ctx) { return { type: 'choose', ids: v.players[pend.seat].hand.length >= 3 ? pend.options.slice(0, 1) : [] }; },
       // Cards to play for free, in play order: memoria first (their boost must be armed before an attack card starts), the strongest first.
       freePlay(v, pend, ctx) {
+        if (pend.options.length === 0) return { type: 'choose', ids: [] };   // asked with nothing to play (FAQ #4, #95): the empty pick
         const hand = v.players[pend.seat].hand;
         const rank = (i) => (v.cards[i].kind === 'memoria' ? 1000 : 0) + AI.keepValue(v, pend.seat, v.cards[i].id, hand);
         const ranked = pend.options.slice().sort((a, b) => rank(b) - rank(a));

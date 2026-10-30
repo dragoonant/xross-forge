@@ -335,6 +335,13 @@
           eq(PM.decline.label, 'Decline', 'may: explicit no');
           ok(PM.confirm.enabled === true, 'may: both answers are open at once');
           ok(legal.some((a) => sameAction(a, PM.confirm.action)) && legal.some((a) => sameAction(a, PM.decline.action)), 'may: both answers are legal actions');
+        } else if (p.options.length === 0) {
+          // a hidden pool is asked about even when nothing qualifies: one explicit Continue that answers with the empty pick (never auto-answered)
+          eq(p.min, 0, p.purpose + ': an empty question is declinable');
+          eq(PM.variant, 'nothing'); eq(PM.decline, null, p.purpose + ': no separate decline, Continue is the answer');
+          eq(PM.confirm.label, 'Continue'); eq(PM.confirm.enabled, true);
+          ok(legal.some((a) => sameAction(a, PM.confirm.action)) && PM.confirm.action.ids.length === 0, p.purpose + ': Continue is the legal empty pick');
+          seen.empty = true;
         } else {
           eq(PM.confirm.enabled, false, p.purpose + ': nothing is picked for the player (no auto-pick, ' + p.options.length + ' candidates)');
           eq(PM.decline === null, p.min > 0, p.purpose + ': a decline exists exactly when min is 0');
@@ -358,6 +365,19 @@
     }, [1, 2]);
     ok(finished >= 10, 'at least ten competitive games ran to the end (' + finished + ')');
     for (const k of ['look', 'reveal', 'may', 'freePlay']) ok(seen[k], 'the games reached a "' + k + '" decision');
+    ok(seen.empty, 'the games reached a hidden-pool question with nothing to pick');
+  });
+
+  test('ui prompt: a hidden-pool question with no options reads "No card can be played for free - Continue" and Continue answers with the empty pick', () => {
+    for (const [purpose, extra, text] of [['freePlay', {}, 'No card can be played for free'], ['look', { to: 'hand' }, 'No card you looked at can be taken'], ['look', { to: 'trash' }, 'No card you looked at can be trashed']]) {
+      const p = pend(Object.assign({ kind: 'choose', purpose, options: [], min: 0, max: 1, prompt: 'Choose a card to play without paying its cost.' }, extra));
+      const PM = U.prompt.model(fakeS(p), U.prompt.fresh());
+      eq(PM.hint, text + ' \u2014 Continue');
+      eq([PM.confirm.label, PM.confirm.enabled, PM.confirm.action, PM.decline], ['Continue', true, { type: 'choose', ids: [] }, null]);
+    }
+    // a normal question with options is untouched
+    const q = U.prompt.model(fakeS(pend({ kind: 'choose', purpose: 'reveal', options: ['c1'], min: 0, max: 1 })), U.prompt.fresh());
+    eq([q.variant, q.confirm.enabled, q.decline.label], [undefined, false, 'Reveal none']);
   });
 
   test('ui log: every entry of the competitive-deck games reads as a sentence for both seats and plans into steps (booster log types included)', () => {
@@ -395,6 +415,7 @@
       for (const o of p.options) ok(mine.shown.some((x) => x.iid === o), 'every candidate is among the looked-at cards');
       eq(mine.n, theirs.n, 'both seats know the count');
       if (!mine.revealed) { eq(theirs.hidden, true, 'not revealed: the other seat has a count only'); eq(theirs.shown.length, 0, 'and names no card'); }
+      if (p.options.length === 0) return;   // nothing to pick: the "Continue" prompt (below) has no notes
       const PM = U.prompt.model(snapAs(s, p.seat), U.prompt.fresh());
       ok(PM.notes.some((n) => /hand|trash/.test(n)) && PM.notes.some((n) => /^The rest /.test(n)), 'says where the pick and the rest go: ' + PM.notes.join(' | '));
       eq(U.prompt.oppHint(snapAs(s, 1 - p.seat), p), mine.revealed ? U.prompt.oppHint(snapAs(s, 1 - p.seat), p) : 'Opponent is looking at ' + U.plural(mine.n, 'card') + '.', 'the other seat reads "Opponent is looking at N cards."');
@@ -427,7 +448,7 @@
     const want = { may: false, freePlay: false, revive: false };
     eachComp((s) => {
       const p = s.pending;
-      if (!(p.purpose in want)) return;
+      if (!(p.purpose in want) || p.options.length === 0) return;
       const S = snapAs(s, p.seat);
       const PM = U.prompt.model(S, U.prompt.fresh());
       if (p.purpose === 'may') ok(PM.hint.includes(p.prompt), 'the hint carries the engine sentence');

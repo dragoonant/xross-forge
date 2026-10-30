@@ -82,6 +82,36 @@
     return out;
   }
 
+  // Splits of `total` in steps of `unit` over the options, for a random bot: everything on one leader, the even split, then (review fix 2026-10-30)
+  // either EVERY split in units when there are at most DIST_ALL of them, or an even-stride sample of the full lexicographic list, uneven ones
+  // included (Drain Rod 30+10, FAQ #64). Deterministic; `apply` accepts any valid split, the UI and the AI build their own.
+  const DIST_ALL = 48, DIST_SAMPLE = 24, DIST_MAX_ENUM = 5000;
+  function distributeActions(p) {
+    const keys = p.options, n = keys.length, units = p.total / p.unit;
+    const out = [], seen = new Set();
+    const add = (parts) => {
+      const alloc = {};
+      parts.forEach((u, k) => { if (u > 0) alloc[keys[k]] = u * p.unit; });
+      const key = JSON.stringify(alloc);
+      if (!seen.has(key)) { seen.add(key); out.push({ type: 'distribute', alloc }); }
+    };
+    keys.forEach((_, i) => add(keys.map((__, k) => (k === i ? units : 0))));
+    if (n > 1 && Number.isInteger(units)) add(keys.map((_, k) => Math.floor(units / n) + (k < units % n ? 1 : 0)));
+    if (n < 2 || !Number.isInteger(units)) return out;
+    let count = 1;   // C(units + n - 1, n - 1) splits
+    for (let i = 1; i < n; i++) count = (count * (units + i)) / i;
+    if (count > DIST_MAX_ENUM) return out;
+    const all = [];
+    const rec = (k, left, parts) => {
+      if (k === n - 1) { all.push(parts.concat(left)); return; }
+      for (let u = left; u >= 0; u--) rec(k + 1, left - u, parts.concat(u));   // the first leader gets the most first
+    };
+    rec(0, units, []);
+    if (all.length <= DIST_ALL) all.forEach(add);
+    else for (let i = 0; i < DIST_SAMPLE; i++) add(all[Math.floor((i * all.length) / DIST_SAMPLE)]);
+    return out;
+  }
+
   function pendingActions(s) {
     const p = s.pending;
     switch (p.kind) {
@@ -97,17 +127,7 @@
         for (const attacker of p.attackers) for (const target of p.targets) out.push({ type: 'attack', attacker, target });
         return out;
       }
-      case 'distribute': {
-        // A sample: everything on one leader, and an even split by units where it divides.
-        const out = p.options.map((i) => ({ type: 'distribute', alloc: { [i]: p.total } }));
-        const units = p.total / p.unit;
-        if (p.options.length > 1 && Number.isInteger(units)) {
-          const alloc = {};
-          p.options.forEach((i, k) => { alloc[i] = (Math.floor(units / p.options.length) + (k < units % p.options.length ? 1 : 0)) * p.unit; });
-          out.push({ type: 'distribute', alloc });
-        }
-        return out;
-      }
+      case 'distribute': return distributeActions(p);
       default: throw new Error('unknown pending kind ' + p.kind);
     }
   }
@@ -285,6 +305,9 @@
         boosts: P.boosts.slice(),
         sideways,
         tacPlayed: P.tacPlayed,
+        // public turn state that ATK / cost / condition numbers read (XS.leaderStats, XS.costParts, XS.cond): face-up effects, no card ids
+        buffs: P.buffs === undefined ? [] : P.buffs.map((b) => Object.assign({}, b)),
+        discards: P.discards === undefined ? 0 : P.discards,
         counts: { deck: P.deck.length, hand: P.hand.length, trash: P.trash.length, tdeck: P.tdeck.length, tarea: P.tarea.length },
       };
     });
@@ -309,6 +332,8 @@
       first: s.first, active: s.active, turn: s.turn, roundTurn: s.roundTurn, roundLoser: s.roundLoser,
       result: s.result === null ? null : { winner: s.result.winner, losers: s.result.losers.slice(), reason: s.result.reason }, winner: s.winner,
       players, cards: vis, pending,
+      once: s.once === undefined ? {} : Object.assign({}, s.once),   // equipment-granted once-per-turn effects used up, by '<equipment iid>|<n>' -> turn (the equipment is face up)
+      lastLoser: s.lastLoser === undefined ? null : s.lastLoser,
       atk: s.atk === null ? null : Object.assign({}, s.atk),
       log, seq: s.seq,
     };

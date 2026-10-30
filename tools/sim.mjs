@@ -132,7 +132,7 @@ function leakTest(s, views, sts) {
     const v = views[seat];
     const bad = leakIds(s, seat, v, sts[seat]);
     if (bad.length) fail(`leak: ${bad[0]} visible to seat ${seat}`);
-    for (const k of ['rng', 'seed', 'stack', 'init', 'actions', 'losing', 'freeQ', 'once']) if (k in v) fail(`leak: view carries ${k}`);
+    for (const k of ['rng', 'seed', 'stack', 'init', 'actions', 'losing', 'freeQ']) if (k in v) fail(`leak: view carries ${k}`);
     // face-down trash is unviewable even to the owner (rules.md §4)
     s.players.forEach((P, p) => v.players[p].trash.forEach((e, i) => {
       const real = s.cards[P.trash[i]];
