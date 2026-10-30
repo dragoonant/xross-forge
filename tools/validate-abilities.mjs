@@ -35,7 +35,7 @@ function checkCond(no, cond, timing, err) {
 
 // One effect's ops. `seen` tracks what earlier ops of the same group provide (a look window, revealed cards, an optional action).
 function checkOps(no, c, timing, ops, err, registered, inGrant) {
-  const seen = { look: false, reveal: false, optional: false };
+  const seen = { look: false, reveal: false, optional: false, heal: false };
   for (const op of ops) {
     if (op.unimplemented !== undefined) {
       if (registered.has(no)) err(no, `unimplemented op in a registered deck: ${op.unimplemented}`);
@@ -58,6 +58,8 @@ function checkOps(no, c, timing, ops, err, registered, inGrant) {
     if (op.op === 'discard' && op.of === 'revealed' && !seen.reveal) err(no, 'discard of revealed needs an earlier reveal');
     if (op.op === 'discard' && op.of !== 'revealed' && typeof op.n !== 'number') err(no, 'discard needs a number n');
     if (op.op === 'atkBuff' && !['turn', 'round'].includes(op.until)) err(no, 'atkBuff until turn or round');
+    if (op.op === 'damage' && op.n && op.n.healed && !seen.heal) err(no, 'value healed needs an earlier heal or healTotal in the same effect');
+    if (op.op === 'heal' || op.op === 'healTotal') seen.heal = true;
     if (op.op === 'look') seen.look = true;
     if (op.op === 'reveal') seen.reveal = true;
     if (op.optional === true || op.op === 'reveal' || op.op === 'freePlay' || op.op === 'lookPick') seen.optional = true;
@@ -71,7 +73,7 @@ function checkOps(no, c, timing, ops, err, registered, inGrant) {
       if (!(k === 1 || k === 'all' || k === 'attacker' || (Number.isInteger(k) && k >= 2 && op.to.upTo === true))) err(no, `${op.op}: target count must be 1, 'all', 'attacker' or N with upTo`);
       if (op.to.other && timing !== 'afterAttack' && timing !== 'attack') err(no, `${op.op}: "other" only makes sense inside an attack`);
     }
-    const valOk = (v) => typeof v === 'number' || (v && typeof v === 'object' && (v.perOwnTag || v.perPlay || v.playCostSum || v.perRevealed || v.revealedCost));
+    const valOk = (v) => typeof v === 'number' || (v && typeof v === 'object' && (v.perOwnTag || v.perPlay || v.playCostSum || v.perRevealed || v.revealedCost || v.healed));
     for (const k of ['n']) if (op[k] !== undefined && !valOk(op[k])) err(no, `${op.op}: bad ${k}`);
   }
 }
@@ -118,6 +120,7 @@ if (process.argv.includes('--selftest')) {
     ['a static marker in an onPlay effect', (a) => { a['ST01-014'].effects.push({ timing: 'onPlay', ops: [{ op: 'echo' }] }); }],
     ['equipment stats given twice (CARDS.equip and statMod)', (a) => { a['ST01-023'].effects.push({ timing: 'static', ops: [{ op: 'statMod', stat: 'hp', n: 30 }] }); }],
     ['a count of 2 without upTo', (a) => { a['ST01-007'].effects[1].ops[0].to.count = 2; }],
+    ['value healed without an earlier heal', (a) => { a['ST01-007'].effects[1].ops[0].n = { healed: true }; }],
     ['freePlay without a source', (a) => { a['ST01-007'].effects[1].ops.push({ op: 'freePlay', max: 1 }); }],
   ];
   let bad = 0;

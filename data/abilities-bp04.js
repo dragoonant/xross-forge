@@ -19,8 +19,8 @@
     'BP04-024': { effects: [{ timing: 'attack', ops: [                                           // オーバードライブ (FAQ #108, #124)
       { op: 'reveal', n: 2, optional: true },                                                    // 自分の手札のカードを最大2枚公開する (0枚でもよい, FAQ #51)
       { op: 'discard', of: 'revealed' },                                                         // それらのカードを捨てる
-      { op: 'dmgPlus', n: { perRevealed: { type: 'attack', per: 1, each: 30 } } },                       // 捨てたアタックカード1枚につき、ダメージ+30 (`per: 1` is the printed 1枚につき unit; the engine counts per card, `each` is the amount)
-      { op: 'draw', n: { perRevealed: { type: 'memoria', per: 1, each: 2 } } },                          // 捨てたメモリアカード1枚につき、カードを2枚引く
+      { op: 'dmgPlus', n: { perRevealed: { type: 'attack', each: 30 } } },                                // 捨てたアタックカード1枚につき、ダメージ+30 (the engine counts per card; `each` is the amount)
+      { op: 'draw', n: { perRevealed: { type: 'memoria', each: 2 } } },                          // 捨てたメモリアカード1枚につき、カードを2枚引く
     ] }] },
     'BP04-028': { effects: [K.plainAttack, K.after(                                              // シンクロトリニティ (FAQ #119)
       { op: 'look', n: 3 },                                                                      // 自分のデッキの上から3枚を見る

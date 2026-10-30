@@ -9,7 +9,9 @@ const GAMES = +arg('games', 200), SEED = +arg('seed', 1), CAP = +arg('cap', 6000
 const VERBOSE = process.argv.includes('--verbose');
 
 const XS = loadPage('tests.html').XS;
-const DECKS = ['ST01', 'ST02'];
+const ALL_DECKS = Object.keys(XS.DECKS);                                               // all registered decks: the two starters and the competitive ones
+const STARTERS = ALL_DECKS.filter((id) => XS.DECKS[id].format === 'starter');
+const deckGames = Object.fromEntries(ALL_DECKS.map((id) => [id, 0]));                // games each registered deck took part in (either seat, thin or not)
 
 // Own tiny PRNG for the policy (the engine's RNG lives in the state).
 let pr = SEED * 2654435761 >>> 0 || 1;
@@ -70,38 +72,65 @@ function invariants(s) {
 const PUBLIC_LOG = new Set(['start', 'rps', 'chooseFirst', 'roundStart', 'tacticsPlace', 'turnStart', 'turnEnd', 'ppRecover', 'ppSpend', 'play', 'tacticsPlay',
   'equip', 'boost', 'attack', 'damage', 'heal', 'down', 'awaken', 'ability', 'trash', 'reshuffle', 'tacticsBurn', 'roundEnd', 'matchEnd', 'fizzle',
   'overkill', 'echo', 'freePlay', 'revive']);
-const idsIn = (v, out) => {
-  if (typeof v === 'string') { if (/^[cL]\d+$/.test(v)) out.add(v); }
-  else if (Array.isArray(v)) v.forEach((x) => idsIn(x, out));
-  else if (v && typeof v === 'object') Object.values(v).forEach((x) => idsIn(x, out));
+// A card or leader instance id: 'c' or 'L' then digits (no regex: this runs on every string of every view).
+const isIid = (t) => {
+  const c = t.charCodeAt(0);
+  if ((c !== 99 && c !== 76) || t.length < 2) return false;
+  for (let i = 1; i < t.length; i++) { const d = t.charCodeAt(i); if (d < 48 || d > 57) return false; }
+  return true;
 };
-function leakIds(s, seat, v, known) {
+const idsIn = (v, out) => {
+  if (typeof v === 'string') { if (isIid(v)) out.add(v); }
+  else if (Array.isArray(v)) for (const x of v) idsIn(x, out);
+  else if (v && typeof v === 'object') for (const k in v) idsIn(v[k], out);
+};
+// Per seat and game: `known` = every id the viewer was ever shown; `logIds` = every id that ever appeared in the viewer's (redacted) log;
+// `cursor` = how many log entries were already absorbed. The log is append-only and its redaction is a pure function of (entry, seat), so
+// each entry is scanned once, when it first appears, instead of re-serialising the whole log at every check; an id that appears in the log is
+// compared against the hidden cards at EVERY later check (so an entry that leaks a card which is only later hidden is still caught).
+const newSeatState = () => ({ known: new Set(), logIds: new Set(), cursor: 0, redacted: [] });
+const isPublicEntry = (seat, e) => e.seat === seat || PUBLIC_LOG.has(e.type) || (e.data && e.data.revealed === true);
+// Absorb the view of one seat after a step: the cards shown, and the log entries added since the last absorb (also: redacted entries carry no ids for the other seat).
+function absorb(seat, v, st) {
+  for (const k in v.cards) st.known.add(k);
+  for (let i = st.cursor; i < v.log.length; i++) {
+    const e = v.log[i];
+    if (isPublicEntry(seat, e)) idsIn(e.data, st.known);
+    idsIn(e, st.logIds);
+    if (e.seat !== seat && (e.type === 'draw' || e.type === 'tacticsPick' || e.type === 'discard' || (e.type === 'look' && e.data.revealed !== true)) && (e.data.iid !== undefined || e.data.iids !== undefined || e.data.cardId !== undefined || e.data.cardIds !== undefined)) st.redacted.push(`log entry ${e.type} carries card ids`);   // reported by the next leak check
+  }
+  st.cursor = v.log.length;
+}
+// `st` is the seat's state (already absorbed this view); the view without its log is scanned in full, the log through st.logIds.
+function leakIds(s, seat, v, st) {
   const me = s.players[seat], op = s.players[1 - seat];
-  for (const k of Object.keys(v.cards)) known.add(k);
-  for (const e of v.log) if (e.seat === seat || PUBLIC_LOG.has(e.type) || (e.data && e.data.revealed === true)) idsIn(e.data, known);
+  for (const k in v.cards) st.known.add(k);
+  absorb(seat, v, st);
   const hidden = new Set([...op.hand, ...op.deck, ...op.tdeck, ...op.tarea.filter((i) => !s.cards[i].ticket), ...me.deck]);
-  const found = [];
+  const found = st.redacted.slice();
   const { log, ...rest } = v;
-  const sets = [new Set(), new Set()];
-  idsIn(rest, sets[0]);
-  idsIn(log, sets[1]);
-  for (const [k, set] of sets.entries()) for (const id of set) if (hidden.has(id) && !known.has(id)) found.push(`${id} in the ${k === 0 ? 'view' : 'log'}`);
+  const inView = new Set();
+  idsIn(rest, inView);
+  for (const id of hidden) {
+    if (st.known.has(id)) continue;
+    if (inView.has(id)) found.push(`${id} in the view`);
+    if (st.logIds.has(id)) found.push(`${id} in the log`);
+  }
   return found;
 }
 
 // Every step: what each seat is shown now becomes knowledge (a card played in the open and shuffled back later is still known).
-function observe(s, known) {
-  for (const seat of [0, 1]) {
-    const v = XS.view(s, seat);
-    for (const k of Object.keys(v.cards)) known[seat].add(k);
-    for (const e of v.log) if (e.seat === seat || PUBLIC_LOG.has(e.type) || (e.data && e.data.revealed === true)) idsIn(e.data, known[seat]);
-  }
+// Returns the two views, which the leak test of the same state reuses.
+function observe(s, sts) {
+  const views = [XS.view(s, 0), XS.view(s, 1)];
+  for (const seat of [0, 1]) absorb(seat, views[seat], sts[seat]);
+  return views;
 }
 
-function leakTest(s, known) {
+function leakTest(s, views, sts) {
   for (const seat of [0, 1]) {
-    const v = XS.view(s, seat);
-    const bad = leakIds(s, seat, v, known[seat]);
+    const v = views[seat];
+    const bad = leakIds(s, seat, v, sts[seat]);
     if (bad.length) fail(`leak: ${bad[0]} visible to seat ${seat}`);
     for (const k of ['rng', 'seed', 'stack', 'init', 'actions', 'losing', 'freeQ', 'once']) if (k in v) fail(`leak: view carries ${k}`);
     // face-down trash is unviewable even to the owner (rules.md §4)
@@ -109,10 +138,6 @@ function leakTest(s, known) {
       const real = s.cards[P.trash[i]];
       if (real.kind !== 'tactics' && e.hidden !== true) fail('face-down trash visible in view');
     }));
-    // redacted log entries carry no ids for the other seat
-    for (const e of v.log) {
-      if (e.seat !== seat && (e.type === 'draw' || e.type === 'tacticsPick' || e.type === 'discard' || (e.type === 'look' && e.data.revealed !== true)) && (e.data.iid !== undefined || e.data.iids !== undefined || e.data.cardId !== undefined || e.data.cardIds !== undefined)) fail(`log leak in ${e.type}`);
-    }
     if (s.pending && s.pending.seat !== seat && (s.pending.kind === 'pickTactics' || ['discard', 'handLimit', 'look', 'reveal', 'freePlay'].includes(s.pending.purpose)) && v.pending.options.length) fail('pending options leak');
   }
 }
@@ -124,11 +149,12 @@ if (process.argv.includes('--selftest')) {
   while (t.pending) t = XS.apply(t, XS.legalActions(t)[0]);
   const op = t.players[1];
   const planted = op.deck[0], inHand = op.hand[0];
-  const fresh = () => [new Set(), new Set()];
+  const fresh = () => [newSeatState(), newSeatState()];
   const cases = [
     ['clean view', (v) => {}, 0],
     ['opponent deck id in a log entry of the opponent', (v) => { v.log = v.log.concat([{ seq: 99, seat: 1, type: 'look', data: { phase: 'see', iids: [planted], revealed: false } }]); }, 1],
     ['opponent hand id in the view', (v) => { v.players[1].hand[0] = inHand; }, 1],
+    ['opponent draw entry carrying a card number (redaction only)', (v) => { v.log = v.log.concat([{ seq: 99, seat: 1, type: 'draw', data: { cardId: 'ST01-001', cause: 'effect' } }]); }, 1],
     ['a revealed id in the log is fine', (v) => { v.log = v.log.concat([{ seq: 99, seat: 1, type: 'look', data: { phase: 'reveal', iids: [planted], revealed: true } }]); }, 0],
     ['own seat log entries may carry own ids', (v) => { v.log = v.log.concat([{ seq: 99, seat: 0, type: 'look', data: { phase: 'see', iids: [t.players[0].deck[0]], revealed: false } }]); }, 0],
   ];
@@ -153,7 +179,10 @@ const t0 = Date.now();
 
 for (let g = 0; g < GAMES; g++) {
   const mode = g % 4 === 3 ? 'quick' : 'full';
-  let decks = [DECKS[Math.floor(rnd() * 2)], DECKS[Math.floor(rnd() * 2)]];
+  // odd games draw both decks at random from ALL registered decks (the competitive ones included); even games stay on the two starters
+  const pool = g % 2 === 1 ? ALL_DECKS : STARTERS;
+  let decks = [pool[Math.floor(rnd() * pool.length)], pool[Math.floor(rnd() * pool.length)]];
+  for (const id of decks) deckGames[id]++;
   // every 5th game uses 12-card decks so the deck-out procedure, the tactics burn and the tactics-deck loss are exercised constantly
   const thin = g % 5 === 4;
   if (thin) decks = decks.map((id) => ({ leaders: XS.DECKS[id].leaders, main: XS.DECKS[id].main.slice(0, 6).map(([c]) => [c, 2]), tactics: XS.DECKS[id].tactics, ppTicket: XS.DECKS[id].ppTicket, name: id + ' (12 cards)' }));
@@ -164,11 +193,11 @@ for (let g = 0; g < GAMES; g++) {
     s = XS.newGame(init);
     invariants(s);
     let actedThisTurn = 0, turnSeen = s.turn;
-    const known = [new Set(), new Set()];
-    observe(s, known);
+    const sts = [newSeatState(), newSeatState()];
+    let views = observe(s, sts);
     while (!XS.isTerminal(s) && steps < CAP) {
       const L = invariants(s);
-      if (steps % LEAK === 0) { leakTest(s, known); stats.leakChecks++; }
+      if (steps % LEAK === 0) { leakTest(s, views, sts); stats.leakChecks++; }
       const a = L[Math.floor(rnd() * L.length)];
       if (s.pending) stats.pendingKinds[s.pending.kind] = (stats.pendingKinds[s.pending.kind] || 0) + 1;
       const before = steps % 40 === 0 ? JSON.stringify(s) : null;
@@ -192,12 +221,12 @@ for (let g = 0; g < GAMES; g++) {
       }
       if (a.type === 'endTurn') { stats.endTurns++; if (actedThisTurn === 0) stats.emptyTurns++; actedThisTurn = 0; } else if (a.type === 'play') actedThisTurn++;
       s = next;
-      observe(s, known);
+      views = observe(s, sts);
       steps++;
       stats.steps++;
     }
     invariants(s);
-    leakTest(s, known);
+    leakTest(s, views, sts);
     if (!XS.isTerminal(s)) { stats.capped++; failures.push(`game ${g}: capped at ${CAP} steps`); }
     else {
       stats.decisive++;
@@ -221,12 +250,14 @@ for (let g = 0; g < GAMES; g++) {
   }
   stats.games++;
 }
+if (GAMES >= 100) for (const id of ALL_DECKS) if (deckGames[id] === 0) { stats.errors++; failures.push(`deck ${id} never played in ${GAMES} games`); }
 stats.ms = Date.now() - t0;
 for (const f of failures.slice(0, 8)) console.log('FAIL ' + f);
 const per = (n) => (n / Math.max(1, stats.games)).toFixed(2);
 const gps = (stats.games / Math.max(0.001, stats.ms / 1000)).toFixed(1);
 console.log(`  decisive ${stats.decisive} reasons ${JSON.stringify(stats.reasons)} modes ${JSON.stringify(stats.modes)} wins seat0/seat1 ${stats.wins.join('/')} final-round histogram ${JSON.stringify(stats.roundHist)}`);
 console.log(`  per game: steps ${per(stats.steps)}, rounds ${per(stats.rounds)}, awakenings ${per(stats.awakenings)}, attacks ${per(stats.attacks)}, downs ${per(stats.downs)}, plays ${per(stats.plays)}, tactics played ${per(stats.tacticsPlayed)}, tactics picked ${per(stats.picks)}, reshuffles ${per(stats.reshuffles)}, tactics burned ${per(stats.burns)}, fizzles ${per(stats.fizzles)}; empty turns ${(100 * stats.emptyTurns / Math.max(1, stats.endTurns)).toFixed(0)}%`);
+console.log(`  games per registered deck (${ALL_DECKS.length} decks; odd games draw from all, even games from the starters): ${ALL_DECKS.map((id) => id + ' ' + deckGames[id]).join(', ')}`);
 console.log(`  pending decisions answered: ${JSON.stringify(stats.pendingKinds)}; purity checks ${stats.purityChecks}, replay checks ${stats.replays}`);
 console.log(`sim: ${stats.games} games, ${stats.errors} invariant failures, ${stats.capped} capped, ${stats.leakChecks} leak checks (0 leaks), ${gps} games/s`);
 process.exit(stats.errors || stats.capped ? 1 : 0);

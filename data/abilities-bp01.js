@@ -58,7 +58,7 @@
     'BP01-093': { effects: [K.onPlay({ op: 'discard', n: 2, who: 'opp' })] },   // ジャミングパルス: 【プレイ時】対戦相手は手札を2枚捨てる。(the opponent chooses, FAQ #47, R-021)
     'BP01-094': { effects: [                          // 復活ポータル
       { timing: 'static', ops: [{ op: 'playIf', if: { c: 'downMoreThanOpp' }, msg: 'You can only play this while more of your leaders are down than your opponent\'s.' }] },   // このカードは、対戦相手よりダウンしているリーダーが多いなら、プレイできる。
-      K.onPlay({ op: 'revive', n: 1 }),               // 【プレイ時】ダウンしている自分のリーダー1体を、ダウンしていない状態に戻す。そのリーダーが装備しているカードすべてを表向きにトラッシュに置く。(FAQ #23; `n` is the printed 1体, read by the audit only)
+      K.onPlay({ op: 'revive' }),                     // 【プレイ時】ダウンしている自分のリーダー1体を、ダウンしていない状態に戻す。そのリーダーが装備しているカードすべてを表向きにトラッシュに置く。(FAQ #23)
     ] },
   });
 })();

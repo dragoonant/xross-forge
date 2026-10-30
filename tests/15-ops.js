@@ -744,4 +744,19 @@
       eq(a.type, 'choose');
     });
   });
+
+  // ================= {healed: true} (FAQ #64) =================
+  test('value {healed:true} (FAQ #64): a heal op feeds the damage op with the counters it actually removed, summed over the effect group', () => {
+    fx.withCards([tac('T-HEAL', 0, 'consumption', onPlay({ op: 'heal', n: 40, to: ownOne }, { op: 'heal', n: 40, to: ownOne }, { op: 'damage', n: { healed: true }, to: oneOpp }))], () => {
+      let s = game([], ['T-HEAL'], { first: 1 });
+      s = fx.toTurnOf(s, 0);
+      s = fx.arrange(s, (h) => { h.damage(0, 0, 30); h.damage(0, 1, 50); });
+      s = fx.play(s, 'T-HEAL');
+      s = answer(s, ['L00']);   // 30 of 40 removed
+      s = answer(s, ['L01']);   // 40 of 40 removed
+      eq(find(s, 'heal').map((e) => e.data.amount), [30, 40]);
+      s = answer(s, ['L12']);
+      eq([L(s, 0, 0).damage, L(s, 0, 1).damage, L(s, 1, 2).damage], [0, 10, 70], 'damage = 30 + 40 actually healed');
+    });
+  });
 })();

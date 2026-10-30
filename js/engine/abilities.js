@@ -115,6 +115,8 @@
       if (v.playCostSum !== undefined) return playMatches(x, v.playCostSum).reduce((n, i) => n + (XS.CARDS[x.s.cards[i].id].cost || 0), 0);
       // "公開した/捨てた<type>カード1枚につき N" and "公開したカードのコストと同じ数".
       if (v.perRevealed !== undefined) return revealedOf(x).filter((i) => v.perRevealed.type === undefined || x.s.cards[i].kind === v.perRevealed.type).length * v.perRevealed.each;
+      // "このカードの効果で回復した数値と同じダメージ" (ドレインロッド): the counters the heals of this effect group actually removed (FAQ #64).
+      if (v.healed === true) return x.f !== undefined && x.f.healed !== undefined ? x.f.healed : 0;
       if (v.revealedCost === true) return revealedOf(x).reduce((n, i) => n + (XS.CARDS[x.s.cards[i].id].cost || 0), 0);
     }
     throw new Error('bad value ' + JSON.stringify(v));
@@ -277,7 +279,7 @@
     const c = candidates(x, op.to);
     if (c.length === 0) return fizzle(x, 'noTarget');
     const [t] = D.ask(x.s, x.f, { kind: 'choose', seat: x.seat, purpose: 'heal', options: c, min: 1, max: 1, prompt: `Choose one of your leaders to heal ${op.n}.` });
-    D.heal(x.s, t, op.n);
+    x.f.healed = (x.f.healed || 0) + D.heal(x.s, t, op.n);   // the amount actually removed (FAQ #64), read by {healed: true}
   };
 
   // 自分のリーダーを合計N回復する: the player splits N among their leaders in steps of `unit` (damage counters are 10s), R-057.
@@ -285,7 +287,9 @@
     const c = candidates(x, { side: 'own' });
     if (c.length === 0) return fizzle(x, 'noTarget');
     const alloc = D.ask(x.s, x.f, { kind: 'distribute', seat: x.seat, purpose: 'distribute', options: c, total: op.n, unit: op.unit, prompt: `Split ${op.n} healing among your leaders.` });
-    for (const i of c) if (alloc[i] > 0) D.heal(x.s, i, alloc[i]);
+    let healed = 0;
+    for (const i of c) if (alloc[i] > 0) healed += D.heal(x.s, i, alloc[i]);   // the sum of what was actually removed (FAQ #64)
+    x.f.healed = (x.f.healed || 0) + healed;
   };
 
   // カードをN枚引く. n may be a value ({playCostSum..}, {revealedCost}).

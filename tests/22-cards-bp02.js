@@ -258,9 +258,78 @@
   });
 
   // ============================== tactics ==============================
-  // ENGINE-GAP BP02-076 Drain Rod: the damage equals the amount ACTUALLY healed (FAQ #64: a leader with 30 damage heals 30, not 40),
-  // but healTotal reports no healed amount and there is no {healed} value. The entry is { unimplemented } and no behaviour test is
-  // possible until the op exists (see tools/out/abil-bp02.md).
+  // BP02-076 Drain Rod: heal 40 in total, then damage to 1 opposing leader equal to the amount ACTUALLY healed (FAQ #64).
+  const rod = (prep) => {
+    let s = fx.start({ decks: ['ST02', deck([], ['BP02-076'])], pick: [null, 'BP02-076'] });
+    s = fx.toTurnOf(s, 1);
+    return prep ? fx.arrange(s, prep) : s;
+  };
+  const rodHeals = (s) => find(s, 'heal').map((e) => e.data.amount);
+
+  test('BP02-076 Drain Rod [On Play]: healing 40 on a leader with 40 damage deals 40 to the chosen opposing leader (cost 0)', () => {
+    let s = rod((h) => h.damage(1, 0, 40));
+    eq(XS.costToPlay(s, fx.idOf(s, 1, 'BP02-076', ['tarea'])), 0);
+    s = fx.play(s, 'BP02-076');
+    eq(s.pending.kind, 'distribute'); eq([s.pending.total, s.pending.unit], [40, 10]);
+    s = XS.apply(s, { type: 'distribute', alloc: { L10: 40 } });
+    eq(L(s, 1, 0).damage, 0);
+    eq(rodHeals(s), [40]);
+    eq([s.pending.kind, s.pending.purpose, s.pending.seat], ['choose', 'target', 1]);
+    eq(s.pending.options, ['L00', 'L01', 'L02', 'L03']);
+    s = XS.apply(s, { type: 'choose', ids: ['L02'] });
+    eq(L(s, 0, 2).damage, 40);
+    eq(find(s, 'damage', (e) => e.data.kind === 'effect' && e.data.leader[1] === '0').map((e) => [e.data.leader, e.data.amount]), [['L02', 40]], 'one damage event on the chosen opposing leader');
+  });
+
+  test('BP02-076 Drain Rod: FAQ #64 - a leader with 30 damage heals 30 of the 40, so the damage is 30, not 40', () => {
+    let s = rod((h) => h.damage(1, 0, 30));
+    s = fx.play(s, 'BP02-076');
+    s = XS.apply(s, { type: 'distribute', alloc: { L10: 40 } });
+    eq(rodHeals(s), [30], 'the heal door reports what it removed');
+    eq(L(s, 1, 0).damage, 0);
+    s = XS.apply(s, { type: 'choose', ids: ['L01'] });
+    eq(L(s, 0, 1).damage, 30);
+  });
+
+  test('BP02-076 Drain Rod: the healed amount is the sum over the leaders chosen (20 + 10 of 20 + 20 requested = 30)', () => {
+    let s = rod((h) => { h.damage(1, 0, 20); h.damage(1, 1, 10); });
+    s = fx.play(s, 'BP02-076');
+    s = XS.apply(s, { type: 'distribute', alloc: { L10: 20, L11: 20 } });
+    eq(rodHeals(s), [20, 10]);
+    s = XS.apply(s, { type: 'choose', ids: ['L00'] });
+    eq(L(s, 0, 0).damage, 30);
+  });
+
+  test('BP02-076 Drain Rod: nothing healed (no own damage) deals 0 damage and asks nothing more (R-062)', () => {
+    let s = rod();
+    s = fx.play(s, 'BP02-076');
+    eq(s.pending.kind, 'distribute', 'still asked how to split the healing');
+    s = XS.apply(s, { type: 'distribute', alloc: { L11: 40 } });
+    eq(rodHeals(s), [0]);
+    eq(s.pending, null, 'no target is asked for 0 damage');
+    eq(find(s, 'damage', (e) => e.data.kind === 'effect' && e.data.leader[1] === '0').length, 0);
+    eq([0, 1, 2, 3].map((k) => L(s, 0, k).damage), [0, 0, 0, 0]);
+  });
+
+  test('BP02-076 Drain Rod: a downed leader is not a heal candidate, and one candidate on each side is still a question', () => {
+    let s = rod((h) => { h.down(1, 0); h.down(1, 1); h.down(1, 2); h.damage(1, 3, 50); h.down(0, 0); h.down(0, 1); h.down(0, 2); });
+    s = fx.play(s, 'BP02-076');
+    eq(s.pending.options, ['L13'], 'one own leader: still asked');
+    s = XS.apply(s, { type: 'distribute', alloc: { L13: 40 } });
+    eq(rodHeals(s), [40]); eq(L(s, 1, 3).damage, 10);
+    eq(s.pending.purpose, 'target'); eq(s.pending.options, ['L03'], 'one opposing leader: still asked');
+    s = XS.apply(s, { type: 'choose', ids: ['L03'] });
+    eq(L(s, 0, 3).damage, 40);
+  });
+
+  test('BP02-076 Drain Rod: 30 healed deals 30, which downs an opposing leader with 20 HP left', () => {
+    let s = rod((h, t) => { h.damage(1, 0, 30); h.damage(0, 2, left(t, 0, 2, 20)); });
+    s = fx.play(s, 'BP02-076');
+    s = XS.apply(s, { type: 'distribute', alloc: { L10: 40 } });
+    s = XS.apply(s, { type: 'choose', ids: ['L02'] });
+    ok(L(s, 0, 2).down, '30 damage on a leader with 20 HP left downs it');
+    eq(find(s, 'down', (e) => e.data.leader === 'L02').length, 1);
+  });
 
   test('BP02-078 Thief Kit (equipment): the equipped leader draws 1 when the attacked leader is down - once per turn, and a non-down attack does not use it up (FAQ #63)', () => {
     let s = game([], { tacs: ['BP02-078'] });

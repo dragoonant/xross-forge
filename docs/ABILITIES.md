@@ -28,21 +28,24 @@ XS.ABIL['ST01-007'] = { effects: [
 The printed tags and numbers must match: `node tools/audit-cards.mjs` compares each entry with the
 printed Japanese text in the gitignored dump (every printed number appears in the entry, no number
 appears that is not printed, tags equal timings). Write every printed number as a number; do not
-compute them from other numbers.
+compute them from other numbers. What the audit does NOT ask for: the N of "N枚につき" / "N体につき" (a per-unit count; the value
+(`perPlay`, `perRevealed`, `perOwnTag`) counts per card and only `each` is the amount: write no `per`) and the 1体 of a `revive`
+(the op itself; write no `n`). A `grant` op gives its `timing` as the card's tag (盗賊キット: the printed 【アタック後】 is inside
+the granted ability). A number that is printed anywhere else still has to be in the entry.
 
 ## Ops, conditions, targets
 
 Every op may carry `if: { c: ... }` (skipped when false; conditions are read **when the op resolves**,
 so ordering matters, FAQ #2). Fields marked `?` are optional. Prefix `x.f` below = the effect group's frame:
-it remembers `did` (the last optional action was done), `look` (the cards looked at), `revealed`/`seen`.
+it remembers `did` (the last optional action was done), `look` (the cards looked at), `revealed`/`seen`, `healed` (counters removed by this group's heals).
 
 | op | fields | does |
 |---|---|---|
 | `dmgPlus` | `n`, `if?` | damage + N (attack / boost timings only). Summed with ATK and boosts; `n` may be negative (ダメージ-N); floor 0 (R-016) |
 | `downAttacked` | `if?` | the attacked leader goes down, logged as a down by the attack (Crossfire, R-026/R-065) |
 | `damage` | `n`, `to`, `optional?`, `leave?` | N damage to `to` (below). `n` may be a value (below). N <= 0 does nothing (R-062). `optional`: choose none to decline, sets `did`. `leave: 10`: if it would down the leader its remaining HP becomes 10 instead (R-042) |
-| `heal` | `n`, `to` | remove up to N counters from the chosen leader (not down; undamaged is allowed, FAQ #133) |
-| `healTotal` | `n`, `unit` | split exactly N among your leaders in multiples of `unit` (R-057) |
+| `heal` | `n`, `to` | remove up to N counters from the chosen leader (not down; undamaged is allowed, FAQ #133); the counters actually removed are added to the frame's `healed` |
+| `healTotal` | `n`, `unit` | split exactly N among your leaders in multiples of `unit` (R-057); the counters actually removed are added to the frame's `healed` (FAQ #64) |
 | `draw` | `n`, `who?` | draw N (`n` may be a value); `who: 'both'` = すべてのプレイヤー, turn player first (R-072) |
 | `discard` | `n`, `who?`, `optional?`, `random?`, `filter?`, `of?` | the hand's owner discards N (asked; all of it if fewer, R-056). `who: 'opp'`: the opponent chooses; `'both'`: both, asked before anything moves (R-072). `optional`: min 0, sets `did`. `random`: engine RNG; with `optional` a yes/no (purpose `may`) comes first (R-070). `of: 'revealed'`: discard the cards revealed earlier in this group |
 | `reveal` | `n`, `filter?`, `optional?`, `limit?` | reveal up to N hand cards (public, log `look`); remembered in `revealed`/`seen`; sets `did` (FAQ #8) |
@@ -72,7 +75,7 @@ Equipment stats are data on the card, `CARDS[no].equip = { hp?, atk?, hpBase?, h
 equipment come after. A card must not carry both `equip` and a `statMod` (validate-abilities).
 
 Values (`n`): a number, or `{perOwnTag:{tag, each}}` (downed leaders count, FAQ #10), `{perPlay:{type?, each, other?}}`,
-`{playCostSum:{type?}}`, `{perRevealed:{type?, each}}`, `{revealedCost:true}`.
+`{playCostSum:{type?}}`, `{perRevealed:{type?, each}}`, `{revealedCost:true}`, `{healed:true}` (the counters the earlier `heal` / `healTotal` of the same effect group actually removed, 0 if none: ドレインロッド, FAQ #64, R-076; `validate-abilities` wants a heal op above it).
 
 Card filters (`filter`): `type`, `cost`, `maxCost`, `minCost`, `notAce`, `color`, `notSameName` (not the source card's name).
 `limit` on a multi-pick: `costSumAtMost`, `costSumAtLeast`, `perType: {memoria: 1, attack: 1}` (checked by `apply`).
@@ -160,7 +163,7 @@ Do not approximate. Write `{ unimplemented: 'why' }` for the op and list the car
 (CLAUDE.md rule 8); `validate-abilities` refuses an `unimplemented` op on any card of a registered deck,
 and `validate-data` refuses a defective card in a deck. An `unimplemented` op that reaches resolution throws.
 
-Not implemented (2026-10-30, each needs a rule or a UI the engine does not have): 【プレイし直す】 replay (三銃士, グレイトフルファーマー:
+No card of a registered deck is `unimplemented` (2026-10-30). Not implemented (each needs a rule or a UI the engine does not have): 【プレイし直す】 replay (三銃士, グレイトフルファーマー:
 FAQ #106/#107/#112 ordering), ジェイルブレイク (damage split by cards drawn this turn), メカニカルエキスパート (moving equipment, R-052),
 運命のルーレット (declaring a card type), 追加マガジン (replacement: back to the tactics area), テラーエンゲージ (costs "per kind"),
 the sanctioned BAN check (R-030, TODO 7).

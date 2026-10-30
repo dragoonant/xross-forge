@@ -43,7 +43,7 @@
     // ---- tactics -----------------------------------------------------------------------------
     // 【プレイ時】自分のリーダーを合計40回復する。対戦相手のリーダー1体に、このカードの効果で回復した数値と同じダメージ。
     // FAQ #64: the damage is the amount ACTUALLY healed (30 on a leader with 30 damage), not 40.
-    'BP02-076': { effects: [K.onPlay({ unimplemented: 'ドレインロッド: damage equal to the amount actually healed by this effect (FAQ #64); healTotal (R-057) reports no healed amount and there is no {healed} value to carry it into the damage op', healTotal: 40, damageTo: K.oneOpp })] },
+    'BP02-076': { effects: [K.onPlay({ op: 'healTotal', n: 40, unit: 10 }, { op: 'damage', n: { healed: true }, to: K.oneOpp })] },
     // これを装備しているリーダーは以下の能力を持つ。「【アタック後】このアタックを受けたリーダーがダウンしているなら、カードを1枚引く。この効果はターンに1回しか発動しない。」 (R-028, R-029)
     'BP02-078': { effects: [{ timing: 'static', ops: [
       { op: 'grant', timing: 'afterAttack', oncePerTurn: true, ops: [{ op: 'draw', n: 1, if: { c: 'attackedDown' } }] },
