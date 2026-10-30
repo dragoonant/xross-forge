@@ -1,0 +1,1389 @@
+{
+ "_source": {
+  "summary": "Ten post-BAN (2026-07-13) Xross Stars lists: four CC#3 OSAKA placings (CB Torecolo recipe pages), three Yuyu-tei deck-column lists (official deck API), three BP05 shop sample lists. Every list is 50 main + 4 leaders + 5 tactics; the PP Ticket and PP cards are omitted. Card numbers are the earliest non-parallel printing of each name (docs/sources/api/all-cards.json); effect, cost, colour, ACE and build rule were checked identical across all printings of a name.",
+  "bpFiveNote": "BP05 went on sale 2026-10-30 (official product page and news 207); the card API release_date field says 2026-10-23. Either way no BP05 tournament results exist yet; C08-C10 are the only BP05 lists found and are shop samples, not placings.",
+  "banned": [
+   "エナジーチャージャー (BP01-090, BP02-073, ST01-020, ST02-020)"
+  ],
+  "fetched": "2026-10-30",
+  "selection": "2026-10-30 coordinator default (PLAN D19): the ten implemented decks are the ones with a competitive source (Challengers Cup 2026 #3 OSAKA placings, its Top 8, or the Yuyu-tei meta columns of 2026-07-30..09-10). C08-C10 were undated shop sample recipes built on BP05 and moved to alternates; no BP05 tournament list existed on this date."
+ },
+ "decks": [
+  {
+   "id": "C01",
+   "name": "Four-colour Overdrive-Annihilation assault",
+   "nameJa": "4cODアナイアアサルト",
+   "leaders": [
+    "ST02-002",
+    "BP04-008",
+    "ST02-004",
+    "BP03-014"
+   ],
+   "main": [
+    [
+     "BP01-043",
+     4
+    ],
+    [
+     "BP01-044",
+     1
+    ],
+    [
+     "BP01-061",
+     4
+    ],
+    [
+     "BP02-026",
+     1
+    ],
+    [
+     "BP02-032",
+     2
+    ],
+    [
+     "BP02-046",
+     1
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP03-032",
+     1
+    ],
+    [
+     "BP03-042",
+     4
+    ],
+    [
+     "BP03-053",
+     1
+    ],
+    [
+     "BP03-070",
+     4
+    ],
+    [
+     "BP04-024",
+     4
+    ],
+    [
+     "BP04-030",
+     4
+    ],
+    [
+     "BP04-038",
+     3
+    ],
+    [
+     "BP04-058",
+     4
+    ],
+    [
+     "ST02-008",
+     4
+    ],
+    [
+     "ST02-018",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP01-093",
+    "ST01-019",
+    "BP03-079",
+    "BP03-080",
+    "BP02-078"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck046/",
+    "fetched": "2026-10-30",
+    "event": "Xross Stars Challengers Cup 2026 #3 OSAKA (full match), 2026-08-08/09, 1st place (retailer page titled 優勝レシピ; the official photo report https://xross-stars.com/news/208 names the champion only as ぜけみ and links no list)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "C02",
+   "name": "Assault-Storm (rion)",
+   "nameJa": "アサルトストーム",
+   "leaders": [
+    "BP01-003",
+    "ST02-002",
+    "BP03-004",
+    "BP01-016"
+   ],
+   "main": [
+    [
+     "BP01-018",
+     4
+    ],
+    [
+     "BP01-023",
+     4
+    ],
+    [
+     "BP01-044",
+     4
+    ],
+    [
+     "BP01-059",
+     4
+    ],
+    [
+     "BP01-061",
+     4
+    ],
+    [
+     "BP01-088",
+     4
+    ],
+    [
+     "BP02-018",
+     1
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP03-017",
+     4
+    ],
+    [
+     "BP03-018",
+     3
+    ],
+    [
+     "BP03-023",
+     4
+    ],
+    [
+     "BP03-051",
+     4
+    ],
+    [
+     "ST01-009",
+     2
+    ],
+    [
+     "ST02-008",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP01-092",
+    "BP01-094",
+    "ST01-021",
+    "ST01-019",
+    "BP03-080"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck047/",
+    "fetched": "2026-10-30",
+    "event": "Challengers Cup 2026 #3 OSAKA, 2026-08-08/09, 2nd place (準優勝)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "C03",
+   "name": "Pioneer Storm",
+   "nameJa": "先導者ストーム",
+   "leaders": [
+    "BP01-003",
+    "BP03-003",
+    "BP04-001",
+    "BP02-010"
+   ],
+   "main": [
+    [
+     "BP01-018",
+     4
+    ],
+    [
+     "BP01-023",
+     4
+    ],
+    [
+     "BP01-059",
+     4
+    ],
+    [
+     "BP01-071",
+     4
+    ],
+    [
+     "BP02-032",
+     4
+    ],
+    [
+     "BP02-035",
+     4
+    ],
+    [
+     "BP02-063",
+     4
+    ],
+    [
+     "BP03-017",
+     4
+    ],
+    [
+     "BP03-018",
+     2
+    ],
+    [
+     "BP03-022",
+     4
+    ],
+    [
+     "BP03-050",
+     4
+    ],
+    [
+     "BP04-020",
+     4
+    ],
+    [
+     "BP04-061",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP01-092",
+    "BP01-093",
+    "BP03-080",
+    "BP04-076",
+    "BP04-079"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck048/",
+    "fetched": "2026-10-30",
+    "event": "Challengers Cup 2026 #3 OSAKA, 2026-08-08/09, prize-winning finish (入賞)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "C04",
+   "name": "Overdrive Assault (REJECT + free agents)",
+   "nameJa": "ODアサルト",
+   "leaders": [
+    "BP03-005",
+    "BP01-016",
+    "BP03-014",
+    "BP04-013"
+   ],
+   "main": [
+    [
+     "BP01-044",
+     4
+    ],
+    [
+     "BP01-045",
+     4
+    ],
+    [
+     "BP01-088",
+     4
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP03-027",
+     4
+    ],
+    [
+     "BP03-042",
+     4
+    ],
+    [
+     "BP03-055",
+     4
+    ],
+    [
+     "BP03-070",
+     4
+    ],
+    [
+     "BP04-024",
+     4
+    ],
+    [
+     "BP04-039",
+     4
+    ],
+    [
+     "BP04-041",
+     4
+    ],
+    [
+     "BP04-054",
+     1
+    ],
+    [
+     "BP04-069",
+     4
+    ],
+    [
+     "ST01-009",
+     1
+    ]
+   ],
+   "tactics": [
+    "ST01-021",
+    "BP01-092",
+    "BP01-094",
+    "ST01-023",
+    "BP03-080"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck049/",
+    "fetched": "2026-10-30",
+    "event": "Challengers Cup 2026 #3 OSAKA, 2026-08-08/09, prize-winning finish (入賞)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "C05",
+   "name": "Red-3 Feast Rush",
+   "nameJa": "赤3宴ラッシュ",
+   "leaders": [
+    "BP02-004",
+    "BP02-014",
+    "BP03-003",
+    "BP04-002"
+   ],
+   "main": [
+    [
+     "BP01-018",
+     4
+    ],
+    [
+     "BP02-023",
+     3
+    ],
+    [
+     "BP02-042",
+     4
+    ],
+    [
+     "BP02-051",
+     4
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP02-070",
+     4
+    ],
+    [
+     "BP03-017",
+     4
+    ],
+    [
+     "BP03-018",
+     4
+    ],
+    [
+     "BP03-022",
+     4
+    ],
+    [
+     "BP03-038",
+     4
+    ],
+    [
+     "BP03-050",
+     4
+    ],
+    [
+     "BP04-039",
+     3
+    ],
+    [
+     "BP04-049",
+     4
+    ]
+   ],
+   "tactics": [
+    "ST01-019",
+    "BP01-093",
+    "BP03-077",
+    "BP03-080",
+    "BP04-080"
+   ],
+   "source": {
+    "url": "https://xross-stars.com/deck/8b809aae-ce09-4703-ab3c-548c01da6764",
+    "fetched": "2026-10-30",
+    "event": "Yuyu-tei deck column \"赤3宴ラッシュデッキ\" (https://yuyu-tei.jp/show/xs/content/27347), 2026-08-27; author notes the archetype stood out at CC#3 OSAKA; deck-site list, not a placing",
+    "method": "official deck API"
+   }
+  },
+  {
+   "id": "C06",
+   "name": "Harvest Assault",
+   "nameJa": "収穫アサルト",
+   "leaders": [
+    "BP01-013",
+    "ST02-002",
+    "BP02-004",
+    "BP04-001"
+   ],
+   "main": [
+    [
+     "BP01-018",
+     4
+    ],
+    [
+     "BP01-044",
+     4
+    ],
+    [
+     "BP01-047",
+     3
+    ],
+    [
+     "BP01-061",
+     4
+    ],
+    [
+     "BP01-083",
+     4
+    ],
+    [
+     "BP02-023",
+     4
+    ],
+    [
+     "BP02-051",
+     4
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP04-020",
+     4
+    ],
+    [
+     "BP04-039",
+     3
+    ],
+    [
+     "BP04-066",
+     4
+    ],
+    [
+     "BP04-067",
+     1
+    ],
+    [
+     "ST01-009",
+     3
+    ],
+    [
+     "ST02-008",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP01-092",
+    "ST01-019",
+    "BP01-093",
+    "BP03-080",
+    "BP02-078"
+   ],
+   "source": {
+    "url": "https://xross-stars.com/deck/fa624b09-99ac-433b-844e-139b46a895d0",
+    "fetched": "2026-10-30",
+    "event": "Yuyu-tei deck column \"2キルの王・収穫アサルトデッキ\" (https://yuyu-tei.jp/show/xs/content/27295), 2026-08-21; archetype met repeatedly in the CC#3 OSAKA day-2 rounds (https://yuyu-tei.jp/show/xs/content/27253); deck-site list, not a placing",
+    "method": "official deck API"
+   }
+  },
+  {
+   "id": "C07",
+   "name": "Zero-cost We-are Overdrive",
+   "nameJa": "ODWe are...",
+   "leaders": [
+    "BP01-014",
+    "BP04-001",
+    "BP04-006",
+    "BP04-012"
+   ],
+   "main": [
+    [
+     "BP01-048",
+     4
+    ],
+    [
+     "BP01-071",
+     2
+    ],
+    [
+     "BP02-040",
+     2
+    ],
+    [
+     "BP02-054",
+     2
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP03-059",
+     3
+    ],
+    [
+     "BP04-018",
+     4
+    ],
+    [
+     "BP04-020",
+     4
+    ],
+    [
+     "BP04-024",
+     3
+    ],
+    [
+     "BP04-028",
+     4
+    ],
+    [
+     "BP04-037",
+     4
+    ],
+    [
+     "BP04-048",
+     4
+    ],
+    [
+     "BP04-053",
+     2
+    ],
+    [
+     "BP04-056",
+     4
+    ],
+    [
+     "BP04-065",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP01-092",
+    "BP01-094",
+    "ST01-021",
+    "BP03-080",
+    "BP04-079"
+   ],
+   "source": {
+    "url": "https://xross-stars.com/deck/53b7af20-d5d5-4d2a-a47c-a188f7ad442b",
+    "fetched": "2026-10-30",
+    "event": "Yuyu-tei deck column \"0コスでぶん回せ! ODWe are...!デッキ\" (https://yuyu-tei.jp/show/xs/content/27451), 2026-09-10; column says the archetype emerged at CC#3 OSAKA; deck-site list, not a placing",
+    "method": "official deck API"
+   }
+  },
+  {
+   "id": "A01",
+   "name": "Assault-Storm / rion Top-8",
+   "nameJa": "もんなるりおん型アサルトラッシュ",
+   "leaders": [
+    "BP01-003",
+    "BP01-016",
+    "ST02-002",
+    "BP03-004"
+   ],
+   "main": [
+    [
+     "BP01-018",
+     4
+    ],
+    [
+     "BP01-023",
+     4
+    ],
+    [
+     "BP01-044",
+     4
+    ],
+    [
+     "BP01-059",
+     4
+    ],
+    [
+     "BP01-061",
+     4
+    ],
+    [
+     "BP01-088",
+     4
+    ],
+    [
+     "BP02-046",
+     1
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP03-017",
+     4
+    ],
+    [
+     "BP03-018",
+     2
+    ],
+    [
+     "BP03-023",
+     4
+    ],
+    [
+     "BP03-051",
+     4
+    ],
+    [
+     "ST01-009",
+     3
+    ],
+    [
+     "ST02-008",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP01-094",
+    "ST01-019",
+    "BP03-078",
+    "BP03-080",
+    "BP02-076"
+   ],
+   "source": {
+    "url": "https://xross-stars.com/deck/bf676adf-359b-4a6c-8367-fd8fdda17e09",
+    "fetched": "2026-10-30",
+    "event": "Challengers Cup 2026 #3 OSAKA, 2026-08-08/09, Top 8 (Yuyu-tei report https://yuyu-tei.jp/show/xs/content/27253, 2026-08-13; the report author own list)",
+    "method": "official deck API"
+   }
+  },
+  {
+   "id": "A02",
+   "name": "Blue-3 Overdrive Assault",
+   "nameJa": "青3ODアサルト",
+   "leaders": [
+    "BP01-016",
+    "BP03-005",
+    "BP03-006",
+    "BP04-008"
+   ],
+   "main": [
+    [
+     "BP01-027",
+     4
+    ],
+    [
+     "BP01-044",
+     4
+    ],
+    [
+     "BP01-088",
+     4
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP03-027",
+     4
+    ],
+    [
+     "BP03-028",
+     4
+    ],
+    [
+     "BP03-055",
+     4
+    ],
+    [
+     "BP03-056",
+     4
+    ],
+    [
+     "BP04-024",
+     4
+    ],
+    [
+     "BP04-030",
+     4
+    ],
+    [
+     "BP04-039",
+     2
+    ],
+    [
+     "BP04-054",
+     2
+    ],
+    [
+     "BP04-058",
+     4
+    ],
+    [
+     "ST01-009",
+     2
+    ]
+   ],
+   "tactics": [
+    "ST01-023",
+    "ST01-019",
+    "BP01-093",
+    "BP03-080",
+    "BP02-078"
+   ],
+   "source": {
+    "url": "https://xross-stars.com/deck/09437d85-6168-4313-97c2-e0b12c769bac",
+    "fetched": "2026-10-30",
+    "event": "Yuyu-tei column \"クロスタ4弾環境デッキ分析\" (https://yuyu-tei.jp/show/xs/content/27144), 2026-07-30; deck-site meta list",
+    "method": "official deck API"
+   }
+  },
+  {
+   "id": "A03",
+   "name": "Green-3 Overdrive Assault",
+   "nameJa": "緑3ODアサルト",
+   "leaders": [
+    "BP01-016",
+    "BP03-005",
+    "BP03-014",
+    "BP04-013"
+   ],
+   "main": [
+    [
+     "BP01-044",
+     4
+    ],
+    [
+     "BP01-045",
+     4
+    ],
+    [
+     "BP01-088",
+     4
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP03-027",
+     4
+    ],
+    [
+     "BP03-042",
+     4
+    ],
+    [
+     "BP03-055",
+     4
+    ],
+    [
+     "BP03-070",
+     4
+    ],
+    [
+     "BP04-024",
+     4
+    ],
+    [
+     "BP04-039",
+     2
+    ],
+    [
+     "BP04-041",
+     4
+    ],
+    [
+     "BP04-054",
+     2
+    ],
+    [
+     "BP04-069",
+     4
+    ],
+    [
+     "ST01-009",
+     2
+    ]
+   ],
+   "tactics": [
+    "ST01-023",
+    "ST01-019",
+    "BP01-093",
+    "BP03-080",
+    "BP02-078"
+   ],
+   "source": {
+    "url": "https://xross-stars.com/deck/161012f4-d8b9-4745-9df9-b831b0e91974",
+    "fetched": "2026-10-30",
+    "event": "Yuyu-tei column 27144, 2026-07-30; deck-site meta list",
+    "method": "official deck API"
+   }
+  }
+ ],
+ "alternates": [
+  {
+   "id": "A04",
+   "name": "Pioneer Storm (Okka)",
+   "nameJa": "先導者ストーム",
+   "leaders": [
+    "ST02-002",
+    "BP02-004",
+    "BP02-011",
+    "BP04-001"
+   ],
+   "main": [
+    [
+     "BP01-018",
+     4
+    ],
+    [
+     "BP01-061",
+     4
+    ],
+    [
+     "BP01-071",
+     4
+    ],
+    [
+     "BP02-023",
+     4
+    ],
+    [
+     "BP02-036",
+     4
+    ],
+    [
+     "BP02-046",
+     4
+    ],
+    [
+     "BP02-051",
+     4
+    ],
+    [
+     "BP02-064",
+     4
+    ],
+    [
+     "BP03-017",
+     4
+    ],
+    [
+     "BP04-020",
+     4
+    ],
+    [
+     "ST02-005",
+     3
+    ],
+    [
+     "ST02-008",
+     4
+    ],
+    [
+     "ST02-010",
+     3
+    ]
+   ],
+   "tactics": [
+    "BP01-094",
+    "ST01-021",
+    "BP03-080",
+    "BP04-076",
+    "BP04-079"
+   ],
+   "source": {
+    "url": "https://xross-stars.com/deck/6307f7e6-e206-40ce-9890-56110c4aa3c1",
+    "fetched": "2026-10-30",
+    "event": "Yuyu-tei column 27144, 2026-07-30; deck-site meta list",
+    "method": "official deck API"
+   }
+  },
+  {
+   "id": "A05",
+   "name": "REJECT sample",
+   "nameJa": "REJECT",
+   "leaders": [
+    "BP03-005",
+    "BP04-012",
+    "BP02-013",
+    "BP04-013"
+   ],
+   "main": [
+    [
+     "BP02-041",
+     4
+    ],
+    [
+     "BP02-069",
+     4
+    ],
+    [
+     "BP03-027",
+     4
+    ],
+    [
+     "BP03-055",
+     4
+    ],
+    [
+     "BP04-024",
+     4
+    ],
+    [
+     "BP04-037",
+     4
+    ],
+    [
+     "BP04-039",
+     2
+    ],
+    [
+     "BP04-041",
+     4
+    ],
+    [
+     "BP04-052",
+     4
+    ],
+    [
+     "BP04-053",
+     4
+    ],
+    [
+     "BP04-065",
+     4
+    ],
+    [
+     "BP04-069",
+     4
+    ],
+    [
+     "ST02-010",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP01-094",
+    "ST01-019",
+    "BP03-080",
+    "BP04-076",
+    "BP04-080"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck044/",
+    "fetched": "2026-10-30",
+    "event": "CB Torecolo undated sample recipe (BP04 era)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "A06",
+   "name": "Neo-Porte sample",
+   "nameJa": "Neo-Porte",
+   "leaders": [
+    "BP03-003",
+    "BP03-007",
+    "BP03-010",
+    "BP03-013"
+   ],
+   "main": [
+    [
+     "BP03-022",
+     4
+    ],
+    [
+     "BP03-029",
+     4
+    ],
+    [
+     "BP03-031",
+     4
+    ],
+    [
+     "BP03-032",
+     4
+    ],
+    [
+     "BP03-035",
+     4
+    ],
+    [
+     "BP03-038",
+     4
+    ],
+    [
+     "BP03-041",
+     4
+    ],
+    [
+     "BP03-046",
+     4
+    ],
+    [
+     "BP03-050",
+     4
+    ],
+    [
+     "BP03-053",
+     2
+    ],
+    [
+     "BP03-057",
+     4
+    ],
+    [
+     "BP03-063",
+     4
+    ],
+    [
+     "BP03-069",
+     4
+    ]
+   ],
+   "tactics": [
+    "ST01-019",
+    "BP03-076",
+    "BP03-077",
+    "BP03-078",
+    "BP03-080"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck042/",
+    "fetched": "2026-10-30",
+    "event": "CB Torecolo undated sample recipe (BP03 era)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "A07",
+   "name": "Farmer Storm sample",
+   "nameJa": "ファーマーストーム",
+   "leaders": [
+    "BP04-001",
+    "BP02-009",
+    "BP03-009",
+    "BP04-011"
+   ],
+   "main": [
+    [
+     "BP01-037",
+     4
+    ],
+    [
+     "BP02-032",
+     4
+    ],
+    [
+     "BP02-034",
+     4
+    ],
+    [
+     "BP02-062",
+     4
+    ],
+    [
+     "BP03-017",
+     4
+    ],
+    [
+     "BP03-034",
+     4
+    ],
+    [
+     "BP03-062",
+     4
+    ],
+    [
+     "BP04-020",
+     4
+    ],
+    [
+     "BP04-036",
+     4
+    ],
+    [
+     "BP04-046",
+     4
+    ],
+    [
+     "BP04-048",
+     2
+    ],
+    [
+     "BP04-059",
+     4
+    ],
+    [
+     "BP04-064",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP01-094",
+    "ST01-019",
+    "BP03-080",
+    "BP04-080",
+    "ST01-021"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck045/",
+    "fetched": "2026-10-30",
+    "event": "CB Torecolo undated sample recipe (BP04 era)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "C08",
+   "name": "Absolute Dominion (BP05 sample)",
+   "nameJa": "アブソ再臨",
+   "leaders": [
+    "BP04-003",
+    "BP05-001",
+    "BP02-006",
+    "BP04-012"
+   ],
+   "main": [
+    [
+     "BP02-028",
+     4
+    ],
+    [
+     "BP02-056",
+     4
+    ],
+    [
+     "BP03-032",
+     4
+    ],
+    [
+     "BP04-018",
+     2
+    ],
+    [
+     "BP04-022",
+     4
+    ],
+    [
+     "BP04-037",
+     4
+    ],
+    [
+     "BP04-050",
+     4
+    ],
+    [
+     "BP04-053",
+     4
+    ],
+    [
+     "BP04-065",
+     4
+    ],
+    [
+     "BP05-020",
+     4
+    ],
+    [
+     "BP05-024",
+     4
+    ],
+    [
+     "BP05-048",
+     4
+    ],
+    [
+     "BP05-059",
+     4
+    ]
+   ],
+   "tactics": [
+    "ST01-019",
+    "BP01-092",
+    "BP03-080",
+    "BP05-076",
+    "BP05-078"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck050/",
+    "fetched": "2026-10-30",
+    "event": "CB Torecolo undated sample recipe built on BP05 cards (page exists on 2026-10-30; no tournament placing)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "C09",
+   "name": "Hazard Climax (BP05 sample, LEO)",
+   "nameJa": "ハザード極致",
+   "leaders": [
+    "BP01-003",
+    "BP05-004",
+    "ST02-002",
+    "BP05-016"
+   ],
+   "main": [
+    [
+     "BP01-018",
+     4
+    ],
+    [
+     "BP01-023",
+     4
+    ],
+    [
+     "BP01-059",
+     4
+    ],
+    [
+     "BP01-061",
+     4
+    ],
+    [
+     "BP02-047",
+     2
+    ],
+    [
+     "BP02-068",
+     4
+    ],
+    [
+     "BP05-017",
+     4
+    ],
+    [
+     "BP05-023",
+     4
+    ],
+    [
+     "BP05-044",
+     4
+    ],
+    [
+     "BP05-045",
+     4
+    ],
+    [
+     "BP05-051",
+     4
+    ],
+    [
+     "BP05-072",
+     4
+    ],
+    [
+     "ST02-008",
+     4
+    ]
+   ],
+   "tactics": [
+    "ST01-019",
+    "ST01-021",
+    "BP03-080",
+    "BP05-078",
+    "BP05-079"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck051/",
+    "fetched": "2026-10-30",
+    "event": "CB Torecolo undated sample recipe built on BP05 cards (page exists on 2026-10-30; no tournament placing)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  },
+  {
+   "id": "C10",
+   "name": "Apex Double-Down (BP05 sample, VSPO!)",
+   "nameJa": "頂点DD",
+   "leaders": [
+    "BP05-009",
+    "BP05-010",
+    "BP05-013",
+    "BP05-014"
+   ],
+   "main": [
+    [
+     "BP05-031",
+     4
+    ],
+    [
+     "BP05-033",
+     4
+    ],
+    [
+     "BP05-034",
+     4
+    ],
+    [
+     "BP05-035",
+     4
+    ],
+    [
+     "BP05-038",
+     4
+    ],
+    [
+     "BP05-040",
+     2
+    ],
+    [
+     "BP05-041",
+     4
+    ],
+    [
+     "BP05-042",
+     4
+    ],
+    [
+     "BP05-062",
+     4
+    ],
+    [
+     "BP05-063",
+     4
+    ],
+    [
+     "BP05-068",
+     4
+    ],
+    [
+     "BP05-069",
+     4
+    ],
+    [
+     "BP05-070",
+     4
+    ]
+   ],
+   "tactics": [
+    "BP02-078",
+    "BP03-080",
+    "ST01-023",
+    "BP04-076",
+    "BP05-079"
+   ],
+   "source": {
+    "url": "https://www.torecolo.jp/shop/pg/1xsdeck052/",
+    "fetched": "2026-10-30",
+    "event": "CB Torecolo undated sample recipe built on BP05 cards (page exists on 2026-10-30; no tournament placing)",
+    "method": "page text (product-number image tags + counts)"
+   }
+  }
+ ]
+}
