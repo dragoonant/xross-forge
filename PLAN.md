@@ -5,36 +5,27 @@ Status is rewritten (not appended) every session.
 
 ---
 
-## Status — 2026-10-29 (M0-M4 done: playable vs the AI)
+## Status — 2026-10-30 (M0-M7 built; art and audio waiting on keys)
 
-**The game is playable** on branch `claude/m0-scaffold` (`node tools/serve.mjs`, then
-http://localhost:8232): title → ST01 or ST02, full (best of 3) or quick match → the broadcast
-board vs the AI (Easy / Normal / Hard; `?bot=random` for the random bot) → end screen with "Save bug report". Merged to `main` for the owner's
-playtest (D11); Pages deploys from `main` (D10).
+**Live:** https://dragoonant.github.io/xross-forge/ (deployed from `main`, D11). Playable vs the AI
+(Easy / Normal / Hard), full or quick match, ST01 vs ST02.
 
-- **Engine (M2):** contract frozen first (`docs/ENGINE-API.md`), then the rules: one choice door
-  with no auto-pick, per-seat `view` with hidden tactics picks, structured log, all 50 starter
-  cards as data (`data/abilities.js`). 145 tests (60 rules, 51 cards, all driven through
-  `apply`), a 200-game sim with invariants and leak checks every gate run, the printed-vs-compiled
-  auditor. **Independent rules review: 0 wrong behaviours** for the starters; 2 risks and 8 notes
-  for future cards are in `TODO.md`.
-- **Client (M3):** every affordance from `legalActions`, every number from the engine,
-  attacker→target flow with the damage preview, `whyNot` on disabled cards, one prompt component,
-  presentation director with the awaken stinger, log drawer, hover zoom, phone layout.
-  `tools/e2e.mjs`: 172/172 checks. Art is a labelled placeholder until M5; no sound until M6.
-- Rules corrections today: R-053 (the attacked-leader-is-down condition, FAQ #115), R-022/R-038
-  confirmed, R-027/R-044 far-right placement (FAQ #70).
+- **M7 polish (done):** layout fixes (TODO 8/9 closed), settings (speed, reduce motion, volumes,
+  auto-pass, EN/JP titles), autosave + Continue, deck list peek, credits/notice screen with the
+  AIイラスト label, How to play, end-screen stats. e2e 283/283, tests 209/209.
+- **M5 art pipeline (built, nothing generated):** Hugging Face FLUX, 10 audition styles, identity
+  table for the 8 leaders, 62 linted prompts, `$8` art cap with a ledger. Dry run: 72 renders,
+  about $3.55. `STYLE` is null until the owner picks from the audition.
+- **M6 audio pipeline (built, nothing generated):** ElevenLabs, 41 cues (29 SFX, 5 music, 7
+  announcer lines in an original voice), log→cue map, `XS.Audio` wired into the presentation
+  director, `sounds.html`. Dry run about 9,800 credits (~$2) under the $17 audio cap.
 
-- **AI (M4):** decides only from `view()` (hidden cards determinized), scores every plan against
-  ending the turn, runs in a Web Worker. Holdout (seeds 10001-10200, 800 matches per pairing):
-  Normal beats random 800/800, Easy 799/800; Hard vs Normal 53.4% (not established). 0 fallbacks,
-  0 illegal actions; e2e 192/192. Details and negative results: `docs/ai.md`.
+**Next, once the keys reach the session** (environment variables load when the VM restarts):
+`gen-art --probe` and `gen-audio --probe`, the 10-style art audition for the owner to pick, then
+3 samples and the batches; audio samples on `sounds.html` for the owner's ear.
 
-**Next: M5 art and M6 audio need `GEMINI_API_KEY` and `ELEVENLABS_API_KEY`** (not set in this
-environment yet). M7 polish can start without them.
-
-**Owner, when convenient** (defaults in force meanwhile): D15 (starter Energy Charger), Settings → Pages → Source: GitHub
-Actions, and the two API keys before M5.
+**Owner, when convenient:** playtest notes; D15 (starter Energy Charger); delete the stale
+`claude/wip-backup` branch (the session's git proxy refuses branch deletion).
 
 ---
 
@@ -69,9 +60,9 @@ Actions, and the two API keys before M5.
 | M2 | Engine: pure `apply`/`legalActions`, rounds and best of 3, PP, attacks and boosts, down/awaken, tactics, deck-out, quick match; one test per card; auditor; sim with invariants; independent rules review | cloud | **done** 2026-10-29 |
 | M3 | **Playable on Pages vs a random bot**: board, public-zone viewers, hover zoom, prompts that say what they decide, animation director, how to play | cloud | **done** 2026-10-29 |
 | M4 | AI (worker, tiers): beats random ≥ 95% in both seats on holdout seeds; scored against do-nothing; empty-turn, awaken and tactics counters | cloud | **done** 2026-10-29 |
-| M5 | Art (Gemini): audition, both leader sides, every card, playmat, title, UI plates | cloud + key | — |
-| M6 | Audio (ElevenLabs): SFX on log tags, music director with round and match-point tiers, victory/defeat | cloud + key | — |
-| M7 | Polish: phone/touch, save/continue, settings, bug report, deck picker | cloud | — |
+| M5 | Art (Gemini): audition, both leader sides, every card, playmat, title, UI plates | cloud + key | **pipeline done** 2026-10-30; generation waits on the key |
+| M6 | Audio (ElevenLabs): SFX on log tags, music director with round and match-point tiers, victory/defeat | cloud + key | **pipeline done** 2026-10-30; generation waits on the key |
+| M7 | Polish: phone/touch, save/continue, settings, bug report, deck picker | cloud | **done** 2026-10-30 |
 
 ## Cut order (if a session runs short)
 Cut first: tutorial depth, music tiers beyond calm/tense/victory/defeat, deck-builder polish,
