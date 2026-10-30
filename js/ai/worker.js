@@ -25,13 +25,13 @@ const SCRIPTS = [
   '../engine/state.js?v=2c07dc3124',
   '../engine/log.js?v=d7d546723a',
   '../engine/doors.js?v=834beb9b3c',
-  '../engine/abilities.js?v=94147a8f31',
+  '../engine/abilities.js?v=145e481f71',
   '../engine/attack.js?v=c27d4a9a14',
   '../engine/flow.js?v=dbed6f084c',
-  '../engine/api.js?v=360f7dba61',
-  './determinize.js?v=0a4954de31',
+  '../engine/api.js?v=57e240ac8b',
+  './determinize.js?v=4ceeca1c72',
   './eval.js?v=9abe927716',
-  './policies.js?v=3d5151fced',
+  './policies.js?v=96d82cd09e',
   './ai.js?v=3cd8e16f76',
 ];
 importScripts(...SCRIPTS);

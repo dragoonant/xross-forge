@@ -594,6 +594,47 @@
     });
   });
 
+  test('Once-per-turn equipment use (盗賊キット) is public turn state: XS.view carries it for both seats, empty before use, without any hidden card id', () => {
+    fx.withCards([tac('T-KIT', 0, 'equipment', stat({ op: 'grant', timing: 'afterAttack', oncePerTurn: true, ops: [{ op: 'draw', n: 1, if: { c: 'attackedDown' } }] }))], () => {
+      let s = game([['ST01-011', 8]], ['T-KIT']);
+      s = fx.arrange(s, (h, t) => { h.equip(0, 0, 'T-KIT'); h.hand(0, ['ST01-011']); h.damage(1, 1, XS.leaderStats(t, 1, 1).hp - 30); });
+      for (const seat of [0, 1]) eq(XS.view(s, seat).once, {}, 'unused');
+      s = fx.attack(s, 'ST01-011', 0, 1);
+      eq(Object.keys(s.once).length, 1, 'used by the engine');
+      for (const seat of [0, 1]) {
+        eq(XS.view(s, seat).once, s.once, 'seat ' + seat + ' sees the used-up equipment');
+        eq(XS.view(s, seat).lastLoser, s.lastLoser);
+      }
+      const kit = P(s, 0).leaders[0].equipment[0];
+      ok(Object.keys(XS.view(s, 1).once).every((k) => k.split('|')[0] === kit), 'keys name the face-up equipment only');
+    });
+  });
+
+  test('legalActions samples the splits of a distribute (Drain Rod 40 in units of 10 over 4 leaders: all 35, 30+10 included; deterministic)', () => {
+    fx.withCards([tac('T-ROD', 0, 'consumption', onPlay({ op: 'healTotal', n: 40, unit: 10 }))], () => {
+      let s = game([], ['T-ROD'], { first: 1 });
+      s = fx.toTurnOf(s, 0);
+      s = fx.play(s, 'T-ROD');
+      eq(s.pending.kind, 'distribute');
+      const acts = XS.legalActions(s);
+      eq(acts.length, 35, 'C(4+3, 3) splits');
+      const key = (a) => JSON.stringify(Object.entries(a.alloc).filter(([, v]) => v > 0).sort());
+      eq(new Set(acts.map(key)).size, 35, 'no duplicates');
+      ok(acts.some((a) => a.alloc.L00 === 30 && a.alloc.L01 === 10), '30 + 10');
+      ok(acts.some((a) => a.alloc.L00 === 40) && acts.some((a) => a.alloc.L00 === 10 && a.alloc.L01 === 10 && a.alloc.L02 === 10 && a.alloc.L03 === 10), 'the old shapes stay');
+      eq(JSON.stringify(XS.legalActions(s)), JSON.stringify(acts), 'deterministic');
+      for (const a of acts) XS.apply(s, a);   // every sampled split is legal
+    });
+    fx.withCards([tac('T-KIT80', 0, 'consumption', onPlay({ op: 'healTotal', n: 80, unit: 10 }))], () => {
+      let s = game([], ['T-KIT80'], { first: 1 });
+      s = fx.play(fx.toTurnOf(s, 0), 'T-KIT80');
+      const acts = XS.legalActions(s);
+      ok(acts.length > 8 && acts.length <= 60, 'a bounded sample of C(11,3)=165 splits: ' + acts.length);
+      ok(acts.some((a) => Object.values(a.alloc).filter((v) => v > 0).length >= 3 && new Set(Object.values(a.alloc)).size > 1), 'uneven three-way splits are sampled');
+      for (const a of acts) XS.apply(s, a);
+    });
+  });
+
   test('Equipment granting an effect with a condition on the 【アタック後】 step (オートタレット): splash only if the attack\'s own After Attack effects dealt damage; it joins the turn player\'s ordering', () => {
     fx.withCards([
       tac('T-TURRET', 0, 'equipment', stat({ op: 'grant', timing: 'afterAttack', oncePerTurn: true, ops: [{ op: 'damage', n: 10, to: allOther, if: { c: 'afterDealt' } }] })),

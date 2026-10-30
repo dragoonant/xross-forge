@@ -50,9 +50,9 @@ it remembers `did` (the last optional action was done), `look` (the cards looked
 | `discard` | `n`, `who?`, `optional?`, `random?`, `filter?`, `of?` | the hand's owner discards N (asked; all of it if fewer, R-056). `who: 'opp'`: the opponent chooses; `'both'`: both, asked before anything moves (R-072). `optional`: min 0, sets `did`. `random`: engine RNG; with `optional` a yes/no (purpose `may`) comes first (R-070). `of: 'revealed'`: discard the cards revealed earlier in this group |
 | `reveal` | `n`, `filter?`, `optional?`, `limit?` | reveal up to N hand cards (public, log `look`); remembered in `revealed`/`seen`; sets `did` (FAQ #8) |
 | `look` | `n`, `side?`, `reveal?` | look at (or, with `reveal`, show) the top N of your deck (`side: 'opp'`: theirs). Deck-out procedure on shortfall (R-064) |
-| `lookPick` | `to`, `filter?`, `min?`, `max?`, `reveal?`, `limit?` | choose from the looked cards (purpose `look`): `to: 'hand'` or `'trash'`. `min: 0` = "してもよい" with a decline; sets `did` |
+| `lookPick` | `to`, `filter?`, `min?`, `max?`, `reveal?`, `limit?` | choose from the looked cards (purpose `look`): `to: 'hand'` or `'trash'`. `min: 0` = "してもよい" with a decline; sets `did`. Always asked, also with no candidate (options `[]`, min 0; the looked-at cards are hidden, R-077) |
 | `lookRest` | – | the looked cards that are still on the deck go to the trash, face down |
-| `freePlay` | `from`, `max`, `min?`, `filter?`, `limit?` | choose cards from `'hand'` or `'look'` to play without paying (purpose `freePlay`, the answer order is the play order). Placed at the far right now, resolved after the current play (R-074) |
+| `freePlay` | `from`, `max`, `min?`, `filter?`, `limit?` | choose cards from `'hand'` or `'look'` to play without paying (purpose `freePlay`, the answer order is the play order). Placed at the far right now, resolved after the current play (R-074). Always asked, also with no candidate (hand and looked-at cards are hidden, R-077); `max` is the printed number |
 | `recoverPP` | `n` | turn up to N sideways PP upright (FAQ #7) |
 | `awaken` | – | awaken a leader of yours that is not awake (purpose `awaken`); its 【覚醒時】 runs (R-073) |
 | `revive` | – | bring back a downed own leader (purpose `revive`); its equipment goes to the trash face up (FAQ #23, R-073) |

@@ -184,12 +184,15 @@
     });
     // no cost-0 card among the three: nothing to choose, all three are trashed
     run([PLAIN, 'ST01-012', 'ST01-013'], (s, deck, trash) => {
-      eq(s.pending, null, 'no candidate, no question');
+      eq([s.pending.purpose, s.pending.min, s.pending.options], ['look', 0, []], 'the looked-at cards are hidden: asked with an empty pick (FAQ #95)');
+      s = fx.choose(s, []);
+      eq(s.pending, null);
       eq(P(s, 0).trash.length, trash + 3); eq(P(s, 0).hand.length, 0);
     });
     // an ACE with cost 0 is not a candidate (synthetic: no real ACE card costs 0)
     run(['T-ACE0', PLAIN, 'ST01-012'], (s, deck, trash) => {
-      eq(s.pending, null, 'the ACE is not offered');
+      eq(s.pending.options, [], 'the ACE is not offered');
+      s = fx.choose(s, []);
       eq(P(s, 0).trash.length, trash + 3);
     }, true);
   });
@@ -448,7 +451,8 @@
     u = fx.arrange(u, (h) => { h.hand(0, ['BP04-066', PLAIN, 'ST01-014', FLAT]); h.top(0, ['ST01-012']); });
     u = fx.play(u, 'BP04-066'); u = fx.choose(u, ['L10']);
     u = fx.attack(u, PLAIN, 2, 0);
-    eq(u.pending, null, 'no cost-1 memoria in hand');
+    eq([u.pending.purpose, u.pending.min, u.pending.options], ['freePlay', 0, []], 'no cost-1 memoria in hand: still asked, nothing to pick (hand is hidden, FAQ #4)');
+    eq(fx.choose(u, []).pending, null);
   });
 
   test('BP04-066 収穫の刻 [After Attack] red attacker: you may play 1 cost-1 attack card from your hand free (a full attack afterwards, FAQ #131); a cost-2 attack and memoria are not offered', () => {
@@ -543,5 +547,58 @@
     eq(P(t, 0).hand.length, 0);
     t = fx.play(t, 'BP04-080');
     eq(t.pending, null); eq(find(t, 'fizzle').length, 1); eq(P(t, 1).boosts.length, 1);
+  });
+
+  // ============================== review fixes (2026-10-30): hidden pools always ask, one fizzle ==============================
+  // What the OTHER seat is shown: its view of the pending decision and of the whole log. Two positions that differ only in a hidden card must give
+  // the same string (FAQ #95, #4; CLAUDE.md rule 7).
+  const oppSees = (s) => { const v = XS.view(s, 1); return JSON.stringify({ pending: v.pending, log: v.log }); };
+
+  test('BP04-066 収穫の刻 (FAQ #4, rule 7): the free-play question is asked whether or not the hand holds an eligible card, so the opponent\'s view and log are the same', () => {
+    const run = (extra) => {
+      let s = gameRed([['BP04-066', 4]]);
+      s = fx.arrange(s, (h) => { h.hand(0, ['BP04-066', 'ST02-007', extra]); h.top(0, ['ST02-011']); });
+      s = fx.play(s, 'BP04-066'); s = fx.choose(s, ['L10']);
+      return fx.attack(s, 'ST02-007', 0, 0);                  // L00 is red: the attack-card branch
+    };
+    const yes = run('ST02-008'), no = run('ST02-011');      // a cost-1 attack card in hand / only a cost-2 attack card
+    eq(yes.pending.options.length, 1);
+    eq(oppSees(no), oppSees(yes), 'the other seat cannot tell the two hands apart');
+    eq([no.pending.purpose, no.pending.seat, no.pending.min, no.pending.max], ['freePlay', 0, 0, 1]);
+    eq(no.pending.options, [], 'the owner is asked with nothing to pick');
+    eq(XS.legalActions(no), [{ type: 'choose', ids: [] }]);
+    const t = fx.choose(no, []);
+    eq(t.pending, null); eq(find(t, 'freePlay').length, 0);
+    eq(oppSees(fx.choose(yes, [])), oppSees(t), 'declining a real candidate looks the same afterwards');
+  });
+
+  test('BP04-028 シンクロトリニティ (FAQ #95, rule 7): the pick from the looked-at cards is asked whether or not a cost-0 card is among them', () => {
+    const run = (top) => {
+      let s = game([['BP04-028', 4], ['BP04-020', 4], ['BP04-056', 4]]);
+      s = fx.arrange(s, (h) => { h.hand(0, ['BP04-028']); h.top(0, top); });
+      return fx.attack(s, 'BP04-028', 0, 0);
+    };
+    const yes = run(['BP04-020', PLAIN, 'ST01-012']), no = run([PLAIN, 'ST01-012', 'ST01-013']);
+    eq(oppSees(no), oppSees(yes), 'the other seat cannot tell the two decks apart');
+    eq([no.pending.purpose, no.pending.to, no.pending.min, no.pending.max, no.pending.options], ['look', 'hand', 0, 1, []]);
+    const t = fx.choose(no, []);
+    eq(t.pending, null); eq(P(t, 0).hand.length, 0); eq(find(t, 'look', (e) => e.data.phase === 'trash')[0].data.n, 3, 'all three go to the trash');
+  });
+
+  test('BP04-049 なんだコイツ… (R-072): playing it as the last card logs exactly one fizzle for the empty hand, however often the op re-runs', () => {
+    let s = game([['BP04-049', 4]]);
+    s = fx.arrange(s, (h) => { h.hand(0, ['BP04-049']); h.hand(1, ['ST02-007', 'ST02-008']); });
+    const seq = s.seq;
+    s = fx.play(s, 'BP04-049');
+    eq([s.pending.seat, s.pending.purpose], [1, 'discard'], 'only the opponent is asked');
+    s = fx.choose(s, [s.pending.options[0]]);
+    eq(s.log.filter((e) => e.seq >= seq && e.type === 'fizzle').length, 1, 'one fizzle');
+    eq(P(s, 1).hand.length, 1);
+    // both hands empty: still one fizzle per seat and no question
+    let t = game([['BP04-049', 4]]);
+    t = fx.arrange(t, (h) => { h.hand(0, ['BP04-049']); h.hand(1, []); });
+    const seq2 = t.seq;
+    t = fx.play(t, 'BP04-049');
+    eq(t.pending, null); eq(t.log.filter((e) => e.seq >= seq2 && e.type === 'fizzle').length, 2, 'one for each empty hand');
   });
 })();

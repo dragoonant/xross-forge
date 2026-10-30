@@ -101,6 +101,14 @@
     if (limit.perType !== undefined) for (const t of Object.keys(limit.perType)) bits.push(`at most ${limit.perType[t]} ${t === 'memoria' ? 'memoria' : t + ' card' + (limit.perType[t] === 1 ? '' : 's')}`);
     return bits;
   };
+  // A hidden pool (the hand, cards looked at) is always asked about, also when no card qualifies (docs/ENGINE-API.md, FAQ #4, #95), so the
+  // other seat cannot tell. The owner then gets a plain acknowledgement instead of an empty picker: purpose -> the sentence.
+  const NOTHING = {
+    freePlay: () => 'No card can be played for free',
+    look: (pend) => (pend.to === 'trash' ? 'No card you looked at can be trashed' : 'No card you looked at can be taken'),
+    reveal: () => 'No card in your hand can be revealed',
+    discard: () => 'No card in your hand can be discarded',
+  };
   const DECLINE = {
     look: (pend) => (pend.to === 'trash' ? "Don't trash any" : 'Take none'), reveal: () => 'Reveal none', freePlay: () => 'Play none',
     discard: () => 'Discard none',
@@ -187,6 +195,7 @@
   U.PROMPT_KIND.choose = {
     model(S, ps, PM, pend) {
       if (pend.purpose === 'may') { mayModel(S, ps, PM, pend); return; }
+      if (pend.options.length === 0 && pend.min === 0) { nothingModel(S, ps, PM, pend); return; }
       const leaders = isLeaderOpt(pend);
       PM.leaders = leaders;
       for (const o of pend.options) {
@@ -233,6 +242,7 @@
     body(S, ps, PM, redraw) {
       const pend = PM.pending;
       if (PM.variant === 'may') return mayBody(S, PM);
+      if (PM.variant === 'nothing') return el('div', 'p-note', 'You are asked even when nothing qualifies, so your opponent cannot tell what your hidden cards are.');
       if (PM.leaders) return leaderChips(S, ps, PM, redraw);
       switch (pend.purpose) {
         case 'look': return lookBody(S, ps, PM, redraw);
@@ -271,6 +281,19 @@
       default: break;
     }
     PM.notes = notes;
+  }
+
+  // A question with nothing to pick (min 0, no options): say so, and one button that answers with the empty pick. Never auto-answered.
+  function nothingModel(S, ps, PM, pend) {
+    const f = NOTHING[pend.purpose];
+    if (f === undefined) throw new Error('ui/prompt: a "' + pend.purpose + '" decision arrived with no options');
+    PM.variant = 'nothing';
+    PM.leaders = false;
+    PM.rule = [];
+    PM.notes = [];
+    PM.nothing = f(pend);
+    PM.hint = `${PM.nothing} — Continue`;
+    PM.confirm = { enabled: true, label: 'Continue', action: { type: 'choose', ids: [] } };
   }
 
   // An optional effect ("you may ..."): two explicit buttons, the effect named with its numbers (the engine's own sentence) and the card's text.
@@ -484,7 +507,7 @@
       tag.appendChild(el('span', 'p-from', ' from ' + U.cardTitle(U.cardIdOf(S.view, pend.source))));
     }
     titles.appendChild(tag);
-    titles.appendChild(el('div', 'p-text', pend.prompt));
+    titles.appendChild(el('div', 'p-text', PM.variant === 'nothing' ? `${PM.nothing} — Continue` : pend.prompt));
     if (PM.rule !== undefined && PM.rule.length > 0) titles.appendChild(el('div', 'p-rule', PM.rule.join(' · ')));
     if (PM.notes !== undefined) for (const t of PM.notes) titles.appendChild(el('div', 'p-rule p-notes', t));
     head.appendChild(titles);

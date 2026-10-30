@@ -149,10 +149,22 @@
     t = XS.apply(t, { type: 'choose', ids: [] });
     eq(P(t, 0).play.length, 1, 'only the attack card is in the play area'); eq(find(t, 'freePlay').length, 0);
     eq(find(t, 'look', (e) => e.data.phase === 'trash')[0].data.n, 3);
-    // no memoria of cost 1 or less among the three: nothing to choose, all trashed
+    // no memoria of cost 1 or less among the three: the owner is still asked (an empty, declinable pick), all trashed
     let u = fx.arrange(game([['BP01-044', 2]]), (h) => { h.hand(0, ['BP01-044']); h.top(0, [FLAT, 'ST01-014', 'ST01-012']); });
     u = fx.attack(u, 'BP01-044', 0, 0);
+    eq([u.pending.purpose, u.pending.min, u.pending.options], ['freePlay', 0, []], 'the question is still asked (hidden pool, FAQ #95)');
+    u = fx.choose(u, []);
     eq(u.pending, null); eq(find(u, 'look', (e) => e.data.phase === 'trash')[0].data.n, 3);
+  });
+
+  test('BP01-044 リンク・アサルト (FAQ #95, rule 7): the free-play question is asked whether or not the top 3 hold a memoria of cost 1 or less, so the opponent cannot tell', () => {
+    const run = (top) => fx.attack(fx.arrange(game([['BP01-044', 2], ['BP01-059', 2]]), (h) => { h.hand(0, ['BP01-044']); h.top(0, top); }), 'BP01-044', 0, 0);
+    const oppSees = (s) => { const v = XS.view(s, 1); return JSON.stringify({ pending: v.pending, log: v.log }); };
+    const yes = run([FLAT, 'BP01-059', 'ST01-014']), no = run([FLAT, 'ST01-014', 'ST01-012']);
+    eq(oppSees(no), oppSees(yes));
+    eq([no.pending.purpose, no.pending.min, no.pending.max, no.pending.options], ['freePlay', 0, 1, []]);
+    const t = fx.choose(no, []);
+    eq(t.pending, null); eq(find(t, 'look', (e) => e.data.phase === 'trash')[0].data.n, 3);
   });
 
   test('BP01-044 FAQ #25 / #40: the memoria played by it resolves only after the attack ended and the attacker awakened', () => {
@@ -247,6 +259,19 @@
     eq(find(s, 'attack')[0].data.parts, { atk: 60, boost: 0, card: 10 }, 'the damage formula uses the buffed ATK');
     s = fx.toTurnOf(fx.settleWithFirst(fx.endTurn(fx.settleWithFirst(s))), 0);
     eq(XS.leaderStats(s, 0, 1).atk, 30, 'gone next turn');
+  });
+
+  test('BP01-071 先導者の証 (review fix 2026-10-30): the +30 ATK is public turn state, so ATK read from either seat\'s XS.view equals the raw number', () => {
+    let s = fx.arrange(game([['BP01-071', 2]]), (h) => h.hand(0, ['BP01-071', PLAIN]));
+    s = fx.play(s, 'BP01-071');
+    eq(XS.leaderStats(s, 0, 0).atk, 60);
+    for (const seat of [0, 1]) {
+      const v = XS.view(s, seat);
+      eq(XS.leaderStats(v, 0, 0).atk, 60, `seat ${seat} view: ATK with the buff`);
+      eq(XS.leaderStats(v, 1, 0).atk, 30);
+      eq(v.players[0].buffs, [{ stat: 'atk', n: 30, until: 'turn' }]);
+    }
+    ok(!JSON.stringify(XS.view(s, 1).players[0].buffs).includes('ST01-'), 'no card ids in the buffs');
   });
 
   // ============================== tactics ==============================
