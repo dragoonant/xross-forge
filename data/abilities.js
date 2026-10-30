@@ -6,7 +6,8 @@
 //   refuses it for any card in a registered deck (CLAUDE.md rule 8).
 // Ops, conditions, and targets: js/engine/abilities.js. Numbers and tags here are audited against the
 // printed text by tools/audit-cards.mjs, so every printed number is written as a number below.
-// The data is deep-frozen at the end of this file so resolution frames can share it (apply never mutates).
+// Booster cards live in data/abilities-bp01.js .. -bp04.js (same shape, helpers from XS.ABIL_KIT); the data
+// is deep-frozen by data/abilities-end.js so resolution frames can share it (apply never mutates).
 (function () {
   const XS = (globalThis.XS = globalThis.XS || {});
 
@@ -97,10 +98,8 @@
     'ST02-025': ppCard(),
   };
 
-  // Deep-freeze so cloneState can share the effect data between states.
-  (function freeze(o) {
-    if (o === null || typeof o !== 'object' || Object.isFrozen(o)) return;
-    Object.freeze(o);
-    for (const k of Object.keys(o)) freeze(o[k]);
-  })(XS.ABIL);
+  // Shared helpers for the per-product files (data/abilities-bp0N.js). The data is deep-frozen
+  // by data/abilities-end.js, which loads after every abilities file.
+  XS.ABIL_KIT = { oneOpp, allOpp, oneOther, allOther, oneOwn, boost, after, plainAttack, onPlay, onAwaken,
+    draw, dmg, summit, adrenaline, firstAid, specialRound, lightShield, ppTicket, ppCard, perTag, downIfAllTag, loot };
 })();
