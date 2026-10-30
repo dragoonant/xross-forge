@@ -65,7 +65,7 @@ function checkOps(no, c, timing, ops, err, registered, inGrant) {
       if (op.timing !== 'afterAttack') err(no, 'grant only supports afterAttack');
       if (Array.isArray(op.ops)) checkOps(no, c, 'afterAttack', op.ops, err, registered, true);
     }
-    if (op.to !== undefined) {
+    if (op.to !== undefined && typeof op.to === 'object') {   // lookPick's to is a zone name ('hand'|'trash'), not a leader target
       if (!['own', 'opp'].includes(op.to.side)) err(no, `${op.op}: target side must be own or opp`);
       const k = op.to.count;
       if (!(k === 1 || k === 'all' || k === 'attacker' || (Number.isInteger(k) && k >= 2 && op.to.upTo === true))) err(no, `${op.op}: target count must be 1, 'all', 'attacker' or N with upTo`);
