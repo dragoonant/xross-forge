@@ -3,6 +3,9 @@ name: ci
 
 on:
   push:
+    # claude/wip-backup holds ungated snapshots of agents' work in progress (a safety copy
+    # against container restarts); gating it only produces failure emails.
+    branches-ignore: ['claude/wip-backup']
   pull_request:
 
 permissions:
