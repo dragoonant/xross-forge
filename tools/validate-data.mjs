@@ -286,11 +286,14 @@ function selftest() {
   for (const rule of ['art-missing', 'sound-missing']) {
     if (!strict.errors.some((e) => e.rule === rule)) { bad++; console.log(`FAIL selftest: rule ${rule} did not bite when required`); }
   }
-  // A face missing from the manifest but listed in art-pending passes (the clean data has pending faces and validates);
-  // dropping one from the pending list makes it a hole.
-  if (!base.ART_PENDING.length) { bad++; console.log('FAIL selftest: no pending art in the clean data to prove the allowance with'); }
+  // A face missing from the manifest but listed in art-pending passes; dropping it from the pending list makes it a hole.
+  // Once every face has art the clean data has no pending entry, so move one face from the manifest to the pending list.
+  const pend = structuredClone(base);
+  if (!pend.ART_PENDING.length && firstFace !== undefined) { delete pend.ART[firstFace]; pend.ART_PENDING.push(firstFace); }
+  if (!pend.ART_PENDING.length) { bad++; console.log('FAIL selftest: no card face to prove the art-pending allowance with'); }
   else {
-    const dropped = structuredClone(base);
+    if (validate(pend).errors.some((e) => e.rule === 'art-missing')) { bad++; console.log('FAIL selftest: a face listed in art-pending still failed art-missing'); }
+    const dropped = structuredClone(pend);
     dropped.ART_PENDING.shift();
     if (!validate(dropped).errors.some((e) => e.rule === 'art-missing')) { bad++; console.log('FAIL selftest: a face in neither the manifest nor art-pending did not fail art-missing'); }
   }
