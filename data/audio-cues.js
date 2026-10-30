@@ -89,6 +89,9 @@
       { tag: 'hit-heavy', kind: 'sfx', use: 'log', seconds: 1.2, gain: 0.95, takes: 2, crestMin: 4, prompt: `a massive explosive impact, deep sub-bass boom with a sharp cracking transient and debris scatter, cinematic, dry, ${NOVOICE}` },
       { tag: 'heal', kind: 'sfx', use: 'log', seconds: 1.5, gain: 0.55, prompt: `a warm healing shimmer, soft rising sparkles over a calm glowing tone, gentle, ${NOVOICE}` },
       { tag: 'leader-down', kind: 'sfx', use: 'log', seconds: 1.8, gain: 0.85, prompt: `a fighter knocked out, deep heavy thud with a descending electronic power-down sweep and a short crackle of debris, ${NOVOICE}` },
+      { tag: 'overkill', kind: 'sfx', use: 'log', seconds: 1.6, gain: 0.85, prompt: `an overwhelming finishing blow: a huge crunching impact with a crowd's sudden roar swelling behind it, short and explosive, ${NOVOICE}` },
+      { tag: 'revive', kind: 'sfx', use: 'log', seconds: 2, gain: 0.7, prompt: `a fighter rising back to their feet: a slow rising power-up hum climbing into a bright crystalline swell and a soft shimmering hit, hopeful, ${NOVOICE}` },
+      { tag: 'deck-look', kind: 'sfx', use: 'log', seconds: 0.9, gain: 0.45, prompt: `several playing cards fanned out quickly from the top of a deck, a soft dry riffle with a light flick at the end, close up, ${NOVOICE}` },
 
       // ---- the signature moment (log: awaken) ----------------------------------------------------------------
       { tag: 'awaken-stinger', kind: 'sfx', use: 'log', seconds: 3, gain: 1, takes: 2, duck: 0.3, prompt: `esports broadcast reveal stinger: a rising cinematic riser with a sweeping whoosh building for two seconds, then a huge deep bass impact boom with a bright shimmering crash, big and energetic, ${NOVOICE}` },

@@ -88,11 +88,11 @@
       tags: ['music-victory', 'music-defeat', 'vo-victory', 'vo-defeat'],
       fn: (e, view) => (e.data.winner === viewer(view) ? ['music-victory', 'vo-victory'] : ['music-defeat', 'vo-defeat']),
     },
-    overkill: none('the hit that caused it was already heard; the effect it unlocks makes its own sound'),
+    overkill: { tags: ['overkill'], fn: () => ['overkill'] },   // the crowd reacts to the excess; the effect it unlocks makes its own sound
     echo: none('a card turning sideways or being played again for free; the effects it repeats make their own sounds'),
-    look: none('looking at, revealing and trashing deck cards is quiet; a card added to the hand is heard as the next draw or play'),
+    look: { tags: ['deck-look'], fn: () => ['deck-look'] },   // a soft riffle; a card added to the hand is heard as the next draw or play
     freePlay: { tags: ['play-attack', 'play-memoria'], fn: (e) => [e.data.type === 'attack' ? 'play-attack' : 'play-memoria'] },
-    revive: { tags: ['heal'], fn: () => ['heal'] },   // a leader standing up again sounds like a heal
+    revive: { tags: ['revive'], fn: () => ['revive'] },   // a downed leader standing up again
     fizzle: { tags: ['ui-cancel'], fn: () => ['ui-cancel'] },   // an effect that could do nothing: the soft "no" blip
   };
 
