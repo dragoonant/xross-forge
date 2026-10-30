@@ -1,6 +1,7 @@
 // AI bench (M4): head-to-head matches with behaviour counters, run on worker threads.
 //   node tools/ai-bench.mjs [--pair "normal:random hard:normal easy:random"] [--seeds 1-200] [--workers 4]
 //                           [--budget off|on] [--mode full|quick] [--json file] [--quick] [--verbose]
+//                           [--decks ST01,ST02 | C01,C02,...]  (each deck plays the next one in the list, both seats)
 // Every pairing is played in BOTH seats with BOTH decks (ST01 vs ST02 and swapped): 4 games per seed. Only decisive games
 // enter the win rate (a 95% Wilson interval is printed); draws (both lose) and capped games are listed apart. `--budget off`
 // (default) freezes the AI clock so decisions are reproducible and bounded by node counts alone; `--budget on` uses the real
@@ -14,12 +15,16 @@ import fs from 'node:fs';
 
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i >= 0 ? process.argv[i + 1] : d; };
 const QUICK = process.argv.includes('--quick');
+const DECKS = arg('decks', 'ST01,ST02').split(',');
+if (isMainThread) process.env.BENCH_DECKS = DECKS.join(',');   // worker threads get no argv; they read the list from the inherited environment
 const CAP = 3000;
 
 // ---------------------------------------------------------------------------------------------------------------------------
 if (!isMainThread) {
   const XS = loadPage('tests.html').XS;
-  const OTHER = { ST01: 'ST02', ST02: 'ST01' };
+  // Each listed deck faces the next one in the list (the starters: ST01 <-> ST02).
+  const DL = (process.env.BENCH_DECKS || 'ST01,ST02').split(',');
+  const OTHER = Object.fromEntries(DL.map((d, i) => [d, DL[(i + 1) % DL.length]]));
   // A bot kind is 'random', a tier name, or a tier with overrides for tuning: 'normal{alive=60,t.pairs=4}' (t. = tier option; an array is written 24/20/16).
   const parseKind = (kind) => {
     const m = /^([a-z]+)(?:\{(.*)\})?$/.exec(kind);
@@ -120,7 +125,7 @@ if (!isMainThread) {
   const verbose = process.argv.includes('--verbose');
 
   const jobs = [];
-  if (arg('from', null) === null) for (const [a, b] of pairs) for (const seed of seeds) for (const aSeat of [0, 1]) for (const aDeck of ['ST01', 'ST02']) jobs.push({ a, b, seed, aSeat, aDeck, mode, budget });
+  if (arg('from', null) === null) for (const [a, b] of pairs) for (const seed of seeds) for (const aSeat of [0, 1]) for (const aDeck of DECKS) jobs.push({ a, b, seed, aSeat, aDeck, mode, budget });
 
   const wilson = (w, n) => {
     if (n === 0) return [0, 0];
@@ -158,9 +163,9 @@ if (!isMainThread) {
     const aw = dec.filter((r) => r.winner === 'A').length;
     const [lo, hi] = wilson(aw, dec.length);
     const draws = R.filter((r) => r.winner === 'draw').length, caps = R.filter((r) => r.winner === 'cap').length, errs = R.filter((r) => r.winner === 'error').length;
-    lines(`\n${a} vs ${b}: ${R.length} games (${R.length / 4} seeds x 2 seats x 2 decks, ${mode} match), decisive ${dec.length}, draws ${draws}, capped ${caps}, errors ${errs}`);
+    lines(`\n${a} vs ${b}: ${R.length} games (${R.length / (2 * DECKS.length)} seeds x 2 seats x ${DECKS.length} decks, ${mode} match), decisive ${dec.length}, draws ${draws}, capped ${caps}, errors ${errs}`);
     lines(`  ${a} wins ${aw}/${dec.length} = ${pct(dec.length ? aw / dec.length : 0)}  (95% CI ${pct(lo)} to ${pct(hi)})`);
-    for (const [label, f] of [['as seat 0', (r) => r.job.aSeat === 0], ['as seat 1', (r) => r.job.aSeat === 1], [`with ST01`, (r) => r.job.aDeck === 'ST01'], [`with ST02`, (r) => r.job.aDeck === 'ST02']]) {
+    for (const [label, f] of [['as seat 0', (r) => r.job.aSeat === 0], ['as seat 1', (r) => r.job.aSeat === 1], ...DECKS.map((d) => [`with ${d}`, (r) => r.job.aDeck === d])]) {
       const d = dec.filter(f), w = d.filter((r) => r.winner === 'A').length;
       const [l, h] = wilson(w, d.length);
       lines(`    ${label.padEnd(10)} ${w}/${d.length} = ${pct(d.length ? w / d.length : 0)}  (${pct(l)} to ${pct(h)})`);
