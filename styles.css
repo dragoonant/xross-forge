@@ -889,3 +889,93 @@ body.reduce-motion .handcard, body.reduce-motion .leader, body.reduce-motion #dr
   .play-wrap { flex-wrap: nowrap; justify-content: center; gap: 8px; }
   .play { min-width: 0; padding: 8px 20px; }
 }
+
+/* =====================================================================================
+   Competitive decks: the deck picker, new prompt purposes, cost changes, Echo, keywords.
+   ===================================================================================== */
+
+/* ---- deck picker (title): two lists of 12 decks in two groups; tabs when the screen is narrow ---- */
+.deck-pick { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; width: 100%; min-width: 0; }
+.dp-tabs { display: none; }
+.dp-panel { margin: 0; padding: 8px 10px 10px; border: 1px solid var(--line); background: var(--panel); min-width: 0; flex: 1 1 22rem; max-width: 30rem; }
+.dp-panel legend { padding: 0 8px; font: 800 0.72rem/1 var(--font-body); letter-spacing: 0.2em; text-transform: uppercase; color: var(--cyan); }
+.dp-list { display: flex; flex-direction: column; gap: 6px; max-height: min(44vh, 22rem); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 2px 4px 2px 0; text-align: left; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.dp-group { position: sticky; top: 0; z-index: 1; padding: 4px 2px 3px; font: 800 0.66rem/1 var(--font-body); letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); background: color-mix(in srgb, var(--bg-0) 92%, transparent); border-bottom: 1px solid var(--line); }
+.dp-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: start; min-width: 0; }
+.dp-row .opt { display: block; min-width: 0; }
+.dp-row .opt-body { min-width: 0; padding: 7px 10px; gap: 2px; }
+.dp-row .opt-body b { font-size: 0.82rem; overflow-wrap: anywhere; }
+.dp-top { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; min-width: 0; }
+.dp-pips { display: inline-flex; gap: 3px; flex: 0 0 auto; }
+.dp-pip { width: 9px; height: 9px; border-radius: 50%; background: var(--cc, var(--c-colorless)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent); }
+.dp-leaders { font-size: 0.72rem; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
+.dp-src { display: block; font-style: normal; font-size: 0.66rem; line-height: 1.2; color: var(--dim); }
+.dp-row .view-list { align-self: center; padding: 4px 6px; white-space: nowrap; }
+.dp-plain .opt-body b { font-size: 0.85rem; }
+.dp-tab { appearance: none; cursor: pointer; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 7px 10px; text-align: left; color: var(--ink); background: color-mix(in srgb, var(--bg-1) 80%, transparent); border: 1px solid var(--line); }
+.dp-tab-k { font: 800 0.62rem/1 var(--font-body); letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
+.dp-tab-v { font: 800 0.76rem/1.2 var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-tab.is-on { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); background: color-mix(in srgb, var(--cyan) 12%, var(--bg-1)); }
+.dp-tab.is-on .dp-tab-k { color: var(--cyan); }
+.setup > .deck-pick { flex: 1 1 100%; }
+@media (max-width: 900px), (max-height: 660px) {
+  .dp-tabs { display: flex; gap: 6px; width: 100%; }
+  .dp-panel legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .dp-panel { flex: 1 1 100%; max-width: none; padding: 6px 8px 8px; }
+  .deck-pick[data-active="mine"] #dp-bot, .deck-pick[data-active="bot"] #dp-mine { display: none; }
+  .deck-pick { gap: 6px; }
+  .dp-list { max-height: min(34vh, 20rem); }
+}
+@media (max-height: 660px) and (min-aspect-ratio: 1/1) { .dp-list { max-height: 24vh; } .dp-row .opt-body { padding: 4px 8px; } }
+
+/* ---- cost changes: the printed cost struck, the cost now beside it (XS.costToPlay) ---- */
+.c-cost.is-mod { gap: 2px; padding: 0 4px; border-radius: 99px; background: var(--gold); }
+.c-cost .c-was { font-size: 0.62em; font-weight: 700; opacity: 0.7; text-decoration: line-through; }
+.c-cost .c-now { font-weight: 900; }
+.z-was { opacity: 0.6; }
+.z-now { color: var(--gold); }
+.z-kw { margin-top: 6px; padding: 5px 8px; font-size: 0.78rem; line-height: 1.35; color: var(--ink); background: color-mix(in srgb, var(--gold) 12%, var(--bg-2)); border-left: 3px solid var(--gold); }
+
+/* ---- Echo: a card lying sideways in the play area ---- */
+.playarea > .card.is-sideways { transform: rotate(90deg); margin-inline: calc(var(--ph) / 7 + 4px) calc(var(--ph) / 7 + 4px); }
+.card.is-sideways .c-echo { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font: 900 clamp(6px, 9cqw, 10px)/1.5 var(--font-body); letter-spacing: 0.16em; color: var(--bg-0); background: var(--magenta); }
+
+/* ---- prompts: look / reveal / may / freePlay / revive / awaken ---- */
+.p-notes { color: color-mix(in srgb, var(--ink) 78%, var(--dim)); }
+.p-look-head { margin-bottom: 4px; font-size: 0.8rem; color: var(--dim); }
+.p-cards .card.pick.is-dim { opacity: 0.55; filter: grayscale(0.5); cursor: default; }
+.card .c-order { position: absolute; top: 3px; right: 3px; min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font: 900 13px/1 var(--font-display); color: var(--bg-0); background: var(--magenta); border-radius: 50%; box-shadow: 0 0 8px var(--magenta-glow); }
+.p-may { display: flex; flex-direction: column; gap: 6px; padding: 2px 0; }
+.p-may-name { font: 800 0.9rem/1.2 var(--font-body); color: var(--gold); }
+.p-quote { padding: 6px 10px; font-size: 0.82rem; line-height: 1.4; white-space: pre-line; background: var(--bg-2); border-left: 3px solid var(--cyan); }
+.chip-extra { font-size: 0.7rem; color: var(--dim); }
+
+/* ---- title with the deck picker: landscape puts the wordmark beside the setup (as the short landscape layout does), portrait compacts earlier ---- */
+@media (min-aspect-ratio: 1/1) and (min-width: 900px) and (max-height: 1000px) and (min-height: 661px) {
+  .title { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.7fr); grid-template-areas: "mark setup" "sub setup" "play setup" "notice setup"; column-gap: 24px; align-content: center; justify-items: center; padding: 10px 20px; }
+  .wordmark { grid-area: mark; font-size: clamp(3rem, 11vw, 7rem); align-self: end; }
+  .subtitle { grid-area: sub; margin: 6px 0 0; }
+  .setup { grid-area: setup; margin: 0; gap: 10px; align-content: center; }
+  .play-wrap { grid-area: play; margin: 14px 0 0; }
+  .notice-line { grid-area: notice; margin: 12px 0 0; }
+  #title-lower { display: none; }
+  .dp-list { max-height: min(42vh, 24rem); }
+}
+@media (max-height: 880px) and (max-aspect-ratio: 1/1) {
+  .subtitle { margin-top: 6px; font-size: 0.92rem; }
+  .wordmark { font-size: clamp(2.6rem, min(20vw, 9.5vh), 6rem); }
+  .title { padding-block: 8px; }
+  .setup { margin-top: 10px; gap: 8px; }
+  .opt-group { padding: 4px 10px 8px; }
+  .opt-body { padding: 6px 12px; }
+  .opt-body i { display: none; }
+  .dp-list { max-height: min(27vh, 17rem); }
+  .play-wrap { margin-top: 10px; }
+  .notice-line { margin-top: 8px; font-size: 0.66rem; }
+}
+@media (max-width: 900px), (max-height: 660px) { .dp-plain .dp-src { display: none; } .dp-plain .opt-body { padding: 6px 10px; } }
+@media (max-height: 880px) and (max-aspect-ratio: 1/1) {
+  .title-links { flex-wrap: nowrap; gap: 6px; }
+  .title-links .btn { min-height: 34px; padding: 6px 10px; font-size: 0.66rem; letter-spacing: 0.06em; }
+  .play { min-height: 52px; }
+}

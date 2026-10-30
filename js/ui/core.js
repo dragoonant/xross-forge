@@ -70,6 +70,8 @@
   U.nameEn = (cardId) => U.card(cardId).nameEn;
   U.initials = (cardId) => {
     const words = U.card(cardId).nameEn.replace(/[^A-Za-z0-9' -]/g, '').split(/\s+/).filter(Boolean);
+    // Some leaders are known by a Japanese-only name (nameEn has no Latin letter): their first characters stand in.
+    if (words.length === 0) return Array.from(U.card(cardId).nameEn).slice(0, 2).join('');
     if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
     return (words[0][0] + words[1][0]).toUpperCase();
   };

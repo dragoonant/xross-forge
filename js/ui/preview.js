@@ -9,8 +9,33 @@
   const { el } = U;
   const P = (U.preview = {});
 
-  // Set by the game controller: { stats(iid) -> XS.leaderStats for a leader iid in the presented state }.
+  // Set by the game controller: { stats(iid) -> XS.leaderStats for a leader iid in the presented state,
+  //   cost(iid) -> XS.costParts for a card in the viewer's hand or tactics area (null for any other card), name(iid) -> a card's title or null }.
   P.ctx = null;
+
+  // The keywords of the booster sets, in our own words (the card's own text keeps the printed reminder).
+  P.KEYWORDS = [
+    [/\[Overkill (\d+|N)\]/, (m) => `Overkill ${m[1]}: after the attack, if the attacked leader took at least ${m[1] === 'N' ? 'N' : m[1]} more damage than it had HP left, the effect that follows happens.`],
+    [/\[Echo\]/, () => 'Echo: at the end of your turn this card turns sideways instead of leaving. At the start of your next main phase it is played again for free, then it is trashed at the end of that turn.'],
+    [/\[Round\]/, () => 'Round: this card stays in the play area until the round ends, and its effect lasts while it is there.'],
+  ];
+  // Equipment that only changes stats: the stat line of CARDS[no].equip.
+  P.equipLine = function (d) {
+    if (d.equip === undefined) return null;
+    const bits = [];
+    if (d.equip.hp !== undefined) bits.push('HP +' + d.equip.hp);
+    if (d.equip.atk !== undefined) bits.push('ATK +' + d.equip.atk);
+    if (d.equip.hpBase !== undefined) bits.push(`base HP becomes ${d.equip.hpBase}` + (d.equip.hpBaseAwakened !== undefined ? ` (${d.equip.hpBaseAwakened} once awakened)` : ''));
+    return 'Equipment: ' + bits.join(', ') + '.';
+  };
+  // "Cost 3 PP", or "Cost 3 -> 2 PP (this card -1, Power Field -1)" when the engine's costParts say a modifier applies now.
+  P.costLine = function (d, iid) {
+    if (d.cost === undefined) return null;
+    const parts = iid !== null && P.ctx !== null ? P.ctx.cost(iid) : null;
+    if (parts === null || parts.total === d.cost) return { text: 'Cost ' + d.cost + ' PP', was: null, now: null };
+    const why = parts.mods.filter((m) => m.n !== 0).map((m) => `${m.src === iid ? 'this card' : (P.ctx.name(m.src) === null ? 'an effect' : P.ctx.name(m.src))} ${m.n > 0 ? '+' : '−'}${Math.abs(m.n)}`);
+    return { text: 'Cost', was: d.cost, now: parts.total, why: ' (' + (why.length ? why.join(', ') : 'a card effect') + ')' };
+  };
 
   let box = null;
   let pinned = false;
@@ -27,9 +52,14 @@
     names.appendChild(el('div', 'z-jp', U.cardTitleAlt(cardId)));
     info.appendChild(names);
     const bits = [U.typeLabel(cardId), U.COLOR_LABEL[d.color]];
-    if (d.cost !== undefined) bits.push('Cost ' + d.cost + ' PP');
+    const cl = P.costLine(d, iid);
+    if (cl !== null && cl.was === null) bits.push(cl.text);
     if (d.ace) bits.push('ACE');
-    info.appendChild(el('div', 'z-meta', bits.join(' · ')));
+    const meta = el('div', 'z-meta', bits.join(' · '));
+    if (cl !== null && cl.was !== null) {
+      meta.append(' · Cost ', el('s', 'z-was', String(cl.was)), ' ', el('b', 'z-now', String(cl.now)), ' PP' + cl.why);
+    }
+    info.appendChild(meta);
     if (d.type === 'leader') {
       info.appendChild(el('div', 'z-stat', `Printed: ATK ${d.atk} / HP ${d.hp}. Awakened: ATK ${d.awakenAtk} / HP ${d.awakenHp}.`));
       if (iid !== null && P.ctx !== null && U.isLeaderIid(iid)) {
@@ -41,7 +71,13 @@
         if (st.tags.length > 0) info.appendChild(el('div', 'z-stat', 'Tag: ' + st.tags.join(', ')));
       }
     }
+    const eq = P.equipLine(d);
+    if (eq !== null) info.appendChild(el('div', 'z-stat', eq));
     info.appendChild(el('div', 'z-text', d.text));
+    for (const [re, say] of P.KEYWORDS) {
+      const m = re.exec(d.text);
+      if (m !== null) info.appendChild(el('div', 'z-kw', say(m)));
+    }
     if (root.firstChild.classList.contains('has-art')) info.appendChild(el('div', 'z-ai', 'Illustration: AI-generated (AIイラスト).'));
     else info.appendChild(el('div', 'z-note', 'Placeholder face: this card has no artwork yet.'));
     root.appendChild(info);

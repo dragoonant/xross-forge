@@ -82,7 +82,7 @@
     heal: (e, v) => [leaderRef(v, e.data.leader), e.data.amount === 0
       ? ' had nothing to heal.'
       : ` heals ${e.data.amount}${e.data.amount < e.data.requested ? ` (of ${e.data.requested})` : ''}.`],
-    down: (e, v) => [leaderRef(v, e.data.leader), ' goes down.'],
+    down: (e, v) => [leaderRef(v, e.data.leader), e.data.cause === 'attack' ? " goes down (the attack's own effect)." : ' goes down.'],
     awaken: (e, v) => [leaderRef(v, e.data.leader), ` AWAKENS! Now ATK ${e.data.atk}, HP ${e.data.hp}.`],
     ability: (e, v) => [cardRef(v, e.data.src, e.data.cardId), ` triggers its ${timingWord(e.data.timing)} effect.`],
     discard: (e, v) => (e.data.hidden
@@ -100,7 +100,7 @@
       ? `Match over: nobody wins (${REASON[e.data.reason]}).`
       : `Match over: ${e.data.winner === v.viewer ? 'you win' : 'the opponent wins'} (${REASON[e.data.reason]}). ` +
         `Rounds ${e.data.wins[v.viewer]} to ${e.data.wins[1 - v.viewer]}.`],
-    overkill: (e, v) => ['Overkill ' + e.data.n + '! ', leaderRef(v, e.data.leader), ` took ${e.data.excess} more than it had left, so `, cardRef(v, e.data.card), ' takes effect.'],
+    overkill: (e, v) => [`Overkill ${e.data.n} met! `, leaderRef(v, e.data.leader), ` took ${e.data.excess} more damage than it had HP left, so the Overkill effect of `, cardRef(v, e.data.card), ' happens.'],
     echo: (e, v) => [cardRef(v, e.data.iid, e.data.cardId), e.data.phase === 'sideways'
       ? ' echoes: it stays in the play area, turned sideways.'
       : ' echoes: it is played again for free.'],
@@ -122,10 +122,12 @@
     const deckOf = d.side === v.viewer ? 'your deck' : "the opponent's deck";
     const cards = d.hidden === true ? [U.plural(d.n, 'card')] : cardList(v, d.iids, d.cardIds);
     switch (d.phase) {
-      case 'see': return [`${who} look${s} at the top `, ...cards, ` of ${deckOf}.`];
+      case 'see': return d.hidden === true
+        ? [`${who} look${s} at the top ${U.plural(d.n, 'card')} of ${deckOf}.`]
+        : [`${who} look${s} at the top ${U.plural(d.n, 'card')} of ${deckOf}: `, ...cards, '.'];
       case 'reveal': return d.from === 'hand'
         ? [`${who} reveal${s} `, ...cards, ' from hand.']
-        : [`${who} reveal${s} the top `, ...cards, ` of ${deckOf}.`];
+        : [`${who} reveal${s} the top ${U.plural(d.n, 'card')} of ${deckOf}: `, ...cards, '.'];
       case 'take': return [`${who} add${s} `, ...cards, ' to hand.'];
       case 'trash': return [`${who} put${me ? '' : 's'} `, ...cards, ` from ${deckOf} into the trash.`];
       default: throw new Error('ui/logtext: unknown look phase ' + d.phase);

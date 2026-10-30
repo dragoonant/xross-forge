@@ -56,8 +56,10 @@
     if (P.play.length === 0) wrap.appendChild(el('span', 'pa-empty', 'PLAY AREA'));
     for (const iid of P.play) {
       const armed = P.boosts.includes(iid);
-      const c = miniCard(S, iid, roles, M, armed ? 'armed' : '');
+      const side = P.sideways.includes(iid);      // an Echo card lying sideways: it is replayed free at the start of the next main phase (R-024)
+      const c = miniCard(S, iid, roles, M, (armed ? 'armed' : '') + (side ? ' is-sideways' : ''));
       if (armed) c.appendChild(el('div', 'c-armed', 'ARMED'));
+      if (side) c.appendChild(el('div', 'c-echo', 'ECHO'));
       wrap.appendChild(c);
     }
     return wrap;
@@ -135,7 +137,7 @@
     if (M.canAct) {
       const cost = XS.costToPlay(S.raw, iid);
       const badge = c.querySelector('.c-cost');
-      if (badge !== null) badge.textContent = String(cost);
+      if (badge !== null) U.fillCostBadge(badge, U.card(U.cardIdOf(S.view, iid)).cost, cost);
     }
   }
 

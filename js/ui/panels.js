@@ -93,8 +93,8 @@
 
     const names = group('Card titles');
     const nameRow = el('div', 'set-row');
-    nameRow.appendChild(radioRow('set-names', 'set-names-en', 'en', 'English names', 'Japanese name beneath', S.get('names') === 'en', (x) => { S.set('names', x); U.game.redraw(); }));
-    nameRow.appendChild(radioRow('set-names', 'set-names-jp', 'jp', 'Japanese names', 'English name beneath', S.get('names') === 'jp', (x) => { S.set('names', x); U.game.redraw(); }));
+    nameRow.appendChild(radioRow('set-names', 'set-names-en', 'en', 'English names', 'Japanese name beneath', S.get('names') === 'en', (x) => { S.set('names', x); U.game.redraw(); U.title.renderDecks(); }));
+    nameRow.appendChild(radioRow('set-names', 'set-names-jp', 'jp', 'Japanese names', 'English name beneath', S.get('names') === 'jp', (x) => { S.set('names', x); U.game.redraw(); U.title.renderDecks(); }));
     names.appendChild(nameRow);
     box.appendChild(names);
 
@@ -134,6 +134,7 @@
     const meta = [];
     if (d.type === 'leader') meta.push('ATK ' + d.atk + ' · HP ' + d.hp);
     if (d.type === 'tactics') meta.push(U.typeLabel(cardId));
+    if (d.equip !== undefined) meta.push(U.preview.equipLine(d).replace(/^Equipment: /, '').replace(/\.$/, ''));
     if (d.ace) meta.push('ACE');
     r.appendChild(el('span', 'dk-meta', meta.join(' · ')));
     r.appendChild(el('span', 'dk-col col-' + d.color, U.COLOR_LABEL[d.color]));
@@ -154,7 +155,14 @@
     $('deckpeek-title').textContent = d.id + ' ' + d.nameEn + ' · ' + d.name;
     const box = $('deckpeek-body');
     box.replaceChildren();
-    box.appendChild(el('p', 'v-note', 'Official starter list, as sold in the box (read from the publisher\'s product page on 2026-10-29). Hover a row to read the card.'));
+    if (d.format === 'competitive') {
+      const note = el('p', 'v-note');
+      note.append(`Tournament list, reproduced card for card. Source: ${d.source.event.replace(/[.\s]+$/, '')}. Read on ${d.source.fetched} (${d.source.method}). `);
+      const a = el('a', 'linkish', 'Source page');
+      a.href = d.source.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      note.append(a, '. Hover a row to read the card.');
+      box.appendChild(note);
+    } else box.appendChild(el('p', 'v-note', 'Official starter list, as sold in the box (read from the publisher\'s product page on 2026-10-29). Hover a row to read the card.'));
     box.appendChild(deckSection('Leaders · ' + d.leaders.length, d.leaders.map((c) => deckRow(c))));
     box.appendChild(deckSection('Tactics · ' + d.tactics.length, d.tactics.map((c) => deckRow(c)),
       'Each round you secretly set one aside; the second player of round 1 also gets the PP Ticket.'));

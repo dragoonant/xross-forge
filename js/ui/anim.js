@@ -96,6 +96,9 @@
         case 'fizzle':
           steps.push({ kind: 'notice', entry: e, main: 'NO EFFECT', sub: '', tone: 'dim' });
           break;
+        case 'overkill':
+          steps.push({ kind: 'notice', entry: e, main: 'OVERKILL ' + d.n, sub: '+' + d.excess + ' beyond the leader\'s HP', tone: 'warn' });
+          break;
         default:
           steps.push({ kind: QUIET.has(e.type) ? 'quiet' : 'say', entry: e });
       }

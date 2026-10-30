@@ -63,7 +63,18 @@
     };
     st = U.targeting.fresh(); ps = U.prompt.fresh();
     endShown = false; drawerLen = -1;
-    U.preview.ctx = { stats: (iid) => XS.leaderStats(run.presented.raw, U.leaderSeat(iid), U.leaderSlot(iid)) };
+    U.preview.ctx = {
+      stats: (iid) => XS.leaderStats(run.presented.raw, U.leaderSeat(iid), U.leaderSlot(iid)),
+      // The engine's cost breakdown, only for a card the viewer can play from (hand or tactics area): the zoom strikes the printed cost when it changed.
+      cost: (iid) => {
+        const P = run.presented.view.players[ME];
+        return P.hand.includes(iid) || P.tarea.includes(iid) ? XS.costParts(run.presented.raw, iid) : null;
+      },
+      name: (iid) => {
+        const id = U.isLeaderIid(iid) ? U.leaderCardId(run.presented.view, iid) : U.cardIdOf(run.presented.view, iid);
+        return id === null ? null : U.cardTitle(id);
+      },
+    };
     document.body.classList.add('in-game');
     $('title-screen').hidden = true;
     $('game').hidden = false;

@@ -11,7 +11,18 @@
 
   U.COLOR_LABEL = { blue: 'Blue', green: 'Green', red: 'Red', yellow: 'Yellow', colorless: 'Colourless' };
 
-  // opts: { iid, cls, why (string: shown on the card), awake (leader: the awakened face), lazy (hand and zoom: lazy-load the picture) }
+  // The cost badge. `printed` is the card's own cost, `now` what XS.costToPlay says it costs now (cost modifiers, FAQ #138).
+  // When they differ the printed number is struck and the current one stands beside it, so a changed cost is never silent.
+  U.fillCostBadge = function (badge, printed, now) {
+    const changed = now !== undefined && now !== null && now !== printed;
+    badge.classList.toggle('is-mod', changed);
+    if (!changed) { badge.textContent = String(printed); badge.removeAttribute('title'); return; }
+    badge.replaceChildren(el('s', 'c-was', String(printed)), el('b', 'c-now', String(now)));
+    badge.title = 'Costs ' + now + ' PP now (printed ' + printed + ')';
+  };
+
+  // opts: { iid, cls, why (string: shown on the card), awake (leader: the awakened face), lazy (hand and zoom: lazy-load the picture),
+  //         costNow (the cost the engine charges now, when it differs from the printed one) }
   U.cardEl = function (cardId, opts) {
     const o = opts === undefined ? {} : opts;
     const d = U.card(cardId);
@@ -21,7 +32,11 @@
     const art = el('div', 'c-art');
     U.art.fill(c, art, cardId, U.art.faceEntry(cardId, !!o.awake), !!o.lazy);
     c.appendChild(art);
-    if (d.cost !== undefined) c.appendChild(el('div', 'c-cost', String(d.cost)));
+    if (d.cost !== undefined) {
+      const badge = el('div', 'c-cost');
+      U.fillCostBadge(badge, d.cost, o.costNow);
+      c.appendChild(badge);
+    }
     c.appendChild(el('div', 'c-type', U.typeLabel(cardId)));
     const plate = el('div', 'c-plate');
     plate.appendChild(el('div', 'c-name', U.cardTitle(cardId)));

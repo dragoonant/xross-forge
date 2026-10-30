@@ -6,7 +6,7 @@
 <title>Xross Forge</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2304050c'/%3E%3Cpath d='M6 6l20 20' stroke='%2318e4ff' stroke-width='4'/%3E%3Cpath d='M26 6L6 26' stroke='%23ff2bd1' stroke-width='4'/%3E%3C/svg%3E">
 <meta name="theme-color" content="#04050c">
-<link rel="stylesheet" href="styles.css?v=ebcdca574f">
+<link rel="stylesheet" href="styles.css?v=525458bee6">
 </head>
 <body>
 <!-- Arena backdrop: pure CSS, no images. -->
@@ -17,7 +17,7 @@
 
   <main class="title" id="title-screen">
     <h1 class="wordmark"><span class="wm-xross">XROSS</span> <span class="wm-forge">FORGE</span></h1>
-    <p class="subtitle">Unofficial, non-commercial fan project. Play a starter-deck match against a bot.</p>
+    <p class="subtitle">Unofficial, non-commercial fan project. Play a match against a bot.</p>
 
     <section class="setup" aria-label="Match setup">
       <fieldset class="opt-group" id="opt-mode">
@@ -31,14 +31,14 @@
         <label class="opt" title="Plans its whole turn before it plays a card."><input type="radio" name="tier" value="normal" checked><span class="opt-body"><b>Normal</b></span></label>
         <label class="opt" title="Plans its turn, then plays out your reply to check it is safe."><input type="radio" name="tier" value="hard"><span class="opt-body"><b>Hard</b></span></label>
       </fieldset>
-      <fieldset class="opt-group" id="opt-deck">
-        <legend>Your deck <span class="legend-sub">(the bot plays the other one)</span></legend>
-        <div class="deck-opt"><label class="opt"><input type="radio" name="deck" value="ST01" checked><span class="opt-body"><b>ST01 First Glory</b><i>初の栄冠 · VSPO!</i></span></label>
-          <button class="linkish view-list" type="button" data-deck="ST01" data-cue="ui-drawer" aria-label="View the ST01 deck list">View list</button></div>
-        <div class="deck-opt"><label class="opt"><input type="radio" name="deck" value="ST02"><span class="opt-body"><b>ST02 Advent of the Demon King</b><i>魔王降臨 · Crazy Raccoon</i></span></label>
-          <button class="linkish view-list" type="button" data-deck="ST02" data-cue="ui-drawer" aria-label="View the ST02 deck list">View list</button></div>
-        <div class="deck-opt"><label class="opt"><input type="radio" name="deck" value="random"><span class="opt-body"><b>Surprise me</b><i>The game picks one</i></span></label></div>
-      </fieldset>
+      <section class="deck-pick" id="deck-pick" aria-label="Decks" data-active="mine">
+        <div class="dp-tabs" role="tablist" aria-label="Which deck to choose">
+          <button class="dp-tab is-on" id="dp-tab-mine" type="button" role="tab" aria-selected="true" aria-controls="dp-mine" data-panel="mine"><span class="dp-tab-k">Your deck</span><b class="dp-tab-v" id="dp-sum-mine"></b></button>
+          <button class="dp-tab" id="dp-tab-bot" type="button" role="tab" aria-selected="false" aria-controls="dp-bot" data-panel="bot"><span class="dp-tab-k">Bot's deck</span><b class="dp-tab-v" id="dp-sum-bot"></b></button>
+        </div>
+        <fieldset class="dp-panel" id="dp-mine" data-panel="mine"><legend>Your deck</legend><div class="dp-list" id="dp-list-mine" tabindex="-1"></div></fieldset>
+        <fieldset class="dp-panel" id="dp-bot" data-panel="bot"><legend>Bot's deck</legend><div class="dp-list" id="dp-list-bot" tabindex="-1"></div></fieldset>
+      </section>
     </section>
 
     <div class="play-wrap">
@@ -159,17 +159,17 @@
 <script src="data/cards.js?v=624b1253ff"></script>
 <script src="data/decks.js?v=25122f7da8"></script>
 <script src="data/abilities.js?v=299f1d3e82"></script>
-<script src="data/abilities-bp01.js?v=d87966255e"></script>
-<script src="data/abilities-bp02.js?v=16005c1a09"></script>
-<script src="data/abilities-bp03.js?v=d56dd9deb2"></script>
-<script src="data/abilities-bp04.js?v=9cc16458c4"></script>
+<script src="data/abilities-bp01.js?v=a504220b53"></script>
+<script src="data/abilities-bp02.js?v=bd2a103de3"></script>
+<script src="data/abilities-bp03.js?v=75a9203880"></script>
+<script src="data/abilities-bp04.js?v=0ef4e13bff"></script>
 <script src="data/abilities-end.js?v=1db2b35959"></script>
-<script src="data/art-manifest.js?v=4563087e31"></script>
-<script src="data/sound-manifest.js?v=2e407f4b92"></script>
+<script src="data/art-manifest.js?v=639e33f29a"></script>
+<script src="data/sound-manifest.js?v=74a9ad4523"></script>
 <script src="js/engine/state.js?v=2c07dc3124"></script>
 <script src="js/engine/log.js?v=d7d546723a"></script>
 <script src="js/engine/doors.js?v=834beb9b3c"></script>
-<script src="js/engine/abilities.js?v=8581cf6ed3"></script>
+<script src="js/engine/abilities.js?v=94147a8f31"></script>
 <script src="js/engine/attack.js?v=c27d4a9a14"></script>
 <script src="js/engine/flow.js?v=dbed6f084c"></script>
 <script src="js/engine/api.js?v=360f7dba61"></script>
@@ -183,29 +183,29 @@
 <!-- /ai -->
 <!-- audio: M6 owns these three files. The UI calls XS.Audio (init, unlock, onLog, cue, setScene, settings) and boot.js throws if it is missing. -->
 <!-- audio -->
-<script src="data/audio-cues.js?v=5be936d32f"></script>
-<script src="js/audio/map.js?v=99568810ae"></script>
+<script src="data/audio-cues.js?v=8159ddf753"></script>
+<script src="js/audio/map.js?v=69a84cd83b"></script>
 <script src="js/audio/audio.js?v=dc0671ba6a"></script>
 <!-- /audio -->
 <!-- UI, in dependency order. Everything under js/ui/ is view layer. -->
-<script src="js/ui/core.js?v=cca6a836a5"></script>
+<script src="js/ui/core.js?v=1379afb488"></script>
 <script src="js/ui/settings.js?v=c2d519072b"></script>
 <script src="js/ui/save.js?v=0bffbeb710"></script>
 <script src="js/ui/stats.js?v=4e8129c9c2"></script>
 <script src="js/ui/art.js?v=3677d5d7a1"></script>
 <script src="js/ui/sfx.js?v=c9224ed458"></script>
-<script src="js/ui/logtext.js?v=633f4f7ee6"></script>
-<script src="js/ui/cardview.js?v=c481c82d56"></script>
-<script src="js/ui/preview.js?v=0d6f041b80"></script>
-<script src="js/ui/anim.js?v=81efb5d7a8"></script>
+<script src="js/ui/logtext.js?v=855ed513e6"></script>
+<script src="js/ui/cardview.js?v=fcd464b5f9"></script>
+<script src="js/ui/preview.js?v=23f8d57e72"></script>
+<script src="js/ui/anim.js?v=aa5e12cb2d"></script>
 <script src="js/ui/targeting.js?v=39c3b91945"></script>
-<script src="js/ui/prompt.js?v=0e1caf86ca"></script>
-<script src="js/ui/board.js?v=833d502e33"></script>
+<script src="js/ui/prompt.js?v=8fddb5dd24"></script>
+<script src="js/ui/board.js?v=b1306f1959"></script>
 <script src="js/ui/bot-random.js?v=75e84f3887"></script>
-<script src="js/ui/bot-ai.js?v=2b8aff6a8e"></script>
-<script src="js/ui/game.js?v=ef91854db2"></script>
-<script src="js/ui/panels.js?v=9697577948"></script>
-<script src="js/ui/title.js?v=08d126f8c9"></script>
+<script src="js/ui/bot-ai.js?v=f8f2226a77"></script>
+<script src="js/ui/game.js?v=5279d9aa54"></script>
+<script src="js/ui/panels.js?v=67c387c7de"></script>
+<script src="js/ui/title.js?v=e37e2ce269"></script>
 <script src="js/ui/boot.js?v=4383f9db89"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // End-to-end checks of the first playable, in a real browser (Playwright, plain chromium.launch()).
-//   node tools/e2e.mjs [--only a|b|c|d|e|f|g] [--keep]
+//   node tools/e2e.mjs [--only a|b|c|d|e|f|g|h|i|j|k|l] [--keep]
 // (a) bot vs bot to the end screen, instant speed: full-match seeds 1..5 and quick-match seeds 1..2,
 //     zero console errors, zero page errors, zero UI diagnostics, and the saved trace replays.
 // (b) the human path by real clicks: Play, pick tactics, play an attack card choosing attacker and
@@ -12,7 +12,12 @@
 //     replay is cleared with a message, the deck list peek, the credits and how-to screens (title and Menu), art from the
 //     manifest (a fixture PNG under tools/out, never committed), the audio hooks (XS.Audio.onLog once per presented entry,
 //     UI cues, scenes, unlock on the first gesture), auto-pass with its notice and cancel, and the m7-*.png screenshots.
-// The script starts `node tools/serve.mjs` on port 8232 and stops it afterwards.
+// (i) the deck picker: 12 decks in two groups for both seats, View list for all 12, the bot's default, Surprise me, 1280x800 and 390x844.
+// (j) the booster prompts (look, reveal, may, freePlay, revive) resumed from real games of the competitive decks and answered by clicking,
+//     cost changes struck on the cards, keyword and equipment text in the zoom, Echo; screenshots tools/out/comp-ui-*.png.
+// (k) a human match by clicks with a competitive deck chosen on the title.
+// (l) every competitive deck against another one, bot=ai at instant speed, one seed each (10 games).
+// The script starts `node tools/serve.mjs` on port 8232 (E2E_PORT overrides) and stops it afterwards.
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
@@ -826,7 +831,7 @@ async function testSettings(browser) {
   await page.keyboard.press('Escape');
   check('settings: Escape closes the panel', !(await page.isVisible('#settings .modal-card')));
   // Japanese names lead on a card title once the setting is on (deck list rows and a card face).
-  await page.click('.view-list[data-deck="ST01"]');
+  await page.click('#dp-list-mine .view-list[data-deck="ST01"]');
   const first = await page.textContent('#deckpeek .dk-row .dk-names b');
   check('settings: Japanese card titles lead when "Japanese names" is picked', /[぀-ヿ一-鿿]/.test(first), first);
   await page.keyboard.press('Escape');
@@ -899,7 +904,7 @@ async function testContinue(browser, vp, tag) {
   await page.evaluate(() => XS.ui.game.stop());
   check(`${tag} quit to title keeps the save (Continue is offered again)`, await page.isVisible('#continue'));
 
-  await press(page.locator('.view-list[data-deck="ST02"]'));
+  await press(page.locator('#dp-list-mine .view-list[data-deck="ST02"]'));
   const dk = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('#deckpeek .dk-row')];
     const sec = (n) => [...document.querySelectorAll('#deckpeek .dk-sec')][n];   // 0 leaders, 1 tactics, 2 main-deck header, 3 attack, 4 memoria
@@ -1160,6 +1165,383 @@ async function testM7(browser) {
   await testArt(browser);
 }
 
+
+// ---- (i) the deck picker ------------------------------------------------------------------------------------------
+const COMP = ['C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'A01', 'A02', 'A03'];
+async function testDeckPicker(browser) {
+  for (const [w, h] of [[1280, 800], [390, 844]]) {
+    const tag = `${w}x${h}`;
+    TAP = w < 600;
+    const { ctx, page, errors } = await open(browser, `${BASE}?speed=instant&seed=5`, { width: w, height: h });
+    const narrow = w < 900;
+    const info = await page.evaluate(() => {
+      const lists = ['dp-list-mine', 'dp-list-bot'].map((id) => {
+        const box = document.getElementById(id);
+        return {
+          decks: [...box.querySelectorAll('input[type=radio]')].map((i) => i.value),
+          groups: [...box.querySelectorAll('.dp-group')].map((g) => g.textContent),
+          checked: box.querySelector('input:checked').value,
+          scrolls: box.scrollHeight > box.clientHeight,
+          views: [...box.querySelectorAll('.view-list')].map((b) => b.getAttribute('data-deck')),
+        };
+      });
+      const row = document.querySelector('#dp-list-mine .dp-row input[value="C01"]').closest('.dp-row');
+      return {
+        lists, hscroll: document.documentElement.scrollWidth > innerWidth,
+        c01: { text: row.textContent, pips: row.querySelectorAll('.dp-pip').length },
+        names: Object.fromEntries(['C01', 'A02'].map((id) => [id, XS.DECKS[id].leaders.map((l) => XS.ui.cardTitle(l))])),
+      };
+    });
+    const all = ['ST01', 'ST02', ...COMP];
+    check(`picker ${tag}: your list holds Surprise me + the 12 decks; the bot's list holds Different-from-mine, Surprise me + the 12`,
+      JSON.stringify(info.lists[0].decks) === JSON.stringify(['random', ...all]) && JSON.stringify(info.lists[1].decks) === JSON.stringify(['auto', 'random', ...all]), JSON.stringify(info.lists.map((l) => l.decks)));
+    check(`picker ${tag}: two groups, Starters · 2 and Competitive · 10, in both lists`, info.lists.every((l) => JSON.stringify(l.groups) === JSON.stringify(['Starters · 2', 'Competitive · 10'])), JSON.stringify(info.lists.map((l) => l.groups)));
+    check(`picker ${tag}: defaults are ST01 for you and "a different deck from mine" for the bot (Play is never greyed)`, info.lists[0].checked === 'ST01' && info.lists[1].checked === 'auto' && await page.isEnabled('#play'));
+    check(`picker ${tag}: a competitive row shows the English name, the leaders' names, four colour pips and the source in small text`,
+      info.c01.text.includes('C01 Four-colour') && info.names.C01.every((n) => info.c01.text.includes(n)) && info.c01.pips === 4 && info.c01.text.includes('Challengers Cup #3 Osaka · 1st'), info.c01.text);
+    check(`picker ${tag}: the lists scroll inside their panel and the page never scrolls sideways`, info.lists.some((l) => l.scrolls) && !info.hscroll);
+    check(`picker ${tag}: every one of the 12 decks has a View list button in both lists`, info.lists.every((l) => JSON.stringify(l.views) === JSON.stringify(all)));
+    if (narrow) {
+      check(`picker ${tag}: one list at a time with tabs; the tabs summarise both choices`, await page.evaluate(() => {
+        const vis = (id) => document.getElementById(id).getClientRects().length > 0;
+        return vis('dp-mine') && !vis('dp-bot') && document.getElementById('dp-sum-mine').textContent.startsWith('ST01') && document.getElementById('dp-sum-bot').textContent === 'Different from mine';
+      }));
+      await press(page.locator('#dp-tab-bot'));
+      check(`picker ${tag}: the Bot's deck tab shows the bot's list`, await page.evaluate(() => document.getElementById('dp-bot').getClientRects().length > 0 && document.getElementById('dp-mine').getClientRects().length === 0));
+      await press(page.locator('#dp-tab-mine'));
+    }
+    await page.mouse.move(2, 2);
+    await page.screenshot({ path: path.join(OUT, `comp-ui-picker-${tag}.png`) });
+    // View list for all 12 (your list): the panel opens, shows 4 leaders, 5 tactics and a 50-card main deck, and names the deck.
+    const peeks = [];
+    for (const id of all) {
+      await press(page.locator(`#dp-list-mine .view-list[data-deck="${id}"]`));
+      peeks.push(await page.evaluate((id) => {
+        const rows = [...document.querySelectorAll('#deckpeek .dk-row')];
+        const counts = [...document.querySelectorAll('#deckpeek .dk-n')].map((n) => Number(n.textContent.replace('×', '') || 0));
+        const r = document.getElementById('deckpeek').getBoundingClientRect(), card = document.querySelector('#deckpeek .modal-card').getBoundingClientRect();
+        return { id, title: document.getElementById('deckpeek-title').textContent, rows: rows.length, total: counts.reduce((a, b) => a + b, 0), note: document.querySelector('#deckpeek .v-note').textContent,
+          fits: card.left >= -1 && card.right <= innerWidth + 1 && document.documentElement.scrollWidth <= innerWidth, want: 9 + XS.DECKS[id].main.length };
+      }, id));
+      await page.keyboard.press('Escape');
+    }
+    check(`picker ${tag}: View list opens for all 12 decks (4 leaders + 5 tactics + the main deck, 50 cards, fits the window)`,
+      peeks.every((p) => p.title.startsWith(p.id) && p.rows === p.want && p.total === 50 && p.fits), JSON.stringify(peeks.filter((p) => !(p.rows === p.want && p.total === 50 && p.fits))));
+    check(`picker ${tag}: a tournament list says where it comes from; a starter says it is the box list`,
+      peeks.filter((p) => COMP.includes(p.id)).every((p) => p.note.includes('Tournament list') && p.note.includes('Source:')) && peeks.filter((p) => !COMP.includes(p.id)).every((p) => p.note.includes('starter list')));
+    // Play: C03 for me, A02 for the bot, by clicks; the board names both decks.
+    await press(page.locator(narrow ? '#dp-list-mine input[value="C03"]' : '#dp-list-mine input[value="C03"]'));
+    if (narrow) await press(page.locator('#dp-tab-bot'));
+    await press(page.locator('#dp-list-bot input[value="A02"]'));
+    check(`picker ${tag}: the tabs/summary follow the choice`, await page.evaluate(() => document.getElementById('dp-sum-mine').textContent.startsWith('C03') && document.getElementById('dp-sum-bot').textContent.startsWith('A02')));
+    await press(page.locator('#play'));
+    const decks = await page.evaluate(() => XS.ui.game.debug().live.init.decks);
+    check(`picker ${tag}: Play starts exactly the two decks clicked (C03 vs A02)`, JSON.stringify(decks) === JSON.stringify(['C03', 'A02']), JSON.stringify(decks));
+    check(`picker ${tag}: the scorebug names both decks`, await page.evaluate(() => [...document.querySelectorAll('#scorebug .sb-deck')].map((n) => n.textContent.slice(0, 3)).join() === 'C03,A02'));
+    await page.evaluate(() => XS.ui.game.stop());
+    // The choice is remembered; the bot's "different deck" is a different deck of the same kind.
+    await page.reload();
+    check(`picker ${tag}: the last choices come back after a reload`, await page.evaluate(() => document.querySelector('input[name="deck"]:checked').value === 'C03' && document.querySelector('input[name="deck-bot"]:checked').value === 'A02'));
+    const picks = [];
+    for (const [mine, bot, kind] of [['C05', 'auto', 'competitive'], ['ST02', 'auto', 'starter'], ['random', 'random', null]]) {
+      await page.evaluate(([m, b]) => {
+        document.querySelector(`input[name="deck"][value="${m}"]`).click();
+        document.querySelector(`input[name="deck-bot"][value="${b}"]`).click();
+      }, [mine, bot]);
+      for (let i = 0; i < 6; i++) {
+        await press(page.locator('#play'));
+        picks.push([mine, bot, kind, await page.evaluate(() => XS.ui.game.debug().live.init.decks)]);
+        await page.evaluate(() => XS.ui.game.stop());
+      }
+    }
+    const badKind = await page.evaluate((ps) => ps.filter(([m, b, k, d]) => d[0] === d[1] || (m !== 'random' && d[0] !== m) || (b === 'auto' && XS.DECKS[d[1]].format !== XS.DECKS[d[0]].format) || (k !== null && XS.DECKS[d[1]].format !== k)), picks);
+    check(`picker ${tag}: the bot's default is a different deck of the same kind; "Surprise me" never gives the bot your deck (18 plays)`, badKind.length === 0, JSON.stringify(badKind));
+    check(`picker ${tag}: zero console/page errors`, errors.length === 0, errors.slice(0, 3).join(' | '));
+    await ctx.close();
+    TAP = false;
+  }
+}
+
+// ---- (j) the booster prompts, resumed from real games of the competitive decks ------------------------------------
+// Scans games of the ten decks (random bots, headless in the page) for a moment when seat 0 must answer a decision of `purpose`.
+async function findCompPending(page, purpose, minOptions = 1) {
+  return page.evaluate(([purpose, minOptions]) => {
+    const U = XS.ui;
+    const ids = Object.keys(XS.DECKS).filter((d) => XS.DECKS[d].tier === 'competitive');
+    for (let seed = 1; seed < 30; seed++) for (const a of ids) {
+      const b = ids[(ids.indexOf(a) + 3) % ids.length];
+      let s = XS.newGame({ decks: [a, b], seed, mode: 'full', first: 0, names: ['You', 'Bot'] });
+      const bots = [U.makeRandomBot(seed, 0), U.makeRandomBot(seed, 1)];
+      try {
+        for (let n = 0; n < 4000 && !XS.isTerminal(s); n++) {
+          const p = s.pending;
+          if (p !== null && p.seat === 0 && p.purpose === purpose && p.options.length >= minOptions) return { init: s.init, actions: s.actions, deck: a, seed };
+          s = XS.apply(s, bots[XS.whoActs(s)].choose(s));
+        }
+      } catch (e) { if (!/unimplemented/.test(e.message)) throw e; }
+    }
+    return null;
+  }, [purpose, minOptions]);
+}
+const lastAction = (page, n) => page.evaluate((n) => XS.ui.game.debug().live.actions[n], n);
+const nActions = (page) => page.evaluate(() => XS.ui.game.debug().live.actions.length);
+const promptFits = (page) => page.evaluate(() => {
+  const r = document.querySelector('#prompt .prompt-card').getBoundingClientRect();
+  return r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1 && document.documentElement.scrollWidth <= innerWidth;
+});
+
+async function testCompPrompts(browser) {
+  for (const [w, h] of [[1280, 800], [390, 844]]) {
+    const tag = `${w}x${h}`;
+    const { ctx, page, errors } = await open(browser, `${BASE}?speed=instant`, { width: w, height: h });
+    const resume = async (rep) => { await page.evaluate((r) => XS.ui.game.resume(r), rep); await waitMyDecision(page); };
+    const pending = () => page.evaluate(() => XS.ui.game.debug().presented.view.pending);
+
+    // -- look
+    const lookRep = await findCompPending(page, 'look');
+    check(`booster prompts ${tag}: a real competitive game reaches a "look" decision for the human`, lookRep !== null);
+    if (lookRep !== null) {
+      await resume(lookRep);
+      const pend = await pending();
+      const info = await page.evaluate(() => {
+        const d = XS.ui.game.debug(), v = d.presented.view, p = v.pending;
+        const li = XS.ui.prompt.lookInfo({ view: v, me: 0 }, p);
+        const opp = XS.ui.prompt.oppHint({ view: XS.view(d.presented.raw, 1), me: 1 }, p);
+        return { shown: li.shown.length, n: li.n, opp, revealed: li.revealed };
+      });
+      check(`booster prompts ${tag} look: the prompt is headed "LOOK AT CARDS" and shows the engine sentence`, (await page.textContent('#prompt .p-tag')) === 'LOOK AT CARDS' && (await page.textContent('#prompt .p-text')) === pend.prompt);
+      check(`booster prompts ${tag} look: every looked-at card is on screen, the pickable ones lit (${info.shown} shown, ${pend.options.length} pickable)`,
+        (await page.locator('#prompt .p-look .card').count()) === info.shown && (await page.locator('#prompt .p-look .card.pick:not(.is-dim)').count()) === pend.options.length);
+      const notes = await page.locator('#prompt .p-notes').allTextContents();
+      check(`booster prompts ${tag} look: says where the pick (${pend.to}) and the rest go`, notes.some((t) => (pend.to === 'trash' ? /trash/ : /to your hand/).test(t)) && notes.some((t) => t.startsWith('The rest ')), notes.join(' | '));
+      check(`booster prompts ${tag} look: the other seat is told only "Opponent is looking at ${info.n} cards."`, info.revealed || info.opp === `Opponent is looking at ${info.n} cards.`, info.opp);
+      check(`booster prompts ${tag} look: confirm waits for a click; ${pend.min === 0 ? 'a decline button says what it declines' : 'no decline (min 1)'}`,
+        await page.isDisabled('#prompt-confirm') && (pend.min === 0 ? (await page.locator('#prompt .p-foot .btn', { hasText: /Take none|Don't trash any/ }).count()) === 1 : (await page.locator('#prompt .p-foot .btn').count()) === 2));
+      check(`booster prompts ${tag} look: fits the window`, await promptFits(page));
+      await page.mouse.move(2, 2);
+      await page.screenshot({ path: path.join(OUT, `comp-ui-look-${tag}.png`) });
+      const before = await nActions(page);
+      await press(page.locator('#prompt .card.pick:not(.is-dim)').first());
+      await press(page.locator('#prompt-confirm'));
+      await page.waitForFunction((n) => XS.ui.game.debug().live.actions.length > n, before);
+      const a = await lastAction(page, before);
+      check(`booster prompts ${tag} look: the answer is the one card clicked`, a.type === 'choose' && a.ids.length === 1 && pend.options.includes(a.ids[0]), JSON.stringify(a));
+      if (pend.min === 0) {                    // and the decline, from the same position
+        await resume(lookRep);
+        const b2 = await nActions(page);
+        await press(page.locator('#prompt .p-foot .btn', { hasText: /Take none|Don't trash any/ }));
+        await page.waitForFunction((n) => XS.ui.game.debug().live.actions.length > n, b2);
+        check(`booster prompts ${tag} look: declining sends an empty pick`, JSON.stringify((await lastAction(page, b2)).ids) === '[]');
+      }
+    }
+
+    // -- may
+    const mayRep = await findCompPending(page, 'may');
+    check(`booster prompts ${tag}: a real competitive game reaches a "may" decision for the human`, mayRep !== null);
+    if (mayRep !== null) {
+      await resume(mayRep);
+      const pend = await pending();
+      check(`booster prompts ${tag} may: names the effect with the engine's own sentence ("${pend.prompt}") and the card's text`,
+        (await page.textContent('#prompt .p-text')) === pend.prompt && (await page.textContent('#prompt .p-may-name')).endsWith('optional effect') && (await page.textContent('#prompt .p-quote')).length > 5);
+      const btns = await page.locator('#prompt .p-foot .btn').allTextContents();
+      check(`booster prompts ${tag} may: two explicit answers, "Use it" and "Decline", both open at once (never picked for the player)`,
+        btns.includes('Use it') && btns.includes('Decline') && !(await page.isDisabled('#prompt-confirm')), btns.join(' | '));
+      check(`booster prompts ${tag} may: fits the window`, await promptFits(page));
+      await page.mouse.move(2, 2);
+      await page.screenshot({ path: path.join(OUT, `comp-ui-may-${tag}.png`) });
+      let before = await nActions(page);
+      await press(page.locator('#prompt .p-foot .btn', { hasText: 'Decline' }));
+      await page.waitForFunction((n) => XS.ui.game.debug().live.actions.length > n, before);
+      check(`booster prompts ${tag} may: Decline sends an empty answer`, JSON.stringify((await lastAction(page, before)).ids) === '[]');
+      await resume(mayRep);
+      before = await nActions(page);
+      await press(page.locator('#prompt-confirm'));
+      await page.waitForFunction((n) => XS.ui.game.debug().live.actions.length > n, before);
+      check(`booster prompts ${tag} may: Use it sends the source card`, JSON.stringify((await lastAction(page, before)).ids) === JSON.stringify([pend.options[0]]));
+    }
+
+    // -- reveal, freePlay, revive
+    for (const [purpose, label, minOptions] of [['reveal', 'REVEAL FROM HAND', 1], ['freePlay', 'PLAY FOR FREE', 1], ['revive', 'BRING A LEADER BACK', 1]]) {
+      const rep = await findCompPending(page, purpose, minOptions);
+      check(`booster prompts ${tag}: a real competitive game reaches a "${purpose}" decision for the human`, rep !== null);
+      if (rep === null) continue;
+      await resume(rep);
+      const pend = await pending();
+      check(`booster prompts ${tag} ${purpose}: headed "${label}" with the engine sentence`, (await page.textContent('#prompt .p-tag')) === label && (await page.textContent('#prompt .p-text')) === pend.prompt);
+      const leaders = pend.options.every((o) => /^L[01][0-3]$/.test(o));
+      const items = leaders ? page.locator('#prompt .chip') : page.locator('#prompt .card.pick');
+      check(`booster prompts ${tag} ${purpose}: one option per engine candidate, confirm waits for a click`, (await items.count()) === pend.options.length && await page.isDisabled('#prompt-confirm'));
+      const notes = (await page.locator('#prompt .p-notes').allTextContents()).join(' | ');
+      if (purpose === 'reveal') check(`booster prompts ${tag} reveal: says the cards are shown to the opponent`, /shown to your opponent/.test(notes), notes);
+      if (purpose === 'freePlay') {
+        check(`booster prompts ${tag} freePlay: says each costs 0 PP and lands at the far right`, /costs 0 PP/.test(notes) && /far right/.test(notes), notes);
+        const mods = await page.evaluate(() => {
+          const p = XS.ui.game.debug().presented.view.pending;
+          return { want: p.options.filter((o) => XS.CARDS[XS.ui.cardIdOf(XS.ui.game.debug().presented.view, o)].cost > 0).length, got: document.querySelectorAll('#prompt .card.pick .c-cost.is-mod').length,
+            now: [...document.querySelectorAll('#prompt .card.pick .c-cost.is-mod .c-now')].every((n) => n.textContent === '0') };
+        });
+        check(`booster prompts ${tag} freePlay: every card with a printed cost shows it struck and 0 beside it`, mods.want === mods.got && mods.now, JSON.stringify(mods));
+      }
+      if (purpose === 'revive') check(`booster prompts ${tag} revive: says the equipment goes to the trash, each chip lists what it carries`, /trash/.test(notes) && (await page.locator('#prompt .chip .chip-extra').count()) === pend.options.length, notes);
+      check(`booster prompts ${tag} ${purpose}: fits the window`, await promptFits(page));
+      const before = await nActions(page);
+      const n = Math.max(1, pend.min);
+      for (let i = 0; i < n; i++) await press(items.nth(i));
+      if (purpose === 'freePlay' && pend.max > 1) check(`booster prompts ${tag} freePlay: picked cards carry their play order`, (await page.locator('#prompt .c-order').count()) === n);
+      await press(page.locator('#prompt-confirm'));
+      await page.waitForFunction((n) => XS.ui.game.debug().live.actions.length > n, before);
+      const a = await lastAction(page, before);
+      check(`booster prompts ${tag} ${purpose}: the answer is legal and complete`, a.type === 'choose' && a.ids.length === n && a.ids.every((i) => pend.options.includes(i)), JSON.stringify(a));
+    }
+    const diag = await page.evaluate(() => XS.ui.game.debug().diagnostics.slice());
+    check(`booster prompts ${tag}: no UI diagnostics`, diag.length === 0, diag.slice(0, 2).join(' | '));
+    check(`booster prompts ${tag}: zero console/page errors`, errors.length === 0, errors.slice(0, 3).join(' | '));
+    await ctx.close();
+  }
+}
+
+// Cost changes, keyword text in the zoom, equipment lines, Echo cards: the UI side, in a real page (a state with a cost modifier needs the
+// abilities of the booster cards, so the cost badge and the zoom are also driven from the engine's costParts through the same code paths).
+async function testCompCards(browser) {
+  const { ctx, page, errors } = await open(browser, `${BASE}?speed=instant&seed=3`, { width: 1280, height: 800 });
+  await page.evaluate(() => XS.ui.game.start({ decks: ['C03', 'A02'], mode: 'quick', seed: 3, spectate: false, tier: 'easy' }));
+  await waitMyDecision(page);
+  // The cost badge: printed cost struck, the engine's cost beside it.
+  const badge = await page.evaluate(() => {
+    const U = XS.ui;
+    const c = U.cardEl('ST01-005', { costNow: 1 });
+    const plain = U.cardEl('ST01-005', {});
+    const b = c.querySelector('.c-cost');
+    return { mod: b.classList.contains('is-mod'), was: b.querySelector('s.c-was').textContent, now: b.querySelector('b.c-now').textContent, plain: plain.querySelector('.c-cost').textContent, plainMod: plain.querySelector('.c-cost').classList.contains('is-mod'), title: b.title };
+  });
+  check('cost badge: a modified cost shows the printed cost struck and the cost now (3 -> 1); an unmodified one shows the number alone',
+    badge.mod && badge.was === '3' && badge.now === '1' && badge.plain === '3' && !badge.plainMod, JSON.stringify(badge));
+  // The same through the zoom with the engine's costParts: find any real modification in a played-out game, else drive the stubbed ctx.
+  const zoom = await page.evaluate(() => {
+    const P = XS.ui.preview;
+    const saved = P.ctx;
+    P.ctx = { stats: () => null, cost: (iid) => ({ base: 3, mods: [{ src: 'x', n: -1 }, { src: iid, n: -1 }], total: 1 }), name: () => 'Power Field' };
+    const line = P.costLine({ cost: 3 }, 'c1');
+    P.ctx = saved;
+    return line;
+  });
+  check('cost zoom line: "Cost 3 -> 1 PP (Power Field -1, this card -1)" from costParts', zoom.was === 3 && zoom.now === 1 && zoom.why === ' (Power Field −1, this card −1)', JSON.stringify(zoom));
+  // Hover zoom on real cards of the deck list: keywords and equipment stat lines.
+  const wanted = await page.evaluate(() => {
+    const find = (re) => Object.keys(XS.CARDS).find((id) => re.test(XS.CARDS[id].text));
+    return { overkill: find(/\[Overkill \d+\]/), round: find(/\[Round\]/), equip: Object.keys(XS.CARDS).find((id) => XS.CARDS[id].equip && XS.CARDS[id].equip.hpBase !== undefined), shield: 'ST01-023' };
+  });
+  await page.evaluate(() => XS.ui.game.stop());
+  // No Echo card is in the ten decks (data/text-en.js: "none in the ten decks yet"): the keyword table is checked on its printed token.
+  const echoSay = await page.evaluate(() => XS.ui.preview.KEYWORDS.filter(([re]) => re.test('[Echo] Draw 1 card.')).map(([re, say]) => say(re.exec('[Echo] Draw 1 card.'))));
+  check('zoom echo: [Echo] is explained (turns sideways at the end of the turn, replayed free next turn)', echoSay.length === 1 && /Echo: at the end of your turn/.test(echoSay[0]) && /played again for free/.test(echoSay[0]), JSON.stringify(echoSay));
+  for (const [what, want] of [['overkill', /Overkill \d+: after the attack/], ['round', /Round: this card stays in the play area/], ['equip', /Equipment: base HP becomes \d+ \(\d+ once awakened\)/], ['shield', /Equipment: HP \+30\./]]) {
+    if (wanted[what] === undefined) { check(`zoom ${what}: a card with that text is in the data`, false); continue; }
+    const deck = await page.evaluate((id) => Object.keys(XS.DECKS).find((d) => XS.DECKS[d].main.some(([c]) => c === id) || XS.DECKS[d].tactics.includes(id)), wanted[what]);
+    if (deck === undefined) { check(`zoom ${what}: ${wanted[what]} is in a registered deck`, true); }
+    const shown = await page.evaluate((id) => { XS.ui.preview.hide(); const z = document.getElementById('zoom'); const t = document.createElement('div'); t.setAttribute('data-card', id); document.body.appendChild(t);
+      t.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: 100, clientY: 100 })); const out = z.textContent; t.remove(); XS.ui.preview.hide(); return out; }, wanted[what]);
+    check(`zoom ${what} (${wanted[what]}): explains the keyword / shows the stat line`, want.test(shown), shown.slice(0, 200));
+  }
+  check('zoom: zero console/page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await ctx.close();
+
+  // Echo: a card lying sideways in the play area is drawn turned and labelled (state edited for display only).
+  const e = await open(browser, `${BASE}?speed=instant`, { width: 1280, height: 800 });
+  const echo = await e.page.evaluate(() => {
+    const U = XS.ui;
+    for (let seed = 1; seed < 40; seed++) {
+      let s = XS.newGame({ decks: ['ST01', 'ST02'], seed, mode: 'quick', first: 0, names: ['You', 'Bot'] });
+      const bots = [U.makeRandomBot(seed, 0), U.makeRandomBot(seed, 1)];
+      for (let n = 0; n < 3000 && !XS.isTerminal(s); n++) {
+        if (s.phase === 'main' && s.pending === null && XS.whoActs(s) === 0 && s.players[0].play.length > 0) {
+          const t = XS.cloneState(s);
+          t.players[0].sideways = [t.players[0].play[0]];
+          U.game.resumeState(t);
+          return { iid: t.players[0].play[0] };
+        }
+        s = XS.apply(s, bots[XS.whoActs(s)].choose(s));
+      }
+    }
+    return null;
+  });
+  check('echo: a position with a card in the play area is reachable', echo !== null);
+  if (echo !== null) {
+    await waitMyDecision(e.page);
+    const st = await e.page.evaluate((iid) => { const n = document.querySelector(`#play-0 [data-iid="${iid}"]`); return { sideways: n.classList.contains('is-sideways'), label: n.querySelector('.c-echo').textContent, rot: getComputedStyle(n).transform }; }, echo.iid);
+    check('echo: the sideways card is turned and labelled ECHO', st.sideways && st.label === 'ECHO' && st.rot !== 'none', JSON.stringify(st));
+    check('echo: the play area still fits the window', (await layoutProblems(e.page).catch(() => [])).filter((x) => /horizontal|off screen/.test(x)).length === 0);
+  }
+  check('echo: zero console/page errors', e.errors.length === 0, e.errors.slice(0, 3).join(' | '));
+  await e.ctx.close();
+}
+
+// ---- (k) a human match by clicks with a competitive deck chosen on the title ------------------------------------------
+async function testCompHuman(browser) {
+  rngState = 77;
+  const { ctx, page, errors } = await open(browser, `${BASE}?speed=instant&seed=21`, { width: 1280, height: 800 });
+  await page.check('input[name="mode"][value="quick"]');
+  await page.click('#dp-list-mine input[value="C01"]');
+  await page.click('#dp-list-bot input[value="A03"]');
+  await page.click('#play');
+  const prompts = new Set();
+  let plays = 0, turns = 0;
+  for (let step = 0; step < 4000; step++) {
+    if (await waitMyDecision(page, 90000)) break;
+    const pend = await page.evaluate(() => XS.ui.game.debug().presented.view.pending);
+    if (pend !== null) {
+      prompts.add(pend.purpose);
+      if (pend.purpose === 'may') { await page.click(rnd(2) === 0 ? '#prompt-confirm' : '#prompt .p-foot .btn:has-text("Decline")'); await page.waitForTimeout(30); continue; }
+      if (pend.kind === 'choose' && pend.min === 0 && rnd(2) === 0 && (await page.locator('#prompt .p-foot .btn:not(.ghost):not(.primary)').count()) > 0) { await press(page.locator('#prompt .p-foot .btn:not(.ghost):not(.primary)').first()); continue; }
+      if (pend.purpose === 'look' || pend.purpose === 'reveal' || pend.purpose === 'freePlay') {
+        // a pick under a limit may need fewer cards: click one card at a time until the confirm opens
+        const items = page.locator('#prompt .card.pick:not(.is-dim)');
+        const total = await items.count();
+        for (let i = 0; i < Math.min(total, pend.max); i++) {
+          await press(items.nth(i));
+          if (!(await page.isDisabled('#prompt-confirm'))) break;
+        }
+        if (await page.isDisabled('#prompt-confirm')) { await press(page.locator('#prompt .p-foot .btn:not(.ghost):not(.primary)').first()); continue; }
+        await press(page.locator('#prompt-confirm'));
+        continue;
+      }
+      if (await answerPrompt(page)) continue;
+    }
+    const ids = await page.$$eval('.handcard.is-actable, .tac.is-actable', (ns) => ns.map((n) => n.getAttribute('data-play')));
+    if (ids.length > 0 && rnd(5) > 0) { await playCardByClicks(page, ids[rnd(ids.length)], rnd(4)); plays++; continue; }
+    await page.click('#endturn');
+    turns++;
+  }
+  const over = await page.evaluate(() => XS.ui.game.debug().live.phase === 'over');
+  check(`human match by clicks, C01 against A03: finished (${plays} cards played, ${turns} turns; decisions seen: ${[...prompts].join(', ')})`, over);
+  const diag = await page.evaluate(() => XS.ui.game.debug().diagnostics.slice());
+  check('competitive human match: no UI diagnostics', diag.length === 0, diag.slice(0, 2).join(' | '));
+  check('competitive human match: zero console/page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await ctx.close();
+}
+
+// ---- (l) every competitive deck against another one, the AI in both seats ----------------------------------------------
+async function testCompAutoplay(browser) {
+  const seeds = COMP.map((id, i) => [id, COMP[(i + 3) % COMP.length], i + 1]);
+  for (const [a, b, seed] of seeds) {
+    const t0 = Date.now();
+    const { ctx, page, errors } = await open(browser, `${BASE}?autoplay=1&speed=instant&bot=ai&seed=${seed}&mode=full&deck0=${a}&deck1=${b}`, { width: 1280, height: 800 });
+    let ended = true;
+    try { await page.waitForSelector('#endscreen.open', { timeout: 240000 }); } catch (e) { ended = false; }
+    const info = ended ? await page.evaluate(() => {
+      const d = XS.ui.game.debug();
+      return { winner: d.live.winner, wins: d.live.wins, actions: d.live.actions.length, diag: d.diagnostics.slice(), decks: d.live.init.decks, head: document.querySelector('.end-head').textContent };
+    }) : null;
+    const tag = `${a} vs ${b} seed ${seed}`;
+    check(`competitive autoplay ${tag}: reaches the end screen (${((Date.now() - t0) / 1000).toFixed(0)} s)`, ended, ended ? '' : 'timeout; errors: ' + errors.slice(0, 2).join(' | '));
+    if (info !== null) {
+      check(`competitive autoplay ${tag}: zero console/page errors`, errors.length === 0, errors.slice(0, 3).join(' | '));
+      check(`competitive autoplay ${tag}: no UI diagnostics (${info.actions} actions, wins ${info.wins})`, info.diag.length === 0, info.diag.slice(0, 2).join(' | '));
+    }
+    await ctx.close();
+  }
+}
+
 // ---- main ------------------------------------------------------------------------------------------------------------
 (async () => {
   await startServer();
@@ -1173,6 +1555,10 @@ async function testM7(browser) {
     if (only === null || only === 'c') await testScreens(browser);
     if (only === null || only === 'd') await testPlayback(browser);
     if (only === null || only === 'h') await testM7(browser);
+    if (only === null || only === 'i') await testDeckPicker(browser);
+    if (only === null || only === 'j') { await testCompPrompts(browser); await testCompCards(browser); }
+    if (only === null || only === 'k') await testCompHuman(browser);
+    if (only === null || only === 'l') await testCompAutoplay(browser);
   } finally {
     await browser.close();
     stopServer();

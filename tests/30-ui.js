@@ -12,7 +12,8 @@
     'ppSpend', 'play', 'tacticsPlay', 'equip', 'boost', 'attack', 'damage', 'heal', 'down', 'awaken', 'ability', 'discard', 'trash',
     'reshuffle', 'tacticsBurn', 'roundEnd', 'matchEnd', 'fizzle', 'overkill', 'echo', 'look', 'freePlay', 'revive'];
   const PENDING_KINDS = ['chooseFirst', 'pickTactics', 'choose', 'attackPair', 'distribute'];
-  const PENDING_PURPOSES = ['first', 'tactics', 'target', 'heal', 'discard', 'handLimit', 'order', 'attack', 'distribute'];
+  const PENDING_PURPOSES = ['first', 'tactics', 'target', 'heal', 'discard', 'handLimit', 'order', 'attack', 'distribute',
+    'look', 'reveal', 'may', 'freePlay', 'revive', 'awaken'];
 
   // A stub view: seat 0 holds the ST01 leaders, seat 1 the ST02 leaders.
   function stubView(viewer) {
@@ -156,6 +157,20 @@
     eq(U.anim.stepMs(steps[0]), 1950, 'spotlight total');
   });
 
+  test('ui log: the booster log lines say what happened in plain words (Overkill, Echo, look, free play, revive, down by an attack)', () => {
+    const v = stubView(0);
+    const t = (type, data, seat) => U.logText(entry(type, data, seat === undefined ? 0 : seat), v).text;
+    eq(t('overkill', SAMPLE.overkill), 'Overkill 30 met! Cpt took 40 more damage than it had HP left, so the Overkill effect of Crossfire happens.', 'overkill names the threshold, the excess and the card');
+    ok(t('echo', SAMPLE.echo).includes('turned sideways') && t('echo', { iid: 'c2', cardId: 'ST01-013', phase: 'replay' }).includes('played again for free'), 'echo: both phases');
+    ok(t('look', SAMPLE.look, 0).startsWith('You look at the top 2 cards of your deck: '), 'own look names the cards: ' + t('look', SAMPLE.look, 0));
+    eq(t('look', { phase: 'see', from: 'deck', side: 1, n: 3, revealed: false, hidden: true }, 1), "Opponent looks at the top 3 cards of the opponent's deck.", 'the other seat sees a count only');
+    ok(t('look', { phase: 'take', from: 'deck', side: 0, n: 1, iids: ['c1'], cardIds: ['ST01-005'], revealed: false }, 0).endsWith('to hand.'), 'take');
+    ok(t('freePlay', SAMPLE.freePlay).includes('for free'), 'free play');
+    ok(t('revive', SAMPLE.revive).includes('equipment goes to the trash'), 'revive says the equipment goes to the trash');
+    ok(t('down', Object.assign({}, SAMPLE.down, { cause: 'attack' })).includes("the attack's own effect"), 'a down by the attack says so');
+    ok(t('boost', { iid: 'c2', cardId: 'ST01-013', phase: 'armed', afterOnly: true }).includes('After Attack'), 'an After-Attack-only boost says what it arms');
+  });
+
   test('ui prompt: every pending kind and purpose in the contract has a renderer and a heading', () => {
     for (const k of PENDING_KINDS) {
       const h = U.PROMPT_KIND[k];
@@ -279,6 +294,162 @@
     eq(PM.mine, false, 'not mine');
     eq(PM.confirm, null, 'no confirm');
     ok(PM.hint.startsWith('Opponent is deciding'), PM.hint);
+  });
+
+  // ---- the booster purposes: models against real games of the ten competitive decks ----------------------
+  const COMP = Object.keys(XS.DECKS).filter((d) => XS.DECKS[d].format === 'competitive');
+  const sameAction = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const snapAs = (s, seat) => ({ raw: s, view: XS.view(s, seat), me: seat, live: true, spectate: false, legal: XS.legalActions(s) });
+  // Plays the competitive decks against each other with the random bot; calls `visit(s)` at every pending decision. Games that hit an
+  // ability the engine does not have yet are skipped (the abilities files are finished by other work); the count of finished games is asserted.
+  function eachComp(visit, seeds) {
+    let finished = 0;
+    for (const a of COMP) for (const seed of seeds) {
+      const b = COMP[(COMP.indexOf(a) + 3) % COMP.length];
+      let s = XS.newGame({ decks: [a, b], seed, mode: 'full' });
+      const bots = [U.makeRandomBot(seed, 0), U.makeRandomBot(seed, 1)];
+      try {
+        for (let n = 0; n < 6000 && !XS.isTerminal(s); n++) {
+          if (s.pending !== null) visit(s);
+          s = XS.apply(s, bots[XS.whoActs(s)].choose(s));
+        }
+        if (XS.isTerminal(s)) finished++;
+      } catch (e) { if (!/unimplemented/.test(e.message)) throw e; }
+    }
+    return finished;
+  }
+
+  test('ui prompt: every pending a competitive-deck game produces has a model for the decider (answers are legal actions) and a one-line hint for the other seat', () => {
+    const seen = {};
+    const finished = eachComp((s) => {
+      const p = s.pending;
+      const me = p.seat;
+      const ps = U.prompt.fresh();
+      const PM = U.prompt.model(snapAs(s, me), ps);
+      seen[p.purpose] = true;
+      eq(PM.mine, true, p.purpose + ': the decider gets controls');
+      if (p.kind === 'choose') {
+        const legal = XS.legalActions(s);
+        if (p.purpose === 'may') {
+          eq(PM.confirm.label, 'Use it', 'may: explicit yes');
+          eq(PM.decline.label, 'Decline', 'may: explicit no');
+          ok(PM.confirm.enabled === true, 'may: both answers are open at once');
+          ok(legal.some((a) => sameAction(a, PM.confirm.action)) && legal.some((a) => sameAction(a, PM.decline.action)), 'may: both answers are legal actions');
+        } else {
+          eq(PM.confirm.enabled, false, p.purpose + ': nothing is picked for the player (no auto-pick, ' + p.options.length + ' candidates)');
+          eq(PM.decline === null, p.min > 0, p.purpose + ': a decline exists exactly when min is 0');
+          if (PM.decline !== null) ok(legal.some((a) => sameAction(a, PM.decline.action)), p.purpose + ': the decline is a legal action');
+          ok(PM.rule.length > 0 && PM.rule[0].startsWith('Pick '), p.purpose + ': says how many to pick: ' + PM.rule);
+          // Pick the first legal answer's cards through the click path: the confirm action must be that legal action.
+          const first = legal.find((a) => a.type === 'choose' && a.ids.length > 0);
+          if (first !== undefined) {
+            for (const id of first.ids) U.prompt.click(null, ps, PM, p.options.every((o) => U.isLeaderIid(o)) ? 'leader' : 'option', id);
+            const PM2 = U.prompt.model(snapAs(s, me), ps);
+            eq(PM2.confirm.enabled, true, p.purpose + ': a legal pick enables the confirm');
+            ok(legal.some((a) => sameAction(a, PM2.confirm.action)), p.purpose + ': the confirm action is a legal action');
+          }
+        }
+        const other = U.prompt.model(snapAs(s, 1 - me), U.prompt.fresh());
+        eq(other.mine, false, p.purpose + ': the other seat has no controls');
+        eq(other.confirm, null, p.purpose + ': and no confirm');
+        ok(other.hint.startsWith('Opponent is '), p.purpose + ': one sentence for the other seat: ' + other.hint);
+        ok(!/undefined|NaN|\[object/.test(other.hint + PM.hint), p.purpose + ': no placeholder text');
+      }
+    }, [1, 2]);
+    ok(finished >= 10, 'at least ten competitive games ran to the end (' + finished + ')');
+    for (const k of ['look', 'reveal', 'may', 'freePlay']) ok(seen[k], 'the games reached a "' + k + '" decision');
+  });
+
+  test('ui log: every entry of the competitive-deck games reads as a sentence for both seats and plans into steps (booster log types included)', () => {
+    const seen = new Set();
+    let games = 0;
+    for (const a of COMP) {
+      const b = COMP[(COMP.indexOf(a) + 4) % COMP.length], seed = 7;
+      let s = XS.newGame({ decks: [a, b], seed, mode: 'full' });
+      const bots = [U.makeRandomBot(seed, 0), U.makeRandomBot(seed, 1)];
+      try { for (let n = 0; n < 6000 && !XS.isTerminal(s); n++) s = XS.apply(s, bots[XS.whoActs(s)].choose(s)); } catch (e) { if (!/unimplemented/.test(e.message)) throw e; continue; }
+      games++;
+      for (const viewer of [0, 1]) {
+        const v = XS.view(s, viewer);
+        for (const e of v.log) {
+          seen.add(e.type);
+          const r = U.logText(e, v);
+          ok(r.text.length > 8 && !/undefined|\[object|NaN|null/.test(r.text), `${a} v ${b} viewer ${viewer} ${e.type}: "${r.text}"`);
+        }
+        const steps = U.anim.plan(v.log, v, viewer);
+        ok(steps.every((x) => U.anim.KINDS.includes(x.kind)), 'plan of a competitive game');
+      }
+    }
+    ok(games >= 8, 'competitive games finished: ' + games);
+    for (const t of ['look', 'freePlay', 'overkill']) ok(seen.has(t), 'competitive games produced ' + t);
+  });
+
+  test('ui prompt look: the opponent is told only how many cards are looked at; the decider sees all of them, with the pickable ones marked', () => {
+    let checked = 0;
+    eachComp((s) => {
+      const p = s.pending;
+      if (p.purpose !== 'look') return;
+      const mine = U.prompt.lookInfo(snapAs(s, p.seat), p);
+      const theirs = U.prompt.lookInfo(snapAs(s, 1 - p.seat), p);
+      ok(mine !== null && theirs !== null, 'a look entry exists for both seats');
+      for (const o of p.options) ok(mine.shown.some((x) => x.iid === o), 'every candidate is among the looked-at cards');
+      eq(mine.n, theirs.n, 'both seats know the count');
+      if (!mine.revealed) { eq(theirs.hidden, true, 'not revealed: the other seat has a count only'); eq(theirs.shown.length, 0, 'and names no card'); }
+      const PM = U.prompt.model(snapAs(s, p.seat), U.prompt.fresh());
+      ok(PM.notes.some((n) => /hand|trash/.test(n)) && PM.notes.some((n) => /^The rest /.test(n)), 'says where the pick and the rest go: ' + PM.notes.join(' | '));
+      eq(U.prompt.oppHint(snapAs(s, 1 - p.seat), p), mine.revealed ? U.prompt.oppHint(snapAs(s, 1 - p.seat), p) : 'Opponent is looking at ' + U.plural(mine.n, 'card') + '.', 'the other seat reads "Opponent is looking at N cards."');
+      checked++;
+    }, [1, 2, 3]);
+    ok(checked > 0, 'some game reached a look decision (' + checked + ')');
+  });
+
+  test('ui prompt limit: a pick that breaks the pending limit never enables the confirm; the limit is named in words', () => {
+    eq(U.prompt.limitText({ costSumAtMost: 2, perType: { memoria: 1 } }), ['total cost 2 or less', 'at most 1 memoria'], 'words');
+    // c1 = Crossfire (attack, cost 3), c2 = Gambit Master (memoria, cost 1); the real games never ask a limited pick of a human, so a stub does.
+    const p = pend({ kind: 'choose', purpose: 'reveal', options: ['c1', 'c2'], min: 0, max: 2, limit: { costSumAtMost: 3 }, prompt: 'You may reveal up to 2 cards from your hand.' });
+    const ps = U.prompt.fresh();
+    let PM = U.prompt.model(fakeS(p), ps);
+    ok(PM.rule.includes('limit: total cost 3 or less'), 'the rule line names the limit: ' + PM.rule);
+    U.prompt.click(null, ps, PM, 'option', 'c1');
+    PM = U.prompt.model(fakeS(p), ps);
+    eq(PM.confirm.enabled, true, 'cost 3 is within the limit');
+    U.prompt.click(null, ps, PM, 'option', 'c2');
+    PM = U.prompt.model(fakeS(p), ps);
+    eq([ps.picked, PM.confirm.enabled], [['c1', 'c2'], false], 'cost 3 + 1 breaks it: the confirm stays off');
+    ok(PM.hint.includes('over the limit'), 'and the hint says why: ' + PM.hint);
+    U.prompt.click(null, ps, PM, 'option', 'c1');
+    PM = U.prompt.model(fakeS(p), ps);
+    eq(PM.confirm.enabled, true, 'dropping the big card is within the limit again');
+    eq(PM.decline.label, 'Reveal none', 'a decline that says what it declines');
+  });
+
+  test('ui prompt: the may prompt names the card and shows its own sentence; freePlay shows cost 0; revive and awaken say what happens', () => {
+    const want = { may: false, freePlay: false, revive: false };
+    eachComp((s) => {
+      const p = s.pending;
+      if (!(p.purpose in want)) return;
+      const S = snapAs(s, p.seat);
+      const PM = U.prompt.model(S, U.prompt.fresh());
+      if (p.purpose === 'may') ok(PM.hint.includes(p.prompt), 'the hint carries the engine sentence');
+      if (p.purpose === 'freePlay') ok(PM.notes.some((n) => n.includes('costs 0 PP') || n.includes('Each costs 0 PP')) && PM.notes.some((n) => n.includes('far right')), 'free play: cost 0 and where it lands: ' + PM.notes);
+      if (p.purpose === 'revive') ok(PM.notes.some((n) => n.includes('trash')), 'revive: equipment goes to the trash');
+      want[p.purpose] = true;
+    }, [1, 2, 3]);
+    for (const k of Object.keys(want)) ok(want[k], 'reached ' + k);
+    // awaken: not reached by the random games; checked on a stub.
+    const aw = pend({ kind: 'choose', purpose: 'awaken', options: ['L00', 'L01'], source: null, prompt: 'Choose one of your leaders to awaken.' });
+    const PM = U.prompt.model(fakeS(aw), U.prompt.fresh());
+    ok(PM.notes[0].includes('not an attack') && PM.confirm.enabled === false && PM.decline === null, 'awaken: a required pick that explains itself');
+  });
+
+  test('ui prompt purposes: PENDING_PURPOSES covers every purpose the engine can produce in the competitive games', () => {
+    const seen = new Set();
+    eachComp((s) => seen.add(s.pending.purpose), [1]);
+    for (const k of seen) ok(PENDING_PURPOSES.includes(k), 'purpose ' + k + ' is listed (and so has a renderer)');
+  });
+
+  test('ui core: every card of every registered deck has initials for its placeholder face (a Japanese-only English name included)', () => {
+    for (const d of Object.values(XS.DECKS)) for (const c of d.leaders.concat(d.tactics, d.main.map((m) => m[0]))) ok(U.initials(c).length >= 1, 'initials for ' + c + ' ' + U.card(c).nameEn);
   });
 
   test('ui bot: the random bot answers every decision from legalActions and a seed repeats', () => {
