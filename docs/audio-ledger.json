@@ -1077,6 +1077,123 @@
         }
       ],
       "seed": 405749555
+    },
+    {
+      "date": "2026-10-30T05:49:10.616Z",
+      "tag": "overkill",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030054827-56cc9c",
+      "take": 2,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.986,
+          "crest": 2.66,
+          "seconds": 2.14
+        },
+        {
+          "take": 1,
+          "score": 0.492,
+          "crest": 8.25,
+          "seconds": 2.14
+        },
+        {
+          "take": 2,
+          "score": 0.211,
+          "crest": 6.23,
+          "seconds": 2.14
+        },
+        {
+          "take": 3,
+          "score": 0.638,
+          "crest": 9.56,
+          "seconds": 2.13
+        }
+      ],
+      "seed": 591190699
+    },
+    {
+      "date": "2026-10-30T05:49:15.456Z",
+      "tag": "revive",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030054910-a922ec",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.444,
+          "crest": 8.17,
+          "seconds": 2.51
+        },
+        {
+          "take": 1,
+          "score": 0.622,
+          "crest": 3.69,
+          "seconds": 2.51
+        },
+        {
+          "take": 2,
+          "score": 0.574,
+          "crest": 3.87,
+          "seconds": 2.51
+        },
+        {
+          "take": 3,
+          "score": 0.795,
+          "crest": 3.1,
+          "seconds": 2.51
+        }
+      ],
+      "seed": 2124846037
+    },
+    {
+      "date": "2026-10-30T05:49:20.303Z",
+      "tag": "deck-look",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030054915-6bf707",
+      "take": 3,
+      "takes": [
+        {
+          "take": 0,
+          "score": 1.289,
+          "crest": 16.75,
+          "seconds": 1.39
+        },
+        {
+          "take": 1,
+          "score": 1.267,
+          "crest": 16.47,
+          "seconds": 1.38
+        },
+        {
+          "take": 2,
+          "score": 1.046,
+          "crest": 2.74,
+          "seconds": 1.39
+        },
+        {
+          "take": 3,
+          "score": 0.268,
+          "crest": 5.92,
+          "seconds": 1.38
+        }
+      ],
+      "seed": 72236593
     }
   ]
 }
