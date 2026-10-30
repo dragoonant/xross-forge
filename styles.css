@@ -660,6 +660,10 @@ button.zone:hover { border-color: var(--cyan); }
 /* ---- portrait / narrow: zones and tactics go above the leaders ---------------------------- */
 @media (max-aspect-ratio: 1/1), (max-width: 720px) {
   #game { --lh: min(calc((100vw - 28px) / 4), calc((100dvh - 480px) * 0.36)); --ph: calc(var(--lh) * 0.66); --hh: clamp(84px, calc((100dvh - 330px) * 0.2), 122px); --pad: 8px; }
+  /* With art the name plate sits at the bottom of a small tile and reaches above the 38% line, so the badge anchors to the top of the art instead (e2e: a badge never covers a name). */
+  .leader.has-art .l-preview { top: 2px; transform: translate(-50%, 0); font-size: 10px; padding: 0 4px; border-width: 1px; }
+  .leader.has-art .l-plate { padding-top: 6px; }
+  .leader.has-art .l-jp { display: none; }
   .side { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "zones tactics" "field field"; row-gap: 3px; align-items: center; }
   .zones { grid-area: zones; flex-direction: row; flex-wrap: wrap; gap: 3px; align-self: center; }
   .field { grid-area: field; }
@@ -721,7 +725,7 @@ button.zone:hover { border-color: var(--cyan); }
   .l-awk { font-size: 6px; padding: 0 3px; top: 2px; left: 2px; }
   .leader.is-down { transform: none; }
   .l-eq { display: none; }
-  .l-preview { top: 50%; left: 2px; right: auto; transform: translateY(-50%); max-width: 34px; font-size: 10px; padding: 1px 3px; border-width: 1px; letter-spacing: 0; }
+  .l-preview, .leader.has-art .l-preview { top: 50%; left: 2px; right: auto; transform: translateY(-50%); max-width: 34px; font-size: 10px; padding: 1px 3px; border-width: 1px; letter-spacing: 0; }
   .handcard.is-selected { transform: translateY(-8px); }
   .playarea { max-width: 100%; }
   .tactics .z-label { display: none; }

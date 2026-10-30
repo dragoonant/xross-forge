@@ -4,7 +4,7 @@
 // The repo carries our English text, not the printed Japanese text (PLAN D16).
 (function () {
   const XS = (globalThis.XS = globalThis.XS || {});
-  XS.CARD_SOURCE = {"api":"https://api.xross-stars.com/v1","fetched":"2026-10-29T18:32:43.046Z"};
+  XS.CARD_SOURCE = {"api":"https://api.xross-stars.com/v1","fetched":"2026-10-29T23:36:56.222Z"};
   XS.CARDS = {
     "ST01-001": {"ace":false,"atk":30,"awakenAtk":40,"awakenHp":130,"color":"blue","family":101,"hp":100,"name":"一ノ瀬うるは","nameEn":"Uruha Ichinose","product":"ST01","text":"[On Awaken] Draw 1 card.","type":"leader"},
     "ST01-002": {"ace":false,"atk":30,"awakenAtk":40,"awakenHp":140,"color":"blue","family":102,"hp":110,"name":"小雀とと","nameEn":"Toto Kogara","product":"ST01","text":"[On Awaken] Deal 10 damage to 1 opposing leader.","type":"leader"},

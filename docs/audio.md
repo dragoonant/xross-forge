@@ -4,8 +4,10 @@ Decisions live in `PLAN.md`: D5 (ElevenLabs, "not verified by ear" until the own
 D6 (budget), D7 (esports-broadcast look: stinger on awakening, crowd swell at match point), D2 (the announcer is an
 original voice, never a clone), D17 (key in the environment). This file explains how the pieces fit.
 
-Status 2026-10-29: the whole chain is built and proven with `--dry-run` and `--mock`. **No real audio exists yet**
-(`ELEVENLABS_API_KEY` was not in the session). Every cue is a declared pending state: `data/sound-manifest.js` is empty,
+Status 2026-10-29 (evening, PLAN D18): **every cue exists**, generated on the owner's PC's local Audio Studio by
+`tools/gen-audio-local.mjs` (the chain below is unchanged from `measure-audio.mjs` on). The ElevenLabs generator
+stays as the alternative when a key exists (none was ever in the cloud session or on the PC). Earlier that day
+the chain had been proven with `--dry-run` and `--mock` only. Every cue is a declared pending state: `data/sound-manifest.js` is empty,
 `XS.Audio` reports `audio pending: <tag>` once per tag and plays nothing in its place.
 
 ## The pieces
@@ -44,6 +46,28 @@ The first voice cue designs the announcer (Voice Design) and writes the new voic
 `--mock` writes generated test tones (ffmpeg `sine` / `anoisesrc`) to `audio/masters/mock/`; `measure-audio.mjs --mock`
 delivers them to `audio/masters/mock-out/` with a manifest marked `mock:true` (`sounds.html` shows a banner); 
 `measure-audio.mjs --clean-mock` removes both and empties the manifest. Mock never touches the ledger or the cue sheet.
+
+## Running it locally (PLAN D18, how the first set was made)
+
+The owner's PC runs an Audio Studio (`node server.js` in the 3D Model Generation repo's `audio-studio`, port 7890,
+`AUDIO_STUDIO_URL` to override; it starts the shared ComfyUI on its first job). `tools/gen-audio-local.mjs` reads the
+same cue sheet and writes the same masters (`audio/masters/<tag>.mp3`), so everything after it is the same chain:
+
+```
+node tools/gen-audio-local.mjs --dry-run            # the plan: model and parameters per cue, no studio
+node tools/gen-audio-local.mjs                      # sfx: Stable Audio Open 1.0 (2-4 takes, best by crest and length);
+                                                    # music: ACE-Step 1.5 turbo (2 takes, instrumental, bpm parsed from the prompt);
+                                                    # voice: Qwen3-TTS Voice Design once from AUDIO.voice.design (the ORIGINAL
+                                                    #        announcer, audio/masters/voice-design-preview.wav), then every line
+                                                    #        spoken by that designed voice (qwen-clone with the preview as reference)
+node tools/measure-audio.mjs                        # masters -> audio/*.mp3 + data/sound-manifest.js, as before
+node tools/gen-audio-local.mjs --force --only hit-heavy    # re-roll one cue (the old master goes to audio/archive/)
+```
+
+Takes are picked by numbers (crest factor toward `crestMin` or 6, length toward `seconds`; music by silence and envelope
+variance). Every render appends a `$0` entry to `docs/audio-ledger.json` (`provider: audio-studio-local`, the studio
+job id, the takes' scores) so each clip traces to its prompt and seed. The announcer's voice id line in the cue sheet
+stays `null`: locally the voice is the preview file, not an id. Stop the studio when done (owner rule, 2026-10-18).
 
 ## Why these cues
 

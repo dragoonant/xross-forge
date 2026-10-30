@@ -16,17 +16,17 @@ import { fileURLToPath } from 'node:url';
 import { loadDataFiles } from './build-cards.mjs';
 
 // Art and sound coverage is reported, not enforced, until M5 / M6 flip these.
-const REQUIRE_ART = false;
-const REQUIRE_SOUND = false;
+const REQUIRE_ART = true;    // M5 done 2026-10-29 (PLAN D18)
+const REQUIRE_SOUND = true;  // M6 done 2026-10-29 (PLAN D18)
 
 // Limits (docs/rules.md §3, PM p.13).
 const LEADERS = 4, MAIN = 50, TACTICS = 5, COPIES = 4, ACES = 8;
 const JAPANESE = /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u;
-const FILES = ['data/defects.js', 'data/tags.js', 'data/text-en.js', 'data/cards.js', 'data/decks.js', 'data/art-manifest.js', 'data/sound-manifest.js'];
+const FILES = ['data/defects.js', 'data/tags.js', 'data/text-en.js', 'data/cards.js', 'data/decks.js', 'data/art-manifest.js', 'data/sound-manifest.js', 'data/audio-cues.js'];
 
 export function loadData() {
   const XS = loadDataFiles(FILES);
-  return { CARDS: XS.CARDS, DECKS: XS.DECKS, TAGS: XS.TAGS, DEFECTS: XS.DEFECTS, ART: XS.ART, SOUNDS: XS.SOUNDS, TEXT_EN: XS.TEXT_EN };
+  return { CARDS: XS.CARDS, DECKS: XS.DECKS, TAGS: XS.TAGS, DEFECTS: XS.DEFECTS, ART: XS.ART, SOUNDS: XS.SOUNDS, TEXT_EN: XS.TEXT_EN, AUDIO: XS.AUDIO };
 }
 
 // The faces that need a picture / a cue: one per card, two per leader (front and awakened).
@@ -45,7 +45,7 @@ const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 export function validate(d, opts = { requireArt: REQUIRE_ART, requireSound: REQUIRE_SOUND }) {
   const errors = [];
   const err = (rule, msg) => errors.push({ rule, msg });
-  const { CARDS, DECKS, TAGS, DEFECTS, ART, SOUNDS, TEXT_EN } = d;
+  const { CARDS, DECKS, TAGS, DEFECTS, ART, SOUNDS, TEXT_EN, AUDIO } = d;
   const card = (n) => CARDS[n];
 
   // ---- per card -------------------------------------------------------------------------
@@ -139,7 +139,9 @@ export function validate(d, opts = { requireArt: REQUIRE_ART, requireSound: REQU
   const soundTags = new Set(Object.values(SOUNDS).map((s) => s && s.tag));
   for (const [id, s] of Object.entries(SOUNDS)) if (!s || !s.file || !s.tag) err('sound-unknown', `sound entry ${id} lacks file or tag`);
   const art = { missing: need.filter((f) => !ART[f]), total: need.length };
-  const sound = { missing: need.filter((f) => !soundTags.has('card:' + f)), total: need.length };
+  // Sound coverage is per cue tag (data/audio-cues.js): the director fires on log tags, never per card face (M6).
+  const cueTags = AUDIO && Array.isArray(AUDIO.cues) ? AUDIO.cues.map((c) => c.tag) : [];
+  const sound = { missing: cueTags.filter((t) => !soundTags.has(t)), total: cueTags.length };
   if (opts.requireArt) for (const f of art.missing) err('art-missing', `no art for ${f}`);
   if (opts.requireSound) for (const f of sound.missing) err('sound-missing', `no sound for ${f}`);
 
@@ -190,8 +192,14 @@ function selftest() {
     const r = validate(d);
     if (!r.errors.some((e) => e.rule === rule)) { bad++; console.log(`FAIL selftest: rule ${name} did not bite`); }
   }
-  // The art / sound switches: with coverage required, the empty manifests must fail.
-  const strict = validate(base, { requireArt: true, requireSound: true });
+  // The art / sound switches: with coverage required, a manifest missing one entry must fail (a hole is punched in
+  // each, so the check means the same before and after the manifests are filled).
+  const holed = structuredClone(base);
+  const firstFace = Object.keys(holed.ART).find((k) => !k.startsWith('ui/'));
+  if (firstFace !== undefined) delete holed.ART[firstFace];
+  const firstCue = Object.keys(holed.SOUNDS)[0];
+  if (firstCue !== undefined) delete holed.SOUNDS[firstCue];
+  const strict = validate(holed, { requireArt: true, requireSound: true });
   for (const rule of ['art-missing', 'sound-missing']) {
     if (!strict.errors.some((e) => e.rule === rule)) { bad++; console.log(`FAIL selftest: rule ${rule} did not bite when required`); }
   }
@@ -207,7 +215,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   for (const e of r.errors) console.log(`FAIL validate-data [${e.rule}]: ${e.msg}`);
   const pend = [];
   if (!REQUIRE_ART) { console.log(`pending (M5): ${r.art.missing.length} of ${r.art.total} card faces (leaders count twice) have no art entry`); pend.push('art pending (M5)'); }
-  if (!REQUIRE_SOUND) { console.log(`pending (M6): ${r.sound.missing.length} of ${r.sound.total} card faces (leaders count twice) have no sound entry`); pend.push('sound pending (M6)'); }
+  else pend.push(`art ${r.art.total - r.art.missing.length}/${r.art.total} faces`);
+  if (!REQUIRE_SOUND) { console.log(`pending (M6): ${r.sound.missing.length} of ${r.sound.total} cue tags have no delivered clip`); pend.push('sound pending (M6)'); }
+  else pend.push(`sound ${r.sound.total - r.sound.missing.length}/${r.sound.total} cues`);
   const nc = Object.keys(d.CARDS).length, nd = Object.keys(d.DECKS).length;
   console.log(r.errors.length
     ? `validate-data: ${r.errors.length} failure(s)`

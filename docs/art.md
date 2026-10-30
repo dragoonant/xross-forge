@@ -27,6 +27,7 @@ environment variables); the rights reading is `docs/rights.md` §2 and §7. This
 | `tools/art/lint.mjs` | The prompt lint (vocabulary and rules) |
 | `tools/build-art-prompts.mjs` | Composes `STYLE . anchor : clause . framing` for 62 keys plus the audition; refuses on any lint problem; `--check` and `--selftest` are the gate steps |
 | `tools/gen-art.mjs` | Renders through Hugging Face; ledger, budget, audition, probe, dry-run, mock |
+| `tools/gen-art-local.mjs` | The same prompts, masters and ledger rendered on the owner's PC's Flux Studio (FLUX.2 klein 4B, port 7880; PLAN D18): `--audition`, `--only`, `--force`, `--seed`, `--dry-run`. How the first set was made. |
 | `tools/art/contact-sheet.mjs` (+ `.py`, PIL) | Labelled 4x4 contact sheets into `tools/out/contact/` |
 | `tools/shrink-art.mjs` | Masters to 560 px WebP, bottom 5% cropped |
 | `tools/write-manifest.mjs` | Fills `data/art-manifest.js` from the files present |
@@ -65,6 +66,16 @@ A key's master is `art/masters/<key with / as __>.png`; its delivery file is
 10. **Check.** `node tools/check-art.mjs` (prints `pending (N of 58 faces, ...)` until complete).
 11. **Flip `REQUIRE_ART`** to `true` in `tools/validate-data.mjs` once `check-art` is `ok`, then commit
     the manifest, the WebPs and `docs/art-ledger.json` together (explicit paths, rule 12).
+
+## Running it locally (PLAN D18, how the first set was made)
+
+With the Flux Studio up (`node server.js` in the 3D Model Generation repo's `flux-studio`, port 7880; `FLUX_URL`
+to override), the same steps run with `tools/gen-art-local.mjs` in place of `tools/gen-art.mjs`:
+`--audition` (the 10 candidates, fixed seed, about 90 s), then the batch (62 plates in about 7 minutes; 832x1216
+prompts render at the studio's 2:3 = 832x1216, 1280x768 ones at 16:9 = 1344x768 and `shrink-art` scales them to
+1280), then contact sheets, re-rolls (`--force --only <key>`, `--seed N`), shrink, manifest, check. Every render
+appends a `$0` ledger entry (`provider: flux-studio-local`) with the seed and the prompt hash. The 2026-10-29 set:
+STYLE = candidate A, QC on `tools/out/contact/ST01-*.jpg`, `ST02-*.jpg`, `ui-1.jpg`. Stop the studio when done.
 
 ## QC checklist (per tile; borderline tiles get one native-size look)
 

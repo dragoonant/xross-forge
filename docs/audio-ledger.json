@@ -1,5 +1,1082 @@
 {
   "note": "Every paid ElevenLabs call (PLAN D5/D6). Appended by tools/gen-audio.mjs; credits are the measured change of the account balance when the key could read it (measured: true), else the estimate. estUSD = credits / 1000 * usdPer1kCredits. Audio may spend at most $17 of the $25 total.",
   "usdPer1kCredits": 0.2,
-  "entries": []
+  "entries": [
+    {
+      "date": "2026-10-30T00:21:13.481Z",
+      "tag": "ui-hover",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002105-0deaea",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 1.968,
+          "crest": 27.97,
+          "seconds": 1.02
+        },
+        {
+          "take": 1,
+          "score": 1.942,
+          "crest": 27.31,
+          "seconds": 1.02
+        }
+      ],
+      "seed": 176981505
+    },
+    {
+      "date": "2026-10-30T00:21:18.229Z",
+      "tag": "ui-click",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002113-31f45e",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.358,
+          "crest": 7.31,
+          "seconds": 0.38
+        },
+        {
+          "take": 1,
+          "score": 2.207,
+          "crest": 35.57,
+          "seconds": 1.02
+        }
+      ],
+      "seed": 2064380798
+    },
+    {
+      "date": "2026-10-30T00:21:22.978Z",
+      "tag": "ui-confirm",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002118-5eab22",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 1.538,
+          "crest": 22.03,
+          "seconds": 1.49
+        },
+        {
+          "take": 1,
+          "score": 1.828,
+          "crest": 29.42,
+          "seconds": 1.49
+        }
+      ],
+      "seed": 349841118
+    },
+    {
+      "date": "2026-10-30T00:21:27.713Z",
+      "tag": "ui-cancel",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002122-f527f1",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.321,
+          "crest": 6.28,
+          "seconds": 1.27
+        },
+        {
+          "take": 1,
+          "score": 1.194,
+          "crest": 17.4,
+          "seconds": 0.99
+        }
+      ],
+      "seed": 974987589
+    },
+    {
+      "date": "2026-10-30T00:21:32.482Z",
+      "tag": "ui-drawer",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002127-4bd1f0",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.92,
+          "crest": 11.25,
+          "seconds": 1.3
+        },
+        {
+          "take": 1,
+          "score": 0.768,
+          "crest": 3.72,
+          "seconds": 1.3
+        }
+      ],
+      "seed": 72865519
+    },
+    {
+      "date": "2026-10-30T00:21:37.252Z",
+      "tag": "card-draw",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002132-dd936d",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.665,
+          "crest": 4.37,
+          "seconds": 1.07
+        },
+        {
+          "take": 1,
+          "score": 1.229,
+          "crest": 14.16,
+          "seconds": 1.11
+        }
+      ],
+      "seed": 1367306316
+    },
+    {
+      "date": "2026-10-30T00:21:41.984Z",
+      "tag": "play-attack",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002137-2d6303",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.466,
+          "crest": 4.78,
+          "seconds": 1.49
+        },
+        {
+          "take": 1,
+          "score": 0.276,
+          "crest": 5.78,
+          "seconds": 1.49
+        }
+      ],
+      "seed": 1370069138
+    },
+    {
+      "date": "2026-10-30T00:21:46.732Z",
+      "tag": "play-memoria",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002141-e040ff",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 2.206,
+          "crest": 42.99,
+          "seconds": 1.48
+        },
+        {
+          "take": 1,
+          "score": 0.538,
+          "crest": 4.44,
+          "seconds": 1.49
+        }
+      ],
+      "seed": 292145553
+    },
+    {
+      "date": "2026-10-30T00:21:51.465Z",
+      "tag": "pp-spend",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002146-8b800a",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.615,
+          "crest": 4.7,
+          "seconds": 1.11
+        },
+        {
+          "take": 1,
+          "score": 0.84,
+          "crest": 9.68,
+          "seconds": 1.1
+        }
+      ],
+      "seed": 244564940
+    },
+    {
+      "date": "2026-10-30T00:21:56.213Z",
+      "tag": "pp-recover",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002151-151b9e",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.572,
+          "crest": 4.53,
+          "seconds": 1.3
+        },
+        {
+          "take": 1,
+          "score": 0.382,
+          "crest": 5.48,
+          "seconds": 1.3
+        }
+      ],
+      "seed": 229088064
+    },
+    {
+      "date": "2026-10-30T00:22:00.952Z",
+      "tag": "tactics-reveal",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002156-fedd37",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 1.304,
+          "crest": 4.5,
+          "seconds": 0.22
+        },
+        {
+          "take": 1,
+          "score": 0.948,
+          "crest": 4.57,
+          "seconds": 0.39
+        }
+      ],
+      "seed": 1957318681
+    },
+    {
+      "date": "2026-10-30T00:22:05.678Z",
+      "tag": "equip",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002200-a5c9cf",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.53,
+          "crest": 8.03,
+          "seconds": 1.49
+        },
+        {
+          "take": 1,
+          "score": 0.662,
+          "crest": 3.93,
+          "seconds": 1.49
+        }
+      ],
+      "seed": 1025745919
+    },
+    {
+      "date": "2026-10-30T00:22:10.383Z",
+      "tag": "boost-armed",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002205-fb2131",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.843,
+          "crest": 3.15,
+          "seconds": 1.67
+        },
+        {
+          "take": 1,
+          "score": 0.996,
+          "crest": 2.7,
+          "seconds": 1.67
+        }
+      ],
+      "seed": 1515050327
+    },
+    {
+      "date": "2026-10-30T00:22:15.131Z",
+      "tag": "reshuffle",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002210-43b011",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.192,
+          "crest": 6.04,
+          "seconds": 2.04
+        },
+        {
+          "take": 1,
+          "score": 1.298,
+          "crest": 18.3,
+          "seconds": 2.04
+        }
+      ],
+      "seed": 150194917
+    },
+    {
+      "date": "2026-10-30T00:22:19.875Z",
+      "tag": "tactics-burn",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002215-ac77e8",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.89,
+          "crest": 12.61,
+          "seconds": 1.92
+        },
+        {
+          "take": 1,
+          "score": 0.242,
+          "crest": 5.67,
+          "seconds": 2.04
+        }
+      ],
+      "seed": 752057505
+    },
+    {
+      "date": "2026-10-30T00:22:24.635Z",
+      "tag": "discard",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002219-044d1e",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 1.034,
+          "crest": 11.7,
+          "seconds": 1.11
+        },
+        {
+          "take": 1,
+          "score": 0.58,
+          "crest": 4.85,
+          "seconds": 1.11
+        }
+      ],
+      "seed": 1570335917
+    },
+    {
+      "date": "2026-10-30T00:22:29.343Z",
+      "tag": "attack-whoosh",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002224-8d548f",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 1.611,
+          "crest": 22.63,
+          "seconds": 1.28
+        },
+        {
+          "take": 1,
+          "score": 0.805,
+          "crest": 4.39,
+          "seconds": 0.35
+        }
+      ],
+      "seed": 463155195
+    },
+    {
+      "date": "2026-10-30T00:22:34.077Z",
+      "tag": "hit-light",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002229-2198ed",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.414,
+          "crest": 5.75,
+          "seconds": 1.11
+        },
+        {
+          "take": 1,
+          "score": 1.132,
+          "crest": 12.95,
+          "seconds": 1.1
+        }
+      ],
+      "seed": 719946772
+    },
+    {
+      "date": "2026-10-30T00:22:38.821Z",
+      "tag": "hit-medium",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002234-f65791",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.353,
+          "crest": 5.64,
+          "seconds": 1.3
+        },
+        {
+          "take": 1,
+          "score": 0.382,
+          "crest": 5.47,
+          "seconds": 1.3
+        }
+      ],
+      "seed": 723463091
+    },
+    {
+      "date": "2026-10-30T00:22:43.564Z",
+      "tag": "hit-heavy",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002238-a25c04",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 3.838,
+          "crest": 3.17,
+          "seconds": 1.67
+        },
+        {
+          "take": 1,
+          "score": 0.435,
+          "crest": 4.74,
+          "seconds": 1.67
+        }
+      ],
+      "seed": 1613265228
+    },
+    {
+      "date": "2026-10-30T00:22:48.305Z",
+      "tag": "heal",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002243-cc85d9",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.273,
+          "crest": 6.55,
+          "seconds": 2.04
+        },
+        {
+          "take": 1,
+          "score": 0.251,
+          "crest": 6.41,
+          "seconds": 2.04
+        }
+      ],
+      "seed": 1121623391
+    },
+    {
+      "date": "2026-10-30T00:22:53.065Z",
+      "tag": "leader-down",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002248-3dd59e",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.379,
+          "crest": 4.77,
+          "seconds": 2.31
+        },
+        {
+          "take": 1,
+          "score": 1.223,
+          "crest": 2.06,
+          "seconds": 2.32
+        }
+      ],
+      "seed": 2123362155
+    },
+    {
+      "date": "2026-10-30T00:22:57.818Z",
+      "tag": "awaken-stinger",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002253-f8a8c6",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.104,
+          "crest": 6.04,
+          "seconds": 3.53
+        },
+        {
+          "take": 1,
+          "score": 0.204,
+          "crest": 6.68,
+          "seconds": 3.53
+        }
+      ],
+      "seed": 118214722
+    },
+    {
+      "date": "2026-10-30T00:23:02.577Z",
+      "tag": "round-start",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002257-fe358b",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.381,
+          "crest": 4.87,
+          "seconds": 2
+        },
+        {
+          "take": 1,
+          "score": 0.277,
+          "crest": 6.58,
+          "seconds": 2.04
+        }
+      ],
+      "seed": 877689855
+    },
+    {
+      "date": "2026-10-30T00:23:07.353Z",
+      "tag": "round-win",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002302-a66649",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.502,
+          "crest": 8.66,
+          "seconds": 2.51
+        },
+        {
+          "take": 1,
+          "score": 0.178,
+          "crest": 6.26,
+          "seconds": 2.51
+        }
+      ],
+      "seed": 1116671017
+    },
+    {
+      "date": "2026-10-30T00:23:12.086Z",
+      "tag": "round-loss",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002307-e4b6a8",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 1,
+          "crest": 2.53,
+          "seconds": 2.51
+        },
+        {
+          "take": 1,
+          "score": 0.266,
+          "crest": 5.27,
+          "seconds": 2.51
+        }
+      ],
+      "seed": 1040953473
+    },
+    {
+      "date": "2026-10-30T00:23:16.828Z",
+      "tag": "turn-start-you",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002312-4f2959",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.633,
+          "crest": 4.03,
+          "seconds": 1.48
+        },
+        {
+          "take": 1,
+          "score": 0.307,
+          "crest": 6.43,
+          "seconds": 1.48
+        }
+      ],
+      "seed": 1897640053
+    },
+    {
+      "date": "2026-10-30T00:23:21.557Z",
+      "tag": "turn-start-opp",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002316-33c4ef",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.892,
+          "crest": 3.12,
+          "seconds": 1.49
+        },
+        {
+          "take": 1,
+          "score": 0.707,
+          "crest": 9.59,
+          "seconds": 1.49
+        }
+      ],
+      "seed": 723645415
+    },
+    {
+      "date": "2026-10-30T00:23:26.296Z",
+      "tag": "crowd-swell",
+      "kind": "sfx",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "stable-audio-open-1.0",
+      "job": "20261030002321-465694",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.396,
+          "crest": 4.31,
+          "seconds": 4.46
+        },
+        {
+          "take": 1,
+          "score": 0.874,
+          "crest": 2.51,
+          "seconds": 3.99
+        }
+      ],
+      "seed": 1721072903
+    },
+    {
+      "date": "2026-10-30T00:23:40.744Z",
+      "tag": "music-title",
+      "kind": "music",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "ace-step-1.5-turbo",
+      "job": "20261030002326-4a25d0",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.247,
+          "crest": 5.35,
+          "seconds": 39.94
+        },
+        {
+          "take": 1,
+          "score": 0.213,
+          "crest": 4.28,
+          "seconds": 40.25
+        }
+      ],
+      "seed": 1189579023
+    },
+    {
+      "date": "2026-10-30T00:23:53.686Z",
+      "tag": "music-calm",
+      "kind": "music",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "ace-step-1.5-turbo",
+      "job": "20261030002340-ceea90",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.404,
+          "crest": 5.06,
+          "seconds": 47.08
+        },
+        {
+          "take": 1,
+          "score": 0.4,
+          "crest": 5.12,
+          "seconds": 47.01
+        }
+      ],
+      "seed": 431783173
+    },
+    {
+      "date": "2026-10-30T00:24:03.502Z",
+      "tag": "music-tense",
+      "kind": "music",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "ace-step-1.5-turbo",
+      "job": "20261030002353-6f4b1e",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.994,
+          "crest": 6.97,
+          "seconds": 44.27
+        },
+        {
+          "take": 1,
+          "score": 1.056,
+          "crest": 5.17,
+          "seconds": 42.63
+        }
+      ],
+      "seed": 1230952758
+    },
+    {
+      "date": "2026-10-30T00:24:11.419Z",
+      "tag": "music-victory",
+      "kind": "music",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "ace-step-1.5-turbo",
+      "job": "20261030002403-98398c",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.182,
+          "crest": 4.46,
+          "seconds": 8.91
+        },
+        {
+          "take": 1,
+          "score": 0.352,
+          "crest": 4.12,
+          "seconds": 8.7
+        }
+      ],
+      "seed": 194987899
+    },
+    {
+      "date": "2026-10-30T00:24:17.784Z",
+      "tag": "music-defeat",
+      "kind": "music",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "ace-step-1.5-turbo",
+      "job": "20261030002411-e84186",
+      "take": 1,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0.986,
+          "crest": 6.97,
+          "seconds": 4.75
+        },
+        {
+          "take": 1,
+          "score": 0.866,
+          "crest": 6.2,
+          "seconds": 4.67
+        }
+      ],
+      "seed": 392320869
+    },
+    {
+      "date": "2026-10-30T00:25:24.951Z",
+      "tag": "voice-design",
+      "kind": "voice",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "qwen-design",
+      "job": "20261030002417-92e6c0"
+    },
+    {
+      "date": "2026-10-30T00:25:37.209Z",
+      "tag": "vo-round-1",
+      "kind": "voice",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "qwen3-tts-clone-of-designed-voice",
+      "job": "20261030002524-625ded",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0,
+          "crest": 0,
+          "seconds": 0
+        }
+      ],
+      "seed": 1017406742
+    },
+    {
+      "date": "2026-10-30T00:25:47.978Z",
+      "tag": "vo-round-2",
+      "kind": "voice",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "qwen3-tts-clone-of-designed-voice",
+      "job": "20261030002537-8b012a",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0,
+          "crest": 0,
+          "seconds": 0
+        }
+      ],
+      "seed": 967073885
+    },
+    {
+      "date": "2026-10-30T00:25:58.759Z",
+      "tag": "vo-final-round",
+      "kind": "voice",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "qwen3-tts-clone-of-designed-voice",
+      "job": "20261030002547-2161e6",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0,
+          "crest": 0,
+          "seconds": 0
+        }
+      ],
+      "seed": 615960330
+    },
+    {
+      "date": "2026-10-30T00:26:08.016Z",
+      "tag": "vo-awakened",
+      "kind": "voice",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "qwen3-tts-clone-of-designed-voice",
+      "job": "20261030002558-17a6ee",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0,
+          "crest": 0,
+          "seconds": 0
+        }
+      ],
+      "seed": 1326538924
+    },
+    {
+      "date": "2026-10-30T00:26:18.741Z",
+      "tag": "vo-match-point",
+      "kind": "voice",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "qwen3-tts-clone-of-designed-voice",
+      "job": "20261030002608-7ca0b8",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0,
+          "crest": 0,
+          "seconds": 0
+        }
+      ],
+      "seed": 462508289
+    },
+    {
+      "date": "2026-10-30T00:26:27.952Z",
+      "tag": "vo-victory",
+      "kind": "voice",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "qwen3-tts-clone-of-designed-voice",
+      "job": "20261030002618-b84778",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0,
+          "crest": 0,
+          "seconds": 0
+        }
+      ],
+      "seed": 637829554
+    },
+    {
+      "date": "2026-10-30T00:26:37.168Z",
+      "tag": "vo-defeat",
+      "kind": "voice",
+      "credits": 0,
+      "estUSD": 0,
+      "measured": false,
+      "provider": "audio-studio-local",
+      "model": "qwen3-tts-clone-of-designed-voice",
+      "job": "20261030002627-1e673b",
+      "take": 0,
+      "takes": [
+        {
+          "take": 0,
+          "score": 0,
+          "crest": 0,
+          "seconds": 0
+        }
+      ],
+      "seed": 405749555
+    }
+  ]
 }

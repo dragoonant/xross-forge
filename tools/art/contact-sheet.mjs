@@ -40,7 +40,8 @@ for (const s of want) {
   for (let i = 0; i < list.length; i += 16) {
     const out = path.join(P.contact, `${s}-${i / 16 + 1}.jpg`);
     const spec = { out, cols: 4, rows: 4, title: `${s} sheet ${i / 16 + 1}  (${list.slice(i, i + 16).filter((t) => fs.existsSync(t.path)).length}/${list.slice(i, i + 16).length} masters)`, tiles: list.slice(i, i + 16) };
-    const r = spawnSync('python3', ['-I', py], { input: JSON.stringify(spec), encoding: 'utf8' });
+    // Windows installs expose `python` (the `python3` name is the Store's install alias); PYTHON overrides either.
+    const r = spawnSync(process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), ['-I', py], { input: JSON.stringify(spec), encoding: 'utf8' });
     if (r.status !== 0) { console.log('contact-sheet: python failed: ' + (r.stderr || '').slice(-300)); process.exit(1); }
     n++; shown += spec.tiles.filter((t) => fs.existsSync(t.path)).length;
   }

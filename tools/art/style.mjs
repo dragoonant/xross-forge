@@ -66,7 +66,8 @@ export const CANDIDATES = {
   },
 };
 
-// Set both once the owner picks (copy the candidate's two strings here byte for byte, and record
-// the pick in PLAN.md). Left null on purpose: every non-audition generation refuses until then.
-export const STYLE = null;
-export const UI_STYLE = null;
+// Set once the pick is made (the candidate's two strings, byte for byte; the pick is recorded in PLAN.md).
+// PLAN D18 (2026-10-29): candidate A, from the local audition on FLUX.2 klein (tools/out/contact/audition-1.jpg);
+// picked by the session under the owner's standing delegation of concept approval, re-rollable for free on the PC.
+export const STYLE = CANDIDATES.A.style;
+export const UI_STYLE = CANDIDATES.A.ui;

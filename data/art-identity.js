@@ -154,7 +154,8 @@
       // Close Call
       'ST02-014': '{ST02-004} leans far back with wide eyes and a startled grin as streaks of light zip just past his head, one sweat drop, motion lines',
       // Tour Guide
-      'ST02-015': '{ST02-002} strolls through a neon night market street raising his gold hook cane like a guide pointer, a friendly grin, a small crowd of silhouettes following behind him, lantern glow',
+      // (2026-10-29 QC: "neon night market street" drew shop fronts with lettering twice; lanterns and string lights do not.)
+      'ST02-015': '{ST02-002} strolls down a festival lane at night hung with plain paper lanterns and string lights, raising his gold hook cane like a guide pointer, a friendly grin, a small crowd of silhouettes following behind him',
       // Lucky Man
       'ST02-016': '{ST02-003} sprints first across a glowing finish line with both arms wide, gold coins and clover leaves raining down around him, confetti, a huge delighted grin',
       // Champion for Hire
@@ -176,7 +177,8 @@
       // Light Shield
       '023': 'a sleek kite-shaped shield of translucent glowing glass hovering in the air, bright rim light and soft hexagon patterns, shining with {accent} light',
       // PP Ticket
-      '024': 'a glowing holographic pass card floating at a slight angle, a rainbow foil sheen and shimmering geometric patterns, edges lit with {accent} light',
+      // (2026-10-29 QC: "geometric patterns" drew an emblem with glyph-like marks in the centre; plain stripes do not.)
+      '024': 'a glowing holographic pass card floating at a slight angle, a rainbow foil sheen and plain shimmering diagonal stripes, edges lit with {accent} light',
       // PP card
       '025': 'a radiant faceted crystal power gem floating above a small round pedestal with orbiting sparks, shining with {accent} light',
     },

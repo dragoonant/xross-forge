@@ -48,7 +48,7 @@
     changed();
     readyP = new Promise((resolve, reject) => {
       const timer = setTimeout(() => { const m = 'the worker did not report ready within ' + READY_TIMEOUT_MS / 1000 + ' s.'; Cl.fail(m); reject(new Error(m)); }, READY_TIMEOUT_MS);
-      try { worker = new Worker('js/ai/worker.js?v=8a15a6d568'); } catch (e) { clearTimeout(timer); const m = 'cannot create the worker (' + e.message + ').'; Cl.fail(m); reject(new Error(m)); return; }
+      try { worker = new Worker('js/ai/worker.js?v=e875b894da'); } catch (e) { clearTimeout(timer); const m = 'cannot create the worker (' + e.message + ').'; Cl.fail(m); reject(new Error(m)); return; }
       worker.onerror = (ev) => {
         clearTimeout(timer);
         const m = 'the worker failed (' + (ev.message || 'script error, probably a script that did not load') + (ev.filename ? ' in ' + ev.filename : '') + ').';
