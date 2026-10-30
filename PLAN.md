@@ -5,34 +5,27 @@ Status is rewritten (not appended) every session.
 
 ---
 
-## Status — 2026-10-29 (M0-M7 done: playable vs the AI, with its own art and sound)
+## Status — 2026-10-30 (ten competitive decks live)
 
-**Live:** https://dragoonant.github.io/xross-forge/ (deployed from `main`, D11). Playable vs the AI
-(Easy / Normal / Hard), full or quick match, ST01 vs ST02, with every card face, the arena, the card
-backs, 41 sound cues and an announcer.
+**Live:** https://dragoonant.github.io/xross-forge/ — 12 decks: the two starters and the ten
+competitive lists of D19 (Challengers Cup 2026 #3 OSAKA placings and Top 8, Yuyu-tei meta
+columns). Pick your deck and the bot's from the title.
 
-- **M7 polish (done):** layout fixes (TODO 8/9 closed), settings (speed, reduce motion, volumes,
-  auto-pass, EN/JP titles), autosave + Continue, deck list peek, credits/notice screen with the
-  AIイラスト label, How to play, end-screen stats.
-- **M5 art (done, D18):** the cloud pipeline (identity table, 62 linted prompts, ledger, gates) run
-  on the owner's PC's Flux Studio by `tools/gen-art-local.mjs` (FLUX.2 klein 4B): the 10-style
-  audition (candidate A chosen), 58 faces + 4 UI plates, QC on the contact sheets against
-  `docs/art.md`'s checklist (8 re-rolls: lettering on shop fronts, a holographic emblem, a doubled
-  figure), delivery 3.6 MB of WebP, `check-art` ok, `REQUIRE_ART` on, ledger $0.00.
-- **M6 audio (done, D18):** the 41-cue sheet run on the Audio Studio by `tools/gen-audio-local.mjs`
-  (Stable Audio Open 1.0, ACE-Step 1.5 turbo, Qwen3-TTS Voice Design for the ORIGINAL announcer),
-  `measure-audio` delivered 41 clips (2.9 MB; 2 flagged: the ui ticks are shorter than planned,
-  which a tick should be), `REQUIRE_SOUND` on with a per-cue rule. Approved by the owner's ear
-  on 2026-10-29 (`sounds.html`).
-- Gate green (15 steps); tests 209; e2e in Chromium with the real assets.
+- **Cards:** 92 booster cards (BP01-BP04) added: data, English text in our own words, agency
+  tags, abilities as data with one behaviour test each (379 tests), printed-vs-compiled audit
+  clean. Engine gained overkill, look/pick, free play, cost modifiers, may/reveal choices,
+  opponent and both-player discards, equipment grants and base-HP overrides, revive, ATK
+  buffs, multi-attack checks, round-long effects.
+- **Independent rules review** of the 92 cards: 0 wrong numbers/targets/timings; 1 WRONG
+  (hidden-pool decisions leaked whether a hidden card qualified) and 2 RISKs fixed with
+  failing-first tests (R-077).
+- **Assets:** the owner's PC rendered the 110 new faces (style A) and 3 new cues (overkill,
+  revive, deck-look) on the local studios (D18): 168/168 faces, 44/44 cues.
+- **AI:** normal beats random 120/120 + 200/200 across the ten competitive decks; e2e 430/430.
 
-**Next:** the owner's playtest with art and sound; the booster paths in `TODO.md` 1-7.
-
-**Owner approved the art and sound as they are (2026-10-29; TODO 10/11 closed, STYLE A stands).**
-
-**Owner, when convenient:** D15 (starter Energy Charger); delete the stale `claude/wip-backup`
-branch; the first-pass branch `claude/m5m6-local-studios` can go once nothing in it is wanted (its
-51 landscape plates are in gitignored `art/archive/pass1-landscape/`).
+**Owner, when convenient:** playtest the competitive decks; D15 (starter Energy Charger);
+14 leaders still show their Japanese name in English mode until official romanisations are
+confirmed; delete the `claude/wip-backup` branch (CI now ignores it).
 
 ---
 
