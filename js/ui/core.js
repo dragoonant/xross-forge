@@ -108,26 +108,14 @@
     return m.map[iid] === undefined ? null : m.map[iid];
   };
 
-  // ---- settings -----------------------------------------------------------------------------
-  // Speed: 'full' | 'quick' | 'instant'. Durations are multiplied by RATE[speed]; 0 means "do not
-  // animate at all" (tests, autoplay).
-  U.RATE = { full: 1, quick: 0.45, instant: 0 };
-  U.params = () => (typeof location === 'undefined' ? new URLSearchParams('') : new URLSearchParams(location.search));
-  let speed = null;
-  U.speed = () => {
-    if (speed === null) {
-      const p = U.params().get('speed');
-      const saved = U.store.get('speed', 'full');
-      speed = (p === 'full' || p === 'quick' || p === 'instant') ? p : (saved === 'quick' || saved === 'instant' ? saved : 'full');
-    }
-    return speed;
-  };
-  U.setSpeed = (v) => {
-    if (U.RATE[v] === undefined) throw new Error('ui: bad speed ' + v);
-    speed = v;
-    U.store.set('speed', v);
-  };
-  U.rate = () => U.RATE[U.speed()];
-  U.ms = (n) => Math.round(n * U.rate());
+  // ---- names --------------------------------------------------------------------------------
+  // The card title the player sees: English first (Japanese beneath) or the reverse, by the "names" setting
+  // (js/ui/settings.js). U.nameEn stays the canonical English name (initials, tests); everything the player reads
+  // goes through U.cardTitle / U.cardTitleAlt.
+  U.nameJp = (cardId) => U.card(cardId).name;
+  U.cardTitle = (cardId) => (U.settings.get('names') === 'jp' ? U.card(cardId).name : U.card(cardId).nameEn);
+  U.cardTitleAlt = (cardId) => (U.settings.get('names') === 'jp' ? U.card(cardId).nameEn : U.card(cardId).name);
+  const NO_PARAMS = { get: () => null };      // headless (node:vm): no location, no URLSearchParams
+  U.params = () => (typeof location === 'undefined' || typeof URLSearchParams === 'undefined' ? NO_PARAMS : new URLSearchParams(location.search));
   U.reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 })();

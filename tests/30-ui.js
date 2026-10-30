@@ -287,4 +287,151 @@
     };
     eq(play(5), play(5), 'same seed, same game');
   });
+
+  // ---- M7: settings, save, stats, art, audio scenes, auto-pass inputs ------------------------------------
+  const playOut = (seed, mode) => {
+    let s = XS.newGame({ decks: ['ST01', 'ST02'], seed, mode: mode || 'full', first: 0 });
+    const bots = [U.makeRandomBot(seed, 0), U.makeRandomBot(seed, 1)];
+    for (let n = 0; n < 4000 && !XS.isTerminal(s); n++) s = XS.apply(s, bots[XS.whoActs(s)].choose(s));
+    return s;
+  };
+
+  test('ui settings: defaults, validation, and every setter rejects a value outside its set', () => {
+    U.settings.reload();
+    eq([U.settings.get('speed'), U.settings.get('autoPass'), U.settings.get('names')], ['full', false, 'en'], 'defaults: auto-pass is off');
+    throws(() => U.settings.set('speed', 'warp'), 'bad speed');
+    throws(() => U.settings.set('names', 'fr'), 'bad names');
+    throws(() => U.settings.set('autoPass', 'yes'), 'a boolean');
+    throws(() => U.settings.set('audio', {}), 'audio goes through setAudio');
+    throws(() => U.settings.get('volume'), 'unknown key');
+    U.settings.set('names', 'jp');
+    eq(U.cardTitle('ST01-001'), '一ノ瀬うるは', 'the Japanese name leads');
+    eq(U.cardTitleAlt('ST01-001'), 'Uruha Ichinose', 'the English name sits beneath');
+    U.settings.set('names', 'en');
+    eq(U.cardTitle('ST01-001'), 'Uruha Ichinose', 'English leads again');
+    U.settings.reload();
+  });
+
+  test('ui settings: reduce motion shortens the awaken stinger and every overlay', () => {
+    U.settings.reload();
+    const step = { kind: 'awaken' }, base = U.anim.stepMs(step);
+    eq(base, 2000, 'the stinger is 2000 ms at full motion');
+    U.settings.set('reduceMotion', true);
+    ok(U.anim.stepMs(step) < base / 2, 'the stinger is much shorter under reduce motion: ' + U.anim.stepMs(step));
+    for (const k of Object.keys(U.anim.D)) ok(U.anim.DR[k] !== undefined && U.anim.DR[k] <= U.anim.D[k], 'reduced duration for ' + k);
+    U.settings.reload();
+  });
+
+  test('ui save: the record carries init, actions, version, date; Continue says the round and turn; a foreign value is cleared', () => {
+    const s = playOut(3, 'quick');
+    const mid = XS.replay(s.init, s.actions.slice(0, 40));
+    const rec = U.save.record(mid, { tier: 'easy' });
+    eq(Object.keys(rec).sort(), ['actions', 'date', 'init', 'round', 'tier', 'turn', 'version'], 'record shape');
+    eq(U.save.label(rec), 'Continue (round ' + mid.round + ', ' + (mid.roundTurn > 0 ? 'turn ' + mid.roundTurn : 'setup') + ')', 'label');
+    const again = XS.replay(rec.init, rec.actions);
+    eq(JSON.stringify(XS.view(again, 0)), JSON.stringify(XS.view(mid, 0)), 'replaying the record gives the same board');
+    eq(U.save.stale(rec), false, 'made with the current data');
+    eq(U.save.stale(Object.assign({}, rec, { version: 'old' })), true, 'an older data version is flagged');
+    ok(/^[0-9a-z]+$/.test(U.save.version()), 'version is a short hash');
+  });
+
+  test('ui save: a save whose actions no longer replay throws in XS.replay (title.js turns that into "can\'t be resumed")', () => {
+    const s = playOut(3, 'quick');
+    const rec = U.save.record(XS.replay(s.init, s.actions.slice(0, 20)), {});
+    rec.actions = rec.actions.concat([{ type: 'play', iid: 'c9999' }]);
+    throws(() => XS.replay(rec.init, rec.actions), 'a stale action must throw, never half-load');
+  });
+
+  test('ui stats: damage, downs, awakenings, cards played and turns are counted from the log and agree with a recount (6 games)', () => {
+    for (let seed = 1; seed <= 6; seed++) {
+      const s = playOut(seed, seed % 2 ? 'full' : 'quick');
+      const v = XS.view(s, 0);
+      const st = U.stats.compute(v.log);
+      for (const side of [0, 1]) {
+        const other = 1 - side;
+        const dmg = v.log.filter((e) => e.type === 'damage' && U.leaderSeat(e.data.leader) === other).reduce((a, e) => a + e.data.amount, 0);
+        eq(st.sides[side].damage, dmg, `seed ${seed} side ${side}: damage dealt`);
+        eq(st.sides[side].downs, v.log.filter((e) => e.type === 'down' && e.data.seat === other).length, 'downs inflicted');
+        eq(st.sides[side].awakenings, v.log.filter((e) => e.type === 'awaken' && e.data.seat === side).length, 'awakenings');
+        eq(st.sides[side].played, v.log.filter((e) => (e.type === 'play' || e.type === 'tacticsPlay') && e.seat === side).length, 'cards played');
+        eq(st.sides[side].played, st.sides[side].attacks + st.sides[side].memoria + st.sides[side].tactics, 'the card types add up');
+      }
+      eq(st.turns, v.log.filter((e) => e.type === 'turnStart').length, 'turns');
+      ok(st.rounds >= 1 && st.rounds <= 3, 'rounds ' + st.rounds);
+      ok(st.sides[0].downs + st.sides[1].downs >= 4, 'a finished game downs at least four leaders');
+    }
+  });
+
+  test('ui stats: nothing hidden is read: the opponent\'s view of the same game gives the same numbers', () => {
+    const s = playOut(5, 'full');
+    eq(JSON.stringify(U.stats.compute(XS.view(s, 0).log)), JSON.stringify(U.stats.compute(XS.view(s, 1).log)), 'both seats count the same public events');
+  });
+
+  test('ui art: a manifest entry is found by card number and by "/awakened"; UI plates read the pipeline and brief spellings; no entry is null', () => {
+    const saved = XS.ART;
+    try {
+      XS.ART = {};
+      eq(U.art.faceEntry('ST01-001', false), null, 'empty manifest: placeholder');
+      XS.ART = { 'ST01-001': { file: 'a.webp' }, 'ST01-001/awakened': { file: 'b.webp' }, 'ST01-005': { file: 'c.webp' }, 'ui/card-back': { file: 'd.webp' }, 'ui:title': { file: 'e.webp' } };
+      eq(U.art.faceEntry('ST01-001', false).file, 'a.webp', 'front');
+      eq(U.art.faceEntry('ST01-001', true).file, 'b.webp', 'awakened');
+      eq(U.art.faceEntry('ST01-005', true).file, 'c.webp', 'a non-leader never uses the awakened key');
+      eq(U.art.faceEntry('ST01-002', false), null, 'no entry for a card the manifest lacks');
+      eq(U.art.uiEntry('cardback').file, 'd.webp', 'ui/card-back is the card-back plate');
+      eq(U.art.uiEntry('title').file, 'e.webp', 'ui:title is the title plate');
+      eq(U.art.uiEntry('arena'), null, 'absent plate');
+      XS.ART['ui/title'] = { file: 'other.webp' };
+      throws(() => U.art.uiEntry('title'), 'two spellings, two files: a manifest bug');
+    } finally { XS.ART = saved; }
+  });
+
+  test('ui audio scene: calm, tense at two leaders or match point, victory/defeat/silent when over', () => {
+    const v = (o) => Object.assign({ viewer: 0, phase: 'main', mode: 'full', needWins: 2, wins: [0, 0], winner: null,
+      players: [0, 1].map(() => ({ leaders: [{ down: false }, { down: false }, { down: false }, { down: false }] })) }, o);
+    eq(U.sfx.sceneFor(v()), 'calm', 'start of a match');
+    const down = (n) => ({ leaders: [0, 1, 2, 3].map((i) => ({ down: i < n })) });
+    eq(U.sfx.sceneFor(v({ players: [down(1), down(0)] })), 'calm', 'three standing is still calm');
+    eq(U.sfx.sceneFor(v({ players: [down(2), down(0)] })), 'tense', 'two standing on my side');
+    eq(U.sfx.sceneFor(v({ players: [down(0), down(3)] })), 'tense', 'one standing on theirs');
+    eq(U.sfx.sceneFor(v({ wins: [0, 1] })), 'tense', 'match point (best of 3)');
+    eq(U.sfx.sceneFor(v({ mode: 'quick', needWins: 1 })), 'calm', 'a quick match has no match point');
+    eq(U.sfx.sceneFor(v({ phase: 'over', winner: 0 })), 'victory', 'won');
+    eq(U.sfx.sceneFor(v({ phase: 'over', winner: 1 })), 'defeat', 'lost');
+    eq(U.sfx.sceneFor(v({ phase: 'over', winner: null })), 'silent', 'nobody won');
+    for (const sc of ['calm', 'tense', 'victory', 'defeat', 'silent']) ok(U.sfx.SCENES.includes(sc), sc + ' is a scene XS.Audio knows');
+  });
+
+  test('ui audio hooks: every presented log entry belongs to exactly one director step, in log order (the onLog contract)', () => {
+    for (const seed of [2, 7]) {
+      const s = playOut(seed, 'quick');
+      const v = XS.view(s, 0);
+      const steps = U.anim.plan(v.log, v, 0);
+      const seen = [].concat(...steps.map((x) => x.entries.map((e) => e.seq)));
+      eq(seen, v.log.map((e) => e.seq), 'seed ' + seed + ': each entry once, in order (merged draws and quiet steps included)');
+    }
+  });
+
+  test('ui audio cues: only the five UI cues M6 knows are accepted', () => {
+    eq(U.sfx.CUES, ['ui-hover', 'ui-click', 'ui-confirm', 'ui-cancel', 'ui-drawer'], 'cue names');
+    throws(() => U.sfx.cue('ui-boom'), 'unknown cue');
+    if (XS.AUDIO !== undefined) for (const c of U.sfx.CUES) ok(XS.AUDIO.byTag[c] !== undefined, c + ' is in the cue sheet');
+  });
+
+  test('ui auto-pass input: a fresh main phase with no PP and no playable card offers only endTurn; the default setting is off', () => {
+    U.settings.reload();
+    eq(U.settings.get('autoPass'), false, 'off by default');
+    let found = false;
+    for (let seed = 1; seed < 60 && !found; seed++) {
+      let s = XS.newGame({ decks: ['ST01', 'ST02'], seed, mode: 'quick', first: 0 });
+      const bots = [U.makeRandomBot(seed, 0), U.makeRandomBot(seed, 1)];
+      for (let n = 0; n < 600 && !XS.isTerminal(s); n++) {
+        if (s.phase === 'main' && s.pending === null && XS.whoActs(s) === 0) {
+          const legal = XS.legalActions(s);
+          if (legal.length === 1) { eq(legal[0].type, 'endTurn', 'the only action is endTurn'); found = true; break; }
+        }
+        s = XS.apply(s, bots[XS.whoActs(s)].choose(s));
+      }
+    }
+    ok(found, 'some real game reaches a turn with nothing to play');
+  });
 })();

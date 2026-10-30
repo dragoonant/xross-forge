@@ -6,14 +6,14 @@
 <title>Xross Forge</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2304050c'/%3E%3Cpath d='M6 6l20 20' stroke='%2318e4ff' stroke-width='4'/%3E%3Cpath d='M26 6L6 26' stroke='%23ff2bd1' stroke-width='4'/%3E%3C/svg%3E">
 <meta name="theme-color" content="#04050c">
-<link rel="stylesheet" href="styles.css?v=6b56ae3789">
+<link rel="stylesheet" href="styles.css?v=a2cf928c8e">
 </head>
 <body>
 <!-- Arena backdrop: pure CSS, no images. -->
 <div class="arena" aria-hidden="true"><div class="floor"></div><div class="vignette"></div></div>
 
 <div id="app">
-  <div class="ticker"><span class="rec">Fan build</span><span>evilgouki</span></div>
+  <div class="ticker"><span class="rec">Fan build</span><span class="ai-label">AIイラスト</span><span>evilgouki</span></div>
 
   <main class="title" id="title-screen">
     <h1 class="wordmark"><span class="wm-xross">XROSS</span> <span class="wm-forge">FORGE</span></h1>
@@ -33,27 +33,35 @@
       </fieldset>
       <fieldset class="opt-group" id="opt-deck">
         <legend>Your deck <span class="legend-sub">(the bot plays the other one)</span></legend>
-        <label class="opt"><input type="radio" name="deck" value="ST01" checked><span class="opt-body"><b>ST01 First Glory</b><i>初の栄冠 · VSPO!</i></span></label>
-        <label class="opt"><input type="radio" name="deck" value="ST02"><span class="opt-body"><b>ST02 Advent of the Demon King</b><i>魔王降臨 · Crazy Raccoon</i></span></label>
-        <label class="opt"><input type="radio" name="deck" value="random"><span class="opt-body"><b>Surprise me</b><i>The game picks one</i></span></label>
+        <div class="deck-opt"><label class="opt"><input type="radio" name="deck" value="ST01" checked><span class="opt-body"><b>ST01 First Glory</b><i>初の栄冠 · VSPO!</i></span></label>
+          <button class="linkish view-list" type="button" data-deck="ST01" data-cue="ui-drawer" aria-label="View the ST01 deck list">View list</button></div>
+        <div class="deck-opt"><label class="opt"><input type="radio" name="deck" value="ST02"><span class="opt-body"><b>ST02 Advent of the Demon King</b><i>魔王降臨 · Crazy Raccoon</i></span></label>
+          <button class="linkish view-list" type="button" data-deck="ST02" data-cue="ui-drawer" aria-label="View the ST02 deck list">View list</button></div>
+        <div class="deck-opt"><label class="opt"><input type="radio" name="deck" value="random"><span class="opt-body"><b>Surprise me</b><i>The game picks one</i></span></label></div>
       </fieldset>
     </section>
 
     <div class="play-wrap">
-      <button id="play" class="play" type="button">Play</button>
+      <button id="continue" class="btn primary continue" type="button" data-cue="ui-confirm" hidden>Continue</button>
+      <p id="continue-note" class="why" role="status" hidden></p>
+      <button id="play" class="play" type="button" data-cue="ui-confirm">Play</button>
       <p id="play-why" class="why" role="note" hidden></p>
       <p id="ai-status" class="ai-status" role="status" hidden></p>
-      <button id="howto-open" class="btn ghost" type="button">How to play</button>
+      <div class="title-links">
+        <button id="howto-open" class="btn ghost" type="button" data-cue="ui-drawer">How to play</button>
+        <button id="settings-open" class="btn ghost" type="button" data-cue="ui-drawer">Settings</button>
+        <button id="credits-open" class="btn ghost" type="button" data-cue="ui-drawer">Credits</button>
+      </div>
     </div>
-    <p class="notice-line" id="notice-line"><span id="notice-text"></span> <button class="linkish" id="notice-open" type="button">Read the full notice</button></p>
+    <p class="notice-line" id="notice-line"><span id="notice-text"></span> <button class="linkish" id="notice-open" type="button" data-cue="ui-drawer">Credits and the full notice</button></p>
   </main>
 
   <div id="game" hidden>
     <header id="topbar">
-      <div class="tb-left"><span class="tb-kicker">XROSS FORGE</span></div>
+      <div class="tb-left"><span class="tb-kicker">XROSS FORGE</span> <span class="ai-label">AIイラスト</span></div>
       <div id="scorebug" aria-label="Scoreboard"></div>
       <div class="tb-right">
-        <button class="btn tiny" id="btn-log" type="button">Log</button>
+        <button class="btn tiny" id="btn-log" type="button" data-cue="ui-drawer">Log</button>
         <button class="btn tiny" id="btn-flag" type="button">Flag a bug</button>
         <button class="btn tiny" id="btn-speed" type="button">Speed: full</button>
         <button class="btn tiny" id="btn-exit" type="button">Menu</button>
@@ -67,12 +75,12 @@
         <div id="confirm-slot"></div>
         <div class="et-wrap">
           <span id="endturn-label" hidden></span>
-          <button id="endturn" class="endturn" type="button" disabled><span class="et-main">END<br>TURN</span><span class="et-num"></span></button>
+          <button id="endturn" class="endturn" type="button" data-cue="ui-confirm" disabled><span class="et-main">END<br>TURN</span><span class="et-num"></span></button>
         </div>
       </div>
       <section class="side side-0" id="side-0" data-seat="0" aria-label="You"></section>
       <div id="prompt"></div>
-      <button id="prompt-pill" class="pill" type="button" hidden></button>
+      <button id="prompt-pill" class="pill" type="button" data-cue="ui-drawer" hidden></button>
     </main>
     <div id="hand" aria-label="Your hand"></div>
     <footer id="lower" aria-live="off">
@@ -80,7 +88,7 @@
       <span class="lt-main" id="caption"></span>
     </footer>
     <aside id="drawer" aria-label="Game log">
-      <div class="dr-head"><b>Game log</b><button class="btn tiny" id="log-close" type="button">Close</button></div>
+      <div class="dr-head"><b>Game log</b><button class="btn tiny" id="log-close" type="button" data-cue="ui-drawer">Close</button></div>
       <ol id="log-list"></ol>
     </aside>
   </div>
@@ -102,21 +110,24 @@
 <div id="fx-lock" aria-hidden="true"></div>
 <button id="end-pill" class="pill" type="button" hidden>Show the result</button>
 <div id="viewer" class="modal" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
-  <div class="modal-card"><div class="modal-head"><h2 id="viewer-title"></h2><button class="btn tiny" id="viewer-close" type="button">Close</button></div><div id="viewer-body"></div></div>
+  <div class="modal-card"><div class="modal-head"><h2 id="viewer-title"></h2><button class="btn tiny" id="viewer-close" type="button" data-cue="ui-cancel">Close</button></div><div id="viewer-body"></div></div>
 </div>
 <div id="confirm-exit" class="modal" role="dialog" aria-modal="true" aria-labelledby="exit-title">
-  <div class="modal-card small"><h2 id="exit-title">Leave the match?</h2>
-    <div class="modal-actions">
-      <button class="btn primary" id="exit-keep" type="button">Keep playing</button>
+  <div class="modal-card small"><h2 id="exit-title">Menu</h2>
+    <div class="modal-actions menu-actions">
+      <button class="btn primary" id="exit-keep" type="button" data-cue="ui-cancel">Keep playing</button>
+      <button class="btn" id="menu-howto" type="button" data-cue="ui-drawer">How to play</button>
+      <button class="btn" id="menu-settings" type="button" data-cue="ui-drawer">Settings</button>
+      <button class="btn" id="menu-credits" type="button" data-cue="ui-drawer">Credits</button>
       <button class="btn" id="exit-concede" type="button">Concede the match</button>
-      <button class="btn ghost" id="exit-quit" type="button">Quit to title</button>
+      <button class="btn ghost" id="exit-quit" type="button">Quit to title (your match is saved)</button>
     </div>
   </div>
 </div>
 <div id="endscreen" class="modal" role="dialog" aria-modal="true" aria-labelledby="end-title-h">
   <div class="modal-card end"><div id="end-body"></div>
     <div class="modal-actions">
-      <button class="btn primary" id="end-rematch" type="button">Rematch</button>
+      <button class="btn primary" id="end-rematch" type="button" data-cue="ui-confirm">Rematch</button>
       <button class="btn" id="end-title" type="button">Back to title</button>
       <button class="btn" id="end-bug" type="button">Save bug report</button>
       <button class="btn ghost" id="end-look" type="button">Look at the board</button>
@@ -124,13 +135,20 @@
   </div>
 </div>
 <div id="howto" class="modal" role="dialog" aria-modal="true" aria-labelledby="howto-title">
-  <div class="modal-card howto"><div class="modal-head"><h2 id="howto-title">How to play</h2><button class="btn tiny" id="howto-close" type="button">Close</button></div><div id="howto-body"></div></div>
+  <div class="modal-card howto"><div class="modal-head"><h2 id="howto-title">How to play</h2><button class="btn tiny" id="howto-close" type="button" data-cue="ui-cancel">Close</button></div><div id="howto-body"></div></div>
 </div>
-<div id="notice-full" class="modal" role="dialog" aria-modal="true" aria-labelledby="notice-title">
-  <div class="modal-card howto"><div class="modal-head"><h2 id="notice-title">Notice</h2><button class="btn tiny" id="notice-close" type="button">Close</button></div><div id="notice-body"></div></div>
+<div id="settings" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div class="modal-card howto"><div class="modal-head"><h2 id="settings-title">Settings</h2><button class="btn tiny" id="settings-close" type="button" data-cue="ui-cancel">Close</button></div><div id="settings-body"></div></div>
+</div>
+<div id="credits" class="modal" role="dialog" aria-modal="true" aria-labelledby="credits-title">
+  <div class="modal-card howto"><div class="modal-head"><h2 id="credits-title">Credits and notice</h2><button class="btn tiny" id="credits-close" type="button" data-cue="ui-cancel">Close</button></div><div id="credits-body"></div></div>
+</div>
+<div id="deckpeek" class="modal" role="dialog" aria-modal="true" aria-labelledby="deckpeek-title">
+  <div class="modal-card howto deckpeek"><div class="modal-head"><h2 id="deckpeek-title">Deck list</h2><button class="btn tiny" id="deckpeek-close" type="button" data-cue="ui-cancel">Close</button></div><div id="deckpeek-body"></div></div>
 </div>
 <div id="zoom" aria-hidden="true"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="autopass" role="status" aria-live="polite" hidden><span class="ap-text">No plays — ending turn</span><button class="btn tiny" id="autopass-cancel" type="button" data-cue="ui-cancel">Cancel</button></div>
 <div id="ai-error" role="alert" hidden></div>
 
 <!-- engine -->
@@ -158,19 +176,31 @@
 <script src="js/ai/policies.js?v=ed7f5483be"></script>
 <script src="js/ai/ai.js?v=3cd8e16f76"></script>
 <!-- /ai -->
+<!-- audio: M6 owns these three files. The UI calls XS.Audio (init, unlock, onLog, cue, setScene, settings) and boot.js throws if it is missing. -->
+<!-- audio -->
+<script src="data/audio-cues.js?v=5be936d32f"></script>
+<script src="js/audio/map.js?v=2c26dfdb0d"></script>
+<script src="js/audio/audio.js?v=dc0671ba6a"></script>
+<!-- /audio -->
 <!-- UI, in dependency order. Everything under js/ui/ is view layer. -->
-<script src="js/ui/core.js?v=8216344311"></script>
-<script src="js/ui/logtext.js?v=fec05a0333"></script>
-<script src="js/ui/cardview.js?v=4440784c17"></script>
-<script src="js/ui/preview.js?v=08d72548bc"></script>
-<script src="js/ui/anim.js?v=7541b11a96"></script>
-<script src="js/ui/targeting.js?v=7e25fce66c"></script>
-<script src="js/ui/prompt.js?v=9fded582d8"></script>
-<script src="js/ui/board.js?v=3e4b2495ef"></script>
+<script src="js/ui/core.js?v=cca6a836a5"></script>
+<script src="js/ui/settings.js?v=c2d519072b"></script>
+<script src="js/ui/save.js?v=0bffbeb710"></script>
+<script src="js/ui/stats.js?v=4e8129c9c2"></script>
+<script src="js/ui/art.js?v=3677d5d7a1"></script>
+<script src="js/ui/sfx.js?v=c9224ed458"></script>
+<script src="js/ui/logtext.js?v=62af16aa66"></script>
+<script src="js/ui/cardview.js?v=c481c82d56"></script>
+<script src="js/ui/preview.js?v=0d6f041b80"></script>
+<script src="js/ui/anim.js?v=81efb5d7a8"></script>
+<script src="js/ui/targeting.js?v=39c3b91945"></script>
+<script src="js/ui/prompt.js?v=0e1caf86ca"></script>
+<script src="js/ui/board.js?v=833d502e33"></script>
 <script src="js/ui/bot-random.js?v=75e84f3887"></script>
-<script src="js/ui/bot-ai.js?v=fb0c3a1577"></script>
-<script src="js/ui/game.js?v=bc16ce96f9"></script>
-<script src="js/ui/title.js?v=aa9643813f"></script>
-<script src="js/ui/boot.js?v=0fb5c858c3"></script>
+<script src="js/ui/bot-ai.js?v=7c37af1f71"></script>
+<script src="js/ui/game.js?v=ef91854db2"></script>
+<script src="js/ui/panels.js?v=9697577948"></script>
+<script src="js/ui/title.js?v=08d126f8c9"></script>
+<script src="js/ui/boot.js?v=4383f9db89"></script>
 </body>
 </html>

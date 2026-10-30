@@ -27,7 +27,7 @@
   Pr.fresh = () => ({ key: null, picked: [], attacker: null, target: null, alloc: {}, hidden: false });
 
   const isLeaderOpt = (pend) => pend.options.length > 0 && pend.options.every((o) => U.isLeaderIid(o));
-  const nameOfLeader = (S, iid) => U.nameEn(U.leaderCardId(S.view, iid));
+  const nameOfLeader = (S, iid) => U.cardTitle(U.leaderCardId(S.view, iid));
   const pendKey = (p) => JSON.stringify([p.kind, p.seat, p.source, p.purpose, p.options, p.min, p.max, p.total, p.unit, p.attackers, p.targets, p.card]);
 
   // ---- model ---------------------------------------------------------------------------------
@@ -68,7 +68,7 @@
       const row = el('div', 'p-big');
       for (const o of PM.options) {
         const b = el('button', 'btn big', o.label);
-        b.type = 'button';
+        b.type = 'button'; b.setAttribute('data-cue', 'ui-confirm');
         b.addEventListener('click', () => act(o.action));
         row.appendChild(b);
       }
@@ -81,7 +81,7 @@
       const legalIids = S.legal.filter((a) => a.type === 'pickTactics').map((a) => a.iid);
       PM.optionIids = pend.options.filter((o) => legalIids.includes(o));
       if (PM.optionIids.length !== pend.options.length) U.diag('pickTactics: pending.options and legalActions disagree.');
-      const name = ps.picked.length ? U.nameEn(U.cardIdOf(S.view, ps.picked[0])) : null;
+      const name = ps.picked.length ? U.cardTitle(U.cardIdOf(S.view, ps.picked[0])) : null;
       PM.hint = pend.prompt;
       if (name !== null) PM.confirm = { enabled: true, label: 'Pick ' + name, action: { type: 'pickTactics', iid: ps.picked[0] } };
       else PM.confirm = { enabled: false, label: 'Pick a card', action: null };
@@ -137,7 +137,7 @@
       const acts = S.legal.filter((a) => a.type === 'attack');
       const attackers = Array.from(new Set(acts.map((a) => a.attacker)));
       if (ps.attacker !== null && !attackers.includes(ps.attacker)) { ps.attacker = null; ps.target = null; }
-      const cname = pend.card ? U.nameEn(U.cardIdOf(S.view, pend.card)) : 'the attack';
+      const cname = pend.card ? U.cardTitle(U.cardIdOf(S.view, pend.card)) : 'the attack';
       for (const a of attackers) PM.leaderRole.set(a, a === ps.attacker ? 'attacker-picked' : 'attacker-option');
       if (ps.attacker === null) { PM.hint = `${pend.prompt} Choose which of your leaders attacks with ${cname}.`; PM.stage = 'attacker'; return; }
       const targets = Array.from(new Set(acts.filter((a) => a.attacker === ps.attacker).map((a) => a.target)));
@@ -193,17 +193,17 @@
         const st = XS.leaderStats(S.raw, U.leaderSeat(o), U.leaderSlot(o));
         const row = el('div', 'p-dist-row');
         row.setAttribute('data-leader-hover', o);
-        const nm = el('span', 'p-dist-name', U.nameEn(st.cardId));
+        const nm = el('span', 'p-dist-name', U.cardTitle(st.cardId));
         nm.setAttribute('data-card', st.cardId); nm.setAttribute('data-iid', o);
         row.appendChild(nm);
         row.appendChild(el('span', 'p-dist-hp', `HP ${st.remaining}/${st.hp}`));
         const minus = el('button', 'btn step', '−'); minus.type = 'button';
-        minus.setAttribute('aria-label', 'Less for ' + U.nameEn(st.cardId));
+        minus.setAttribute('aria-label', 'Less for ' + U.cardTitle(st.cardId));
         minus.disabled = (ps.alloc[o] || 0) <= 0;
         minus.addEventListener('click', () => { step(ps, pend, o, -1); redraw(); });
         const val = el('span', 'p-dist-n', String(ps.alloc[o] || 0));
         const plus = el('button', 'btn step', '+'); plus.type = 'button';
-        plus.setAttribute('aria-label', 'More for ' + U.nameEn(st.cardId));
+        plus.setAttribute('aria-label', 'More for ' + U.cardTitle(st.cardId));
         plus.disabled = PM.sum >= pend.total;
         plus.addEventListener('click', () => { step(ps, pend, o, +1); redraw(); });
         row.append(minus, val, plus);
@@ -224,7 +224,7 @@
 
   function nameOfCard(S, iid) {
     const id = U.cardIdOf(S.view, iid);
-    return id === null ? 'effect ' + iid : U.nameEn(id);
+    return id === null ? 'effect ' + iid : U.cardTitle(id);
   }
 
   // Leader options as chips (the board highlights them too; both click paths do the same thing).
@@ -237,7 +237,7 @@
       b.type = 'button';
       b.setAttribute('data-leader-hover', o);
       b.appendChild(el('span', 'chip-side', U.leaderSeat(o) === S.me ? 'YOURS' : 'THEIRS'));
-      b.appendChild(el('span', 'chip-name', U.nameEn(st.cardId)));
+      b.appendChild(el('span', 'chip-name', U.cardTitle(st.cardId)));
       b.appendChild(el('span', 'chip-hp', `HP ${st.remaining}/${st.hp}`));
       b.addEventListener('click', () => { if (U.PROMPT_KIND.choose.click(S, ps, PM, 'option', o)) redraw(); });
       row.appendChild(b);
@@ -292,7 +292,7 @@
     const tag = el('div', 'p-purpose');
     tag.appendChild(el('span', 'p-tag', PM.purposeLabel.toUpperCase()));
     if (pend.source !== null && pend.source !== undefined && U.cardIdOf(S.view, pend.source) !== null) {
-      tag.appendChild(el('span', 'p-from', ' from ' + U.nameEn(U.cardIdOf(S.view, pend.source))));
+      tag.appendChild(el('span', 'p-from', ' from ' + U.cardTitle(U.cardIdOf(S.view, pend.source))));
     }
     titles.appendChild(tag);
     titles.appendChild(el('div', 'p-text', pend.prompt));
@@ -309,18 +309,18 @@
     if (body) { body.classList.add('p-body'); card.appendChild(body); }
     const foot = el('div', 'p-foot');
     const hide = el('button', 'btn ghost', 'Hide — check the board');
-    hide.type = 'button';
+    hide.type = 'button'; hide.setAttribute('data-cue', 'ui-cancel');
     hide.addEventListener('click', () => { ps.hidden = true; redraw(); });
     foot.appendChild(hide);
     if (PM.decline !== null) {
-      const d = el('button', 'btn', PM.decline.label); d.type = 'button';
+      const d = el('button', 'btn', PM.decline.label); d.type = 'button'; d.setAttribute('data-cue', 'ui-cancel');
       d.addEventListener('click', () => act(PM.decline.action));
       foot.appendChild(d);
     }
     if (PM.confirm !== null) {
       const c = el('button', 'btn primary', PM.confirm.label); c.type = 'button';
       c.disabled = !PM.confirm.enabled;
-      c.id = 'prompt-confirm';
+      c.id = 'prompt-confirm'; c.setAttribute('data-cue', 'ui-confirm');
       c.addEventListener('click', () => act(PM.confirm.action));
       foot.appendChild(c);
     }

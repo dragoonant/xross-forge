@@ -29,7 +29,7 @@
       if (role !== undefined) {
         tile.style.setProperty('--pd', U.phase(1400));
         tile.setAttribute('role', 'button'); tile.tabIndex = 0;
-        tile.setAttribute('aria-label', U.nameEn(st.cardId) + (role.includes('target') ? ', target' : ', choose'));
+        tile.setAttribute('aria-label', U.cardTitle(st.cardId) + (role.includes('target') ? ', target' : ', choose'));
       }
       const pv = previews.get(st.iid);
       if (pv !== undefined) {
@@ -75,12 +75,15 @@
   function zones(S, seat) {
     const P = S.view.players[seat];
     const w = el('div', 'zones');
-    w.appendChild(zone('deck-' + seat, 'DECK', P.deck.length, { cls: 'z-deck' }));
+    const dk = zone('deck-' + seat, 'DECK', P.deck.length, { cls: 'z-deck' });
+    dk.prepend(U.backEl('z-pile', ''));
+    w.appendChild(dk);
     const td = zone('tdeck-' + seat, 'T-DECK', P.tdeck.length, { cls: 'z-tdeck', btn: seat === S.me });
-    if (seat === S.me) { td.setAttribute('data-viewer', 'tdeck:' + seat); td.setAttribute('aria-label', 'Look at your tactics deck'); }
+    if (seat === S.me) { td.setAttribute('data-viewer', 'tdeck:' + seat); td.setAttribute('data-cue', 'ui-drawer'); td.setAttribute('aria-label', 'Look at your tactics deck'); }
     w.appendChild(td);
     const tr = zone('trash-' + seat, 'TRASH', P.trash.length, { cls: 'z-trash', btn: true });
     tr.setAttribute('data-viewer', 'trash:' + seat);
+    tr.setAttribute('data-cue', 'ui-drawer');
     tr.setAttribute('aria-label', U.whose(S.view, seat) + ' trash: ' + P.trash.length + ' cards, open the viewer');
     w.appendChild(tr);
     if (seat !== S.me) w.appendChild(zone('handcount-' + seat, 'HAND', P.hand.length, { cls: 'z-hand' }));
@@ -104,7 +107,7 @@
     const row = el('div', 'tac-row');
     if (P.tarea.length === 0) row.appendChild(el('span', 'pa-empty', 'empty'));
     for (const x of P.tarea) {
-      if (!isCard(x)) { row.appendChild(U.backEl('mini', '?')); continue; }
+      if (!isCard(x)) { row.appendChild(U.backEl('mini tactics-back', '?')); continue; }
       const id = U.cardIdOf(S.view, x);
       const mine = seat === S.me;
       const o = { iid: x, cls: 'mini tac' };
@@ -127,7 +130,7 @@
     c.setAttribute('role', 'button'); c.tabIndex = 0;
     if (M.actable.has(iid)) {
       c.style.setProperty('--pd', U.phase(1400));
-      c.setAttribute('aria-label', 'Play ' + U.nameEn(U.cardIdOf(S.view, iid)));
+      c.setAttribute('aria-label', 'Play ' + U.cardTitle(U.cardIdOf(S.view, iid)));
     } else if (M.why.has(iid)) c.setAttribute('aria-disabled', 'true');
     if (M.canAct) {
       const cost = XS.costToPlay(S.raw, iid);
@@ -155,7 +158,7 @@
     root.style.setProperty('--n', String(P.hand.length));
     for (const iid of P.hand) {
       const id = U.cardIdOf(S.view, iid);
-      const o = { iid, cls: 'handcard' };
+      const o = { iid, cls: 'handcard', lazy: true };
       decorate(S, o, iid, M);
       const c = U.cardEl(id, o);
       mark(S, c, iid, M);
@@ -204,11 +207,11 @@
     slot.replaceChildren();
     if (PM === null && M.confirm !== null) {
       const c = el('button', 'btn primary', M.confirm.label);
-      c.type = 'button'; c.id = 'confirm';
+      c.type = 'button'; c.id = 'confirm'; c.setAttribute('data-cue', 'ui-confirm');
       slot.appendChild(c);
     }
     if (PM === null && M.selected !== null) {
-      const x = el('button', 'btn ghost', 'Cancel'); x.type = 'button'; x.id = 'cancel';
+      const x = el('button', 'btn ghost', 'Cancel'); x.type = 'button'; x.id = 'cancel'; x.setAttribute('data-cue', 'ui-cancel');
       slot.appendChild(x);
     }
     const end = $('endturn');

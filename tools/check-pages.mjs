@@ -67,11 +67,12 @@ else {
   const m = /const SCRIPTS = \[([\s\S]*?)\];/.exec(w);
   if (m === null) fails.push(`${workerFile}: no "const SCRIPTS = [...]" list`);
   else {
-    const listed = [...m[1].matchAll(/'([^']+)'/g)].map((x) => path.posix.normalize(path.posix.join('js/ai', x[1])));
+    const listed = [...m[1].matchAll(/'([^'?]+)(?:\?v=[0-9a-f]+)?'/g)].map((x) => path.posix.normalize(path.posix.join('js/ai', x[1])));
     const want = [...a, ...aiA];
     if (JSON.stringify(listed) !== JSON.stringify(want)) fails.push(`${workerFile} imports differ from the pages' engine + ai blocks:\n  worker: ${listed.join(' ')}\n  pages:  ${want.join(' ')}`);
     for (const u of listed) if (!fs.existsSync(path.join(ROOT, u))) fails.push(`${workerFile}: missing ${u}`);
-    if (!/importScripts\(\.\.\.SCRIPTS\.map\(\(u\) => u \+ self\.location\.search\)\)/.test(w)) fails.push(`${workerFile}: importScripts must repeat the worker URL's ?v= query`);
+    if (!/importScripts\(\.\.\.SCRIPTS\)/.test(w)) fails.push(`${workerFile}: importScripts must be importScripts(...SCRIPTS) (each path carries its own ?v= stamp, tools/stamp-assets.mjs)`);
+    for (const x of m[1].matchAll(/'([^']+)'/g)) if (!/\?v=[0-9a-f]{10}$/.test(x[1])) fails.push(`${workerFile}: ${x[1]} has no ?v= stamp (run tools/stamp-assets.mjs)`);
   }
 }
 const aiDir = path.join(ROOT, 'js/ai');

@@ -29,5 +29,5 @@ booster cards will need.
    look at deck, cost modifiers, "may" choices, sanctioned BAN check R-030).
 
 ## Client
-8. **AI worker cache-busting** — `js/ai/worker.js` and its `importScripts` list are not `?v=`-stamped (only `index.html` assets are), so a change to the worker alone can be served stale for up to Pages' 10-minute cache. Done when: `tools/stamp-assets.mjs` stamps the worker URL and its imports, and `--check` covers them.
-9. **Polish seen in M3 screenshots** — target-preview damage badges cover the leader names; on a 390x844 phone the hand row sits partly under the lower-third caption. Done when: the M7 layout pass fixes both and the layout test asserts them.
+8. ~~**AI worker cache-busting**~~ **done 2026-10-30 (M7)** — — `js/ai/worker.js` and its `importScripts` list are not `?v=`-stamped (only `index.html` assets are), so a change to the worker alone can be served stale for up to Pages' 10-minute cache. Done when: `tools/stamp-assets.mjs` stamps the worker URL and its imports, and `--check` covers them.
+9. ~~**Polish seen in M3 screenshots**~~ **done 2026-10-30 (M7, with e2e assertions that failed first)** — — target-preview damage badges cover the leader names; on a 390x844 phone the hand row sits partly under the lower-third caption. Done when: the M7 layout pass fixes both and the layout test asserts them.

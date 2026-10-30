@@ -28,13 +28,16 @@
   G.start = function (opts) {
     const seed = opts.seed === undefined ? (Math.floor(Math.random() * 1e9) + 1) : opts.seed;
     const init = { decks: opts.decks, seed, mode: opts.mode, first: 'random', names: opts.spectate ? ['Bot A', 'Bot B'] : ['You', 'Bot'] };
-    begin(opts, init, XS.newGame(init), 0);
+    const s = XS.newGame(init);
+    if (!opts.spectate) U.save.write(s, { tier: opts.tier });       // a new match replaces any older save at once
+    begin(opts, init, s, 0);
   };
-  // Continue a saved match: a bug report's { init, actions } rebuilt by XS.replay, shown as it stood.
-  G.resume = function (report) {
-    const s = XS.replay(report.init, report.actions);
-    begin({ decks: report.init.decks, mode: report.init.mode, seed: report.init.seed, spectate: false }, report.init, s, s.log.length);
+  // Continue a saved match from a state the caller rebuilt with XS.replay (title.js; a save that will not replay never gets here).
+  G.resumeState = function (s, extra) {
+    begin({ decks: s.init.decks, mode: s.init.mode, seed: s.init.seed, spectate: false, tier: extra === undefined ? undefined : extra.tier }, s.init, s, s.log.length);
   };
+  // A bug report's { init, actions } rebuilt by XS.replay, shown as it stood (the e2e resumes real positions this way).
+  G.resume = function (report, extra) { G.resumeState(XS.replay(report.init, report.actions), extra); };
 
   // Who plays the bot seats. The opponent is the AI (js/ai, in a Web Worker) unless the URL says ?bot=random (the e2e and the
   // fuzz path). Bot-vs-bot autoplay (the e2e) keeps the random bot unless ?bot=ai. There is no fallback from one to the other.
@@ -75,6 +78,7 @@
   G.stop = function () {
     if (run === null) return;
     clearTimeout(run.timer);
+    clearAutoPass();
     U.anim.skip();
     run = null;
     document.body.classList.remove('in-game', 'match-point');
@@ -83,7 +87,11 @@
     $('endscreen').classList.remove('open'); $('end-pill').hidden = true;
     $('viewer').classList.remove('open');
     $('prompt').replaceChildren();
+    U.sfx.scene('title');
+    U.title.refreshContinue();
   };
+  // Settings changed (names, speed): repaint the board. Nothing to do on the title.
+  G.redraw = () => { if (run !== null) { drawerLen = -1; render(); } };
 
   // ---- the snapshot the UI paints -------------------------------------------------------------
   function snapshot() {
@@ -107,6 +115,9 @@
       throw e;
     }
     run.live = next;
+    clearAutoPass();
+    // Autosave: every applied action. A finished match is not a save any more.
+    if (!run.spectate) { if (XS.isTerminal(next)) U.save.clear(); else U.save.write(next, { tier: run.opts.tier }); }
     st = U.targeting.fresh();
     pump();
   }
@@ -124,7 +135,7 @@
         const entries = view.log.slice(run.cursor);
         const steps = U.anim.plan(entries, view, ME);
         render();       // the old board, locked
-        await U.anim.play(steps, { me: ME, setCaption: (entry) => setCaption(entry, view) });
+        await U.anim.play(steps, { me: ME, setCaption: (entry) => setCaption(entry, view), onLog: (entry) => XS.Audio.onLog(entry, view) });
         if (run === null || run.id !== id) return;
         run.cursor = raw.log.length;
         run.presented = { raw, view };
@@ -149,7 +160,7 @@
     if (XS.isTerminal(s)) { showEnd(); return; }
     const who = XS.whoActs(s);
     const bot = run.bots[who];
-    if (bot === undefined) return;       // the human decides
+    if (bot === undefined) { maybeAutoPass(); return; }       // the human decides
     const id = run.id;
     clearTimeout(run.timer);
     const think = U.ms(600);
@@ -184,6 +195,34 @@
     run.timer = setTimeout(go, run.spectate && U.rate() === 0 ? 0 : think);
   }
 
+  // ---- auto-pass ------------------------------------------------------------------------------
+  // Off by default (settings). When it is the human's main phase and legalActions holds nothing but endTurn, a notice says
+  // so for 1.2 s and then ends the turn through the same funnel as a click; Cancel (or any action) stops it.
+  const AUTOPASS_MS = 1200;
+  let apTimer = null;
+  function clearAutoPass() {
+    clearTimeout(apTimer);
+    apTimer = null;
+    $('autopass').hidden = true;
+  }
+  function maybeAutoPass() {
+    clearAutoPass();
+    if (run === null || run.spectate || !U.settings.get('autoPass')) return;
+    const s = run.live;
+    if (run.pumping || run.presented.raw !== s || XS.isTerminal(s) || s.phase !== 'main' || s.pending !== null || XS.whoActs(s) !== ME) return;
+    if (run.apCancelled === s.actions.length) return;
+    const legal = XS.legalActions(s);
+    if (legal.length !== 1 || legal[0].type !== 'endTurn') return;
+    const at = s.actions.length;
+    $('autopass').hidden = false;
+    apTimer = setTimeout(() => {
+      apTimer = null;
+      $('autopass').hidden = true;
+      if (run !== null && run.live === s && run.live.actions.length === at) act(legal[0]);
+    }, AUTOPASS_MS);
+  }
+  G.checkAutoPass = () => { if (run === null) return; if (U.settings.get('autoPass')) maybeAutoPass(); else clearAutoPass(); };
+
   // ---- render ---------------------------------------------------------------------------------
   function render() {
     if (run === null) return;
@@ -203,6 +242,7 @@
     renderDrawer(S);
     run.model = { S, M, PM };
     $('btn-speed').textContent = 'Speed: ' + U.speed();
+    U.sfx.scene(U.sfx.sceneFor(S.view));
   }
 
   // ---- log drawer -----------------------------------------------------------------------------
@@ -267,6 +307,25 @@
   }
 
   // ---- end screen -----------------------------------------------------------------------------
+  // The numbers come from the viewer's log alone (js/ui/stats.js).
+  function endStats(v, spectate) {
+    const stats = U.stats.compute(v.log);
+    const wrap = el('div', 'end-stats');
+    wrap.id = 'end-stats';
+    const t = el('table', 'es-table');
+    const head = el('tr');
+    head.append(el('th', '', ''), el('th', '', spectate ? 'Bot A' : 'You'), el('th', '', spectate ? 'Bot B' : 'Bot'));
+    t.appendChild(head);
+    for (const [label, a, b] of U.stats.rows(stats, ME)) {
+      const r = el('tr');
+      r.setAttribute('data-stat', label);
+      r.append(el('th', '', label), el('td', '', String(a)), el('td', '', String(b)));
+      t.appendChild(r);
+    }
+    wrap.appendChild(t);
+    wrap.appendChild(el('p', 'es-line', U.plural(stats.rounds, 'round') + ' · ' + U.plural(stats.turns, 'turn')));
+    return wrap;
+  }
   function showEnd() {
     if (endShown) return;
     endShown = true;
@@ -288,6 +347,8 @@
     sc.appendChild(el('span', 'es-side', run.spectate ? 'Bot B' : 'Bot'));
     box.appendChild(sc);
     box.appendChild(el('p', 'end-mode', (s.mode === 'quick' ? 'Quick match' : 'Full match (best of 3)') + ' · ' + run.opts.decks.join(' vs ')));
+    box.appendChild(endStats(XS.view(s, ME), run.spectate));
+    U.save.clear();
     $('endscreen').classList.add('open');
     $('endscreen').dataset.result = s.winner === null ? 'none' : String(s.winner);
   }
@@ -319,10 +380,10 @@
   function onKey(e) {
     if (run === null) return;
     if (e.key === 'Escape') {
-      if ($('viewer').classList.contains('open')) { $('viewer').classList.remove('open'); return; }
-      if ($('confirm-exit').classList.contains('open')) { $('confirm-exit').classList.remove('open'); return; }
-      if (run.model.PM !== null && run.model.PM.mine && !ps.hidden) { ps.hidden = true; render(); return; }
-      if (st.iid !== null) { st = U.targeting.fresh(); render(); }
+      if ($('viewer').classList.contains('open')) { $('viewer').classList.remove('open'); U.sfx.cue('ui-cancel'); return; }
+      if ($('confirm-exit').classList.contains('open')) { $('confirm-exit').classList.remove('open'); U.sfx.cue('ui-cancel'); return; }
+      if (run.model.PM !== null && run.model.PM.mine && !ps.hidden) { ps.hidden = true; render(); U.sfx.cue('ui-cancel'); return; }
+      if (st.iid !== null) { st = U.targeting.fresh(); render(); U.sfx.cue('ui-cancel'); }
       return;
     }
     if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[role="button"][tabindex]') && e.target.tagName !== 'BUTTON') {
@@ -365,6 +426,10 @@
       render();
     });
     $('btn-exit').addEventListener('click', () => $('confirm-exit').classList.add('open'));
+    $('autopass-cancel').addEventListener('click', () => {
+      if (run !== null) run.apCancelled = run.live.actions.length;
+      clearAutoPass();
+    });
     $('exit-keep').addEventListener('click', () => $('confirm-exit').classList.remove('open'));
     $('exit-quit').addEventListener('click', () => { $('confirm-exit').classList.remove('open'); G.stop(); });
     $('exit-concede').addEventListener('click', () => {

@@ -2,6 +2,8 @@
 // request/answer plumbing and the error banner. There is NO fallback: if the worker cannot start, or a request fails, the page shows
 // the error and the opponent does not move. (A sibling project shipped "AI never loaded" for days behind a silent random bot.)
 //
+// The worker URL below carries a ?v= content hash that tools/stamp-assets.mjs rewrites (the worker's own imports carry theirs), so a
+// change to the worker or anything it imports is a URL the browser has never cached.
 //   U.aiClient.start()                       -> Promise that resolves when the worker has loaded every script (rejects, and shows the banner, if not)
 //   U.aiClient.status()                      -> 'idle' | 'loading' | 'ready' | 'failed'
 //   U.makeAiBot({ seat, tier, seed })        -> { seat, name, think(rawState) -> request }
@@ -26,19 +28,6 @@
   Cl.onChange = (fn) => { listeners.push(fn); };
   const changed = () => { for (const fn of listeners) fn(status, failure); };
 
-  // One cache-busting stamp for the worker and every script it imports: the ?v= hashes the page already carries on the same files
-  // (tools/stamp-assets.mjs), folded into one short string.
-  function stamp() {
-    const parts = [];
-    for (const s of document.querySelectorAll('script[src]')) {
-      const src = s.getAttribute('src');
-      if (/^(?:js\/ai\/|js\/engine\/|data\/|js\/ns\.js|js\/rng\.js)/.test(src)) parts.push(src);
-    }
-    let h = 5381;
-    for (const ch of parts.join('|')) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0;
-    return h.toString(36);
-  }
-
   // Show a failure where the player cannot miss it, and fail every request that is waiting.
   Cl.fail = function (message) {
     status = 'failed';
@@ -59,7 +48,7 @@
     changed();
     readyP = new Promise((resolve, reject) => {
       const timer = setTimeout(() => { const m = 'the worker did not report ready within ' + READY_TIMEOUT_MS / 1000 + ' s.'; Cl.fail(m); reject(new Error(m)); }, READY_TIMEOUT_MS);
-      try { worker = new Worker('js/ai/worker.js?v=' + stamp()); } catch (e) { clearTimeout(timer); const m = 'cannot create the worker (' + e.message + ').'; Cl.fail(m); reject(new Error(m)); return; }
+      try { worker = new Worker('js/ai/worker.js?v=8a15a6d568'); } catch (e) { clearTimeout(timer); const m = 'cannot create the worker (' + e.message + ').'; Cl.fail(m); reject(new Error(m)); return; }
       worker.onerror = (ev) => {
         clearTimeout(timer);
         const m = 'the worker failed (' + (ev.message || 'script error, probably a script that did not load') + (ev.filename ? ' in ' + ev.filename : '') + ').';

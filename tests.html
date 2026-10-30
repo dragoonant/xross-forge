@@ -29,8 +29,17 @@
 <script src="js/ai/policies.js"></script>
 <script src="js/ai/ai.js"></script>
 <!-- /ai -->
+<!-- audio (M6): the cue sheet, the log -> cue map and the runtime, for tests/50-audio.js and the UI scene tests. Mirrors index.html's <!-- audio --> block. -->
+<script src="data/audio-cues.js"></script>
+<script src="js/audio/map.js"></script>
+<script src="js/audio/audio.js"></script>
 <!-- UI modules under test (headless-safe: no DOM is touched until a function runs). Not part of the engine block. -->
 <script src="js/ui/core.js"></script>
+<script src="js/ui/settings.js"></script>
+<script src="js/ui/save.js"></script>
+<script src="js/ui/stats.js"></script>
+<script src="js/ui/art.js"></script>
+<script src="js/ui/sfx.js"></script>
 <script src="js/ui/logtext.js"></script>
 <script src="js/ui/anim.js"></script>
 <script src="js/ui/targeting.js"></script>
@@ -44,6 +53,7 @@
 <script src="tests/20-cards.js"></script>
 <script src="tests/30-ui.js"></script>
 <script src="tests/40-ai.js"></script>
+<script src="tests/50-audio.js"></script>
 <script>
   (function () {
     const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');

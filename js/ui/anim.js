@@ -3,7 +3,10 @@
 //   XS.ui.anim.play(steps, ctx) -> Promise                DOM: plays the steps on the OLD board (the
 //     caller renders the new state only afterwards), so a downed leader is still on screen to go
 //     down. Input is locked under #fx-lock while it runs; any click or key skips to the end.
-// Speeds (settings): full / quick / instant; instant (and tests) does no DOM work at all.
+// Speeds (settings): full / quick / instant; instant (and tests) does no DOM work at all. "Reduce motion" (settings, default
+// the OS preference) swaps in the shorter A.DR durations (the awaken stinger 2000 -> 700 ms) and drops bursts and shakes.
+// Audio: every log entry the director shows reaches ctx.onLog(entry) exactly once, at the moment its step starts, whether the
+// step plays, is skipped, or runs at Instant speed (XS.Audio.onLog rate-limits; see game.js).
 // Two rules from the donor effects layer: flush start states with a forced layout read (never
 // requestAnimationFrame: it does not fire in a background tab), and remove every transient node by
 // timer, not by animationend, so nothing strands under reduced motion.
@@ -19,6 +22,17 @@
     say: 700, quiet: 0, draw: 380, play: 700, spotTravel: 500, spotHold: 1200, spotFade: 250,
     attack: 850, damage: 600, heal: 560, down: 650, awaken: 2000, ribbon: 1200, banner: 1900, notice: 1700, matchEnd: 2400, equip: 700,
   };
+  // The same beats under "reduce motion": every overlay is shorter, the stinger most of all.
+  A.DR = {
+    say: 450, quiet: 0, draw: 200, play: 350, spotTravel: 200, spotHold: 900, spotFade: 150,
+    attack: 450, damage: 350, heal: 300, down: 350, awaken: 700, ribbon: 600, banner: 900, notice: 1000, matchEnd: 1400, equip: 350,
+  };
+  const d = (k) => {
+    const t = U.reduceMotion() ? A.DR : A.D;
+    if (t[k] === undefined) throw new Error('anim: no duration for "' + k + '"');
+    return t[k];
+  };
+  A.dur = d;
 
   // ---- plan (pure) ----------------------------------------------------------------------------
   const QUIET = new Set(['ppSpend', 'turnEnd', 'ability', 'boost', 'trash', 'tacticsPick']);
@@ -27,6 +41,7 @@
     for (const e of entries) {
       const d = e.data;
       const mine = e.seat === me;
+      const before = steps.length;
       switch (e.type) {
         case 'turnStart':
           steps.push({ kind: 'ribbon', entry: e, mine, turn: d.turn });
@@ -65,7 +80,7 @@
         case 'draw': {
           // Consecutive draws by one seat are one beat (setup draws four cards in a row).
           const prev = steps[steps.length - 1];
-          if (prev !== undefined && prev.kind === 'draw' && prev.seat === e.seat) { prev.entry = e; prev.n++; break; }
+          if (prev !== undefined && prev.kind === 'draw' && prev.seat === e.seat) { prev.entry = e; prev.n++; prev.entries.push(e); break; }
           steps.push({ kind: 'draw', entry: e, seat: e.seat, hidden: !!d.hidden, n: 1 });
           break;
         }
@@ -84,14 +99,16 @@
         default:
           steps.push({ kind: QUIET.has(e.type) ? 'quiet' : 'say', entry: e });
       }
+      // Every step lists the log entries it presents (a merged run of draws lists them all): the audio hook is per entry.
+      if (steps.length > before) steps[steps.length - 1].entries = [e];
     }
     return steps;
   };
   A.stepMs = function (s) {
     switch (s.kind) {
-      case 'play': return s.mine ? A.D.play : A.D.spotTravel + A.D.spotHold + A.D.spotFade;
-      case 'say': return A.D.say;
-      default: return A.D[s.kind] === undefined ? A.D.say : A.D[s.kind];
+      case 'play': return s.mine ? d('play') : d('spotTravel') + d('spotHold') + d('spotFade');
+      case 'say': return d('say');
+      default: return d(s.kind);
     }
   };
 
@@ -173,11 +190,11 @@
 
   const STEP = {
     quiet() { return Promise.resolve(); },
-    say() { return sleep(A.D.say); },
+    say() { return sleep(d('say')); },
     draw(s) {
       const z = q('#deck-' + s.seat);
       pulse(z, 'fx-pulse', U.ms(500));
-      return sleep(A.D.draw);
+      return sleep(d('draw'));
     },
     ribbon(s) {
       return overlay('ribbon', () => {
@@ -185,7 +202,7 @@
         r.appendChild(U.el('span', 'rb-main', s.mine ? 'YOUR TURN' : 'OPPONENT'));
         r.appendChild(U.el('span', 'rb-sub', 'Turn ' + s.turn));
         return r;
-      }, A.D.ribbon);
+      }, d('ribbon'));
     },
     banner(s) {
       return overlay('banner', () => {
@@ -193,7 +210,7 @@
         r.appendChild(U.el('div', 'bn-main', s.main));
         r.appendChild(U.el('div', 'bn-sub', s.sub));
         return r;
-      }, A.D.banner);
+      }, d('banner'));
     },
     notice(s) {
       return overlay('notice', () => {
@@ -201,7 +218,7 @@
         r.appendChild(U.el('span', 'nt-main', s.main));
         if (s.sub) r.appendChild(U.el('span', 'nt-sub', s.sub));
         return r;
-      }, A.D.notice);
+      }, d('notice'));
     },
     matchEnd(s) {
       return overlay('banner', () => {
@@ -209,15 +226,15 @@
         r.appendChild(U.el('div', 'bn-main', s.winner === null ? 'NO WINNER' : (s.win ? 'VICTORY' : 'DEFEAT')));
         r.appendChild(U.el('div', 'bn-sub', 'Match over'));
         return r;
-      }, A.D.matchEnd);
+      }, d('matchEnd'));
     },
     play(s, ctx) {
       if (s.mine) {
         const src = q('#hand [data-iid="' + s.iid + '"]') || q('#tactics-0 [data-iid="' + s.iid + '"]');
         const dst = U.$('play-' + s.seat);
-        if (src === null) return sleep(A.D.play);
+        if (src === null) return sleep(d('play'));
         const a = centre(src), b = centre(dst);
-        const ghost = keep(src.cloneNode(true), U.ms(A.D.play) + 100);
+        const ghost = keep(src.cloneNode(true), U.ms(d('play')) + 100);
         ghost.classList.add('fly');
         ghost.style.left = a.r.left + 'px'; ghost.style.top = a.r.top + 'px';
         ghost.style.width = a.r.width + 'px'; ghost.style.height = a.r.height + 'px';
@@ -225,74 +242,74 @@
         src.classList.add('is-lifting');
         void ghost.offsetWidth;
         ghost.animate([{ transform: 'translate(0,0) scale(1)' }, { transform: `translate(${b.x - a.x}px, ${b.y - a.y}px) scale(.82)` }],
-          { duration: U.ms(A.D.play - 120), easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' });
-        return sleep(A.D.play);
+          { duration: U.ms(d('play') - 120), easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' });
+        return sleep(d('play'));
       }
       // The opponent's card: spotlight (travel 500, hold 1200, fade 250).
       const box = U.$('spot');
       box.replaceChildren(U.cardEl(s.cardId, { cls: 'spotcard' }));
-      box.style.setProperty('--travel', U.ms(A.D.spotTravel) + 'ms');
-      box.style.setProperty('--fade', U.ms(A.D.spotFade) + 'ms');
+      box.style.setProperty('--travel', U.ms(d('spotTravel')) + 'ms');
+      box.style.setProperty('--fade', U.ms(d('spotFade')) + 'ms');
       box.classList.remove('fade');
       void box.offsetWidth;
       box.classList.add('show');
-      return sleep(A.D.spotTravel + A.D.spotHold).then(() => {
+      return sleep(d('spotTravel') + d('spotHold')).then(() => {
         box.classList.add('fade');
-        return sleep(A.D.spotFade);
+        return sleep(d('spotFade'));
       }).then(() => { box.classList.remove('show', 'fade'); box.replaceChildren(); });
     },
     equip(s) {
       pulse(leaderNode(s.leader), 'fx-equip', U.ms(900));
-      return sleep(A.D.equip);
+      return sleep(d('equip'));
     },
     attack(s) {
       const a = leaderNode(s.attacker), t = leaderNode(s.target);
       arrow(a, t, s.mine);
       pulse(a, 'fx-attacker', U.ms(900));
       pulse(t, 'fx-target', U.ms(1100));
-      return sleep(A.D.attack);
+      return sleep(d('attack'));
     },
     damage(s) {
       const n = leaderNode(s.leader);
       pulse(n, 'fx-hit', U.ms(700));
-      burst(n, 'is-hit');
+      if (!U.reduceMotion()) burst(n, 'is-hit');
       floatText(n, '−' + s.amount, 'is-dmg');
-      return sleep(A.D.damage);
+      return sleep(d('damage'));
     },
     heal(s) {
       const n = leaderNode(s.leader);
       pulse(n, 'fx-heal', U.ms(800));
       floatText(n, '+' + s.amount, 'is-heal');
-      return sleep(A.D.heal);
+      return sleep(d('heal'));
     },
     down(s) {
       const n = leaderNode(s.leader);
-      if (n !== null) { n.classList.add('is-down'); burst(n, 'is-ko'); floatText(n, 'DOWN', 'is-ko'); }
-      return sleep(A.D.down);
+      if (n !== null) { n.classList.add('is-down'); if (!U.reduceMotion()) burst(n, 'is-ko'); floatText(n, 'DOWN', 'is-ko'); }
+      return sleep(d('down'));
     },
     awaken(s) {
       const n = leaderNode(s.leader);
       if (n !== null) { n.classList.add('is-awake', 'fx-awake'); }
-      const d = U.card(s.cardId);
       return overlay('stinger', () => {
         const r = U.el('div', 'stinger-in ' + (s.mine ? 'is-mine' : 'is-theirs'));
         r.appendChild(U.el('div', 'st-kicker', s.mine ? 'YOUR LEADER' : "OPPONENT'S LEADER"));
-        r.appendChild(U.el('div', 'st-name', d.nameEn));
-        r.appendChild(U.el('div', 'st-jp', d.name));
+        r.appendChild(U.el('div', 'st-name', U.cardTitle(s.cardId)));
+        r.appendChild(U.el('div', 'st-jp', U.cardTitleAlt(s.cardId)));
         r.appendChild(U.el('div', 'st-word', 'AWAKENED'));
         r.appendChild(U.el('div', 'st-stats', 'ATK ' + s.atk + '  ·  HP ' + s.hp));
         return r;
-      }, A.D.awaken);
+      }, d('awaken'));
     },
   };
 
   A.KINDS = Object.keys(STEP);
 
-  // ctx: { setCaption(entry), me }. Resolves when every step has played (or was skipped).
+  // ctx: { setCaption(entry), onLog(entry), me }. Resolves when every step has played (or was skipped).
   A.play = function (steps, ctx) {
     if (job !== null) throw new Error('anim: a playback is already running');
     if (U.rate() === 0 || steps.length === 0) {
-      // Instant: no DOM work. Still narrate the last visible event.
+      // Instant: no DOM work. Still narrate the last visible event, and still hand every entry to the audio hook.
+      for (const s of steps) for (const e of s.entries) ctx.onLog(e);
       const last = steps.filter((s) => s.kind !== 'quiet').pop();
       if (last !== undefined) ctx.setCaption(last.entry);
       return Promise.resolve();
@@ -314,6 +331,7 @@
     return (async () => {
       try {
         for (const s of steps) {
+          for (const e of s.entries) ctx.onLog(e);
           caption(s, ctx);
           if (job.skipped) continue;
           await STEP[s.kind](s, ctx);

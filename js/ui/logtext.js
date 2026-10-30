@@ -120,7 +120,7 @@
     if (f === undefined) throw new Error('ui/logtext: no player-facing line for log type "' + entry.type + '"');
     const segs = f(entry, view);
     let text = '';
-    for (const s of segs) text += typeof s === 'string' ? s : U.nameEn(s.card);
+    for (const s of segs) text += typeof s === 'string' ? s : U.cardTitle(s.card);
     return { text, segs };
   };
 
@@ -129,7 +129,7 @@
     const root = U.el(tag || 'span', 'lt');
     for (const s of segs) {
       if (typeof s === 'string') { root.appendChild(document.createTextNode(s)); continue; }
-      const a = U.el('span', 'cardref', U.nameEn(s.card));
+      const a = U.el('span', 'cardref', U.cardTitle(s.card));
       a.setAttribute('data-card', s.card);
       if (s.iid !== undefined) a.setAttribute('data-iid', s.iid);
       root.appendChild(a);

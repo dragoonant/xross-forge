@@ -13,7 +13,7 @@
   T.fresh = () => ({ iid: null, attacker: null, target: null, note: null });
 
   const uniq = (xs) => Array.from(new Set(xs));
-  const nameOfLeader = (S, iid) => U.nameEn(U.leaderCardId(S.view, iid));
+  const nameOfLeader = (S, iid) => U.cardTitle(U.leaderCardId(S.view, iid));
 
   // The playable-card map: iid -> legal `play` actions that name it as `iid`.
   T.playMap = function (legal) {
@@ -34,14 +34,14 @@
   };
   T.previewLine = function (S, action, cardIid) {
     const d = T.previewDetail(S, action);
-    const cardName = U.nameEn(U.cardIdOf(S.view, cardIid === undefined ? action.iid : cardIid));
+    const cardName = U.cardTitle(U.cardIdOf(S.view, cardIid === undefined ? action.iid : cardIid));
     const a = nameOfLeader(S, action.attacker), t = nameOfLeader(S, action.target);
     const dmg = d.goesDown ? 'DOWN' : d.total + ' damage';
     return { text: `${cardName}: ${a} → ${t}, ${dmg}`, short: d.goesDown ? 'DOWN' : '−' + d.total, detail: d, total: d.total, goesDown: d.goesDown };
   };
   T.breakdown = function (S, d) {
     const parts = ['ATK ' + d.atk];
-    for (const b of d.boosts) parts.push(U.nameEn(U.cardIdOf(S.view, b.iid)) + ' +' + b.amount);
+    for (const b of d.boosts) parts.push(U.cardTitle(U.cardIdOf(S.view, b.iid)) + ' +' + b.amount);
     if (d.card) parts.push('card +' + d.card);
     return parts.join(' ');
   };
@@ -74,7 +74,7 @@
       else {
         const w = XS.whyNot(S.raw, iid);
         if (w === null) {
-          U.diag('Engine says ' + U.nameEn(U.cardIdOf(v, iid)) + ' can be played (whyNot is null) but legalActions lists no play for it.');
+          U.diag('Engine says ' + U.cardTitle(U.cardIdOf(v, iid)) + ' can be played (whyNot is null) but legalActions lists no play for it.');
           M.why.set(iid, 'No legal play found for this card.');
         } else M.why.set(iid, w);
       }
@@ -93,7 +93,7 @@
     M.selected = st.iid;
     const acts = M.playMap.get(st.iid);
     const cardId = U.cardIdOf(v, st.iid);
-    const cname = U.nameEn(cardId);
+    const cname = U.cardTitle(cardId);
     const cost = XS.costToPlay(S.raw, st.iid);
     const hasAttack = acts.some((a) => a.attacker !== undefined);
     const hasTargetOnly = !hasAttack && acts.some((a) => a.target !== undefined);

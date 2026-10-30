@@ -18,11 +18,13 @@
   function zoomNode(cardId, iid) {
     const d = U.card(cardId);
     const root = el('div', 'zoom-in');
-    root.appendChild(U.cardEl(cardId, { cls: 'zoomcard' }));
+    let awake = false;
+    if (d.type === 'leader' && iid !== null && P.ctx !== null && U.isLeaderIid(iid)) awake = P.ctx.stats(iid).awakened;
+    root.appendChild(U.cardEl(cardId, { cls: 'zoomcard', awake, lazy: true }));
     const info = el('div', 'zoom-info');
     const names = el('div', 'z-names');
-    names.appendChild(el('div', 'z-en', d.nameEn));
-    names.appendChild(el('div', 'z-jp', d.name));
+    names.appendChild(el('div', 'z-en', U.cardTitle(cardId)));
+    names.appendChild(el('div', 'z-jp', U.cardTitleAlt(cardId)));
     info.appendChild(names);
     const bits = [U.typeLabel(cardId), U.COLOR_LABEL[d.color]];
     if (d.cost !== undefined) bits.push('Cost ' + d.cost + ' PP');
@@ -34,13 +36,14 @@
         const st = P.ctx.stats(iid);
         let line = `Now: ATK ${st.atk}, HP ${st.remaining} of ${st.hp}` + (st.damage > 0 ? ` (${st.damage} damage)` : '') +
           (st.awakened ? ', awakened' : ', not awakened') + (st.down ? ', DOWN' : '') + '.';
-        if (st.equipment.length > 0) line += ' Equipped: ' + st.equipment.map((e) => U.nameEn(e.cardId)).join(', ') + '.';
+        if (st.equipment.length > 0) line += ' Equipped: ' + st.equipment.map((e) => U.cardTitle(e.cardId)).join(', ') + '.';
         info.appendChild(el('div', 'z-stat z-now', line));
         if (st.tags.length > 0) info.appendChild(el('div', 'z-stat', 'Tag: ' + st.tags.join(', ')));
       }
     }
     info.appendChild(el('div', 'z-text', d.text));
-    info.appendChild(el('div', 'z-note', 'Placeholder face: the artwork arrives in a later milestone.'));
+    if (root.firstChild.classList.contains('has-art')) info.appendChild(el('div', 'z-ai', 'Illustration: AI-generated (AIイラスト).'));
+    else info.appendChild(el('div', 'z-note', 'Placeholder face: this card has no artwork yet.'));
     root.appendChild(info);
     return root;
   }
