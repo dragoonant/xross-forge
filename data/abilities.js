@@ -31,7 +31,7 @@
   const energyCharger = () => ({ effects: [onPlay({ op: 'recoverPP', n: 1 }, draw(1))] });
   const firstAid = () => ({ effects: [onPlay({ op: 'healTotal', n: 80, unit: 10 })] });
   const specialRound = () => ({ effects: [boost(80)] });
-  const lightShield = () => ({ effects: [{ timing: 'static', ops: [{ op: 'statMod', stat: 'hp', n: 30 }] }] });   // 体力+30 (PM p.10)
+  const lightShield = () => ({ effects: [] });   // 体力+30 (PM p.10): the stat is data on the card, CARDS['ST01-023'].equip = { hp: 30 }, read by XS.leaderStats
   const ppTicket = () => ({ effects: [
     { timing: 'static', ops: [{ op: 'ticketRule', round: 1 }] },        // 1ラウンド目…後攻のプレイヤーはこのカードをタクティクスエリアに置く (setup rule, PM p.05)
     onPlay({ op: 'recoverPP', n: 1 }),

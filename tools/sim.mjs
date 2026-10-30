@@ -60,29 +60,87 @@ function invariants(s) {
   return L;
 }
 
-// Hidden-information leak test (CLAUDE.md rule 7): serialise the view and look for ids it must not contain.
-function leakTest(s) {
+// Hidden-information leak test (CLAUDE.md rule 7): serialise the WHOLE view, log included, and look for ids it must not contain.
+// A card id is legitimately in a view when the viewer was ever shown that card: it was in `view.cards` at some step (own hand, play
+// areas, face-up trash, cards looked at), or it came in a log entry of the viewer's own seat or a revealed one. `known` (one Set per
+// seat and game) accumulates exactly that. Any other id of a card in the opponent's hand / decks / face-down tactics, or in the viewer's
+// own deck, found anywhere in the view JSON is a leak.
+// Log types whose ids are public by their rules (a card played, a play area trashed, an equipment attached...). A type NOT listed here
+// (draw, tacticsPick, discard, look, and any type added later) is trusted only for the viewer's own entries or when it says `revealed`.
+const PUBLIC_LOG = new Set(['start', 'rps', 'chooseFirst', 'roundStart', 'tacticsPlace', 'turnStart', 'turnEnd', 'ppRecover', 'ppSpend', 'play', 'tacticsPlay',
+  'equip', 'boost', 'attack', 'damage', 'heal', 'down', 'awaken', 'ability', 'trash', 'reshuffle', 'tacticsBurn', 'roundEnd', 'matchEnd', 'fizzle',
+  'overkill', 'echo', 'freePlay', 'revive']);
+const idsIn = (v, out) => {
+  if (typeof v === 'string') { if (/^[cL]\d+$/.test(v)) out.add(v); }
+  else if (Array.isArray(v)) v.forEach((x) => idsIn(x, out));
+  else if (v && typeof v === 'object') Object.values(v).forEach((x) => idsIn(x, out));
+};
+function leakIds(s, seat, v, known) {
+  const me = s.players[seat], op = s.players[1 - seat];
+  for (const k of Object.keys(v.cards)) known.add(k);
+  for (const e of v.log) if (e.seat === seat || PUBLIC_LOG.has(e.type) || (e.data && e.data.revealed === true)) idsIn(e.data, known);
+  const hidden = new Set([...op.hand, ...op.deck, ...op.tdeck, ...op.tarea.filter((i) => !s.cards[i].ticket), ...me.deck]);
+  const found = [];
+  const { log, ...rest } = v;
+  const sets = [new Set(), new Set()];
+  idsIn(rest, sets[0]);
+  idsIn(log, sets[1]);
+  for (const [k, set] of sets.entries()) for (const id of set) if (hidden.has(id) && !known.has(id)) found.push(`${id} in the ${k === 0 ? 'view' : 'log'}`);
+  return found;
+}
+
+// Every step: what each seat is shown now becomes knowledge (a card played in the open and shuffled back later is still known).
+function observe(s, known) {
   for (const seat of [0, 1]) {
     const v = XS.view(s, seat);
-    const me = s.players[seat], op = s.players[1 - seat];
-    const { log, ...rest } = v;
-    const json = JSON.stringify(rest);
-    const hidden = new Set([...op.hand, ...op.deck, ...op.tdeck, ...op.tarea.filter((i) => !s.cards[i].ticket), ...me.deck]);
-    for (const m of json.matchAll(/"([cL]\d+)"/g)) if (hidden.has(m[1])) fail(`leak: ${m[1]} visible in the view of seat ${seat}`);
-    for (const k of ['rng', 'seed', 'stack', 'init', 'actions', 'losing']) if (k in v) fail(`leak: view carries ${k}`);
-    if (json.includes('"ticket":') && false) fail('x');
+    for (const k of Object.keys(v.cards)) known[seat].add(k);
+    for (const e of v.log) if (e.seat === seat || PUBLIC_LOG.has(e.type) || (e.data && e.data.revealed === true)) idsIn(e.data, known[seat]);
+  }
+}
+
+function leakTest(s, known) {
+  for (const seat of [0, 1]) {
+    const v = XS.view(s, seat);
+    const bad = leakIds(s, seat, v, known[seat]);
+    if (bad.length) fail(`leak: ${bad[0]} visible to seat ${seat}`);
+    for (const k of ['rng', 'seed', 'stack', 'init', 'actions', 'losing', 'freeQ', 'once']) if (k in v) fail(`leak: view carries ${k}`);
     // face-down trash is unviewable even to the owner (rules.md §4)
-    for (const P of v.players) P.trash.forEach((e, i) => { /* placeholders only for non-tactics */ });
     s.players.forEach((P, p) => v.players[p].trash.forEach((e, i) => {
       const real = s.cards[P.trash[i]];
       if (real.kind !== 'tactics' && e.hidden !== true) fail('face-down trash visible in view');
     }));
     // redacted log entries carry no ids for the other seat
-    for (const e of log) {
-      if (e.seat !== seat && (e.type === 'draw' || e.type === 'tacticsPick' || e.type === 'discard') && (e.data.iid !== undefined || e.data.iids !== undefined || e.data.cardId !== undefined || e.data.cardIds !== undefined)) fail(`log leak in ${e.type}`);
+    for (const e of v.log) {
+      if (e.seat !== seat && (e.type === 'draw' || e.type === 'tacticsPick' || e.type === 'discard' || (e.type === 'look' && e.data.revealed !== true)) && (e.data.iid !== undefined || e.data.iids !== undefined || e.data.cardId !== undefined || e.data.cardIds !== undefined)) fail(`log leak in ${e.type}`);
     }
-    if (s.pending && s.pending.seat !== seat && (s.pending.kind === 'pickTactics' || s.pending.purpose === 'discard' || s.pending.purpose === 'handLimit') && v.pending.options.length) fail('pending options leak');
+    if (s.pending && s.pending.seat !== seat && (s.pending.kind === 'pickTactics' || ['discard', 'handLimit', 'look', 'reveal', 'freePlay'].includes(s.pending.purpose)) && v.pending.options.length) fail('pending options leak');
   }
+}
+
+// --selftest: the scan must see a planted id in the log (the old scan skipped the log), in the view, and must accept a revealed one.
+if (process.argv.includes('--selftest')) {
+  const s = XS.newGame({ decks: ['ST01', 'ST02'], seed: 3, first: 0 });
+  let t = s;
+  while (t.pending) t = XS.apply(t, XS.legalActions(t)[0]);
+  const op = t.players[1];
+  const planted = op.deck[0], inHand = op.hand[0];
+  const fresh = () => [new Set(), new Set()];
+  const cases = [
+    ['clean view', (v) => {}, 0],
+    ['opponent deck id in a log entry of the opponent', (v) => { v.log = v.log.concat([{ seq: 99, seat: 1, type: 'look', data: { phase: 'see', iids: [planted], revealed: false } }]); }, 1],
+    ['opponent hand id in the view', (v) => { v.players[1].hand[0] = inHand; }, 1],
+    ['a revealed id in the log is fine', (v) => { v.log = v.log.concat([{ seq: 99, seat: 1, type: 'look', data: { phase: 'reveal', iids: [planted], revealed: true } }]); }, 0],
+    ['own seat log entries may carry own ids', (v) => { v.log = v.log.concat([{ seq: 99, seat: 0, type: 'look', data: { phase: 'see', iids: [t.players[0].deck[0]], revealed: false } }]); }, 0],
+  ];
+  let bad = 0;
+  for (const [name, mutate, want] of cases) {
+    const v = XS.view(t, 0);
+    mutate(v);
+    const n = leakIds(t, 0, v, fresh()[0]).length;
+    if ((want === 0) !== (n === 0)) { bad++; console.log(`FAIL selftest ${name}: ${n} leaks, wanted ${want}`); }
+  }
+  console.log(bad ? 'sim: selftest FAILED' : `sim: selftest ok (${cases.length} cases)`);
+  process.exit(bad ? 1 : 0);
 }
 
 const stats = {
@@ -106,9 +164,11 @@ for (let g = 0; g < GAMES; g++) {
     s = XS.newGame(init);
     invariants(s);
     let actedThisTurn = 0, turnSeen = s.turn;
+    const known = [new Set(), new Set()];
+    observe(s, known);
     while (!XS.isTerminal(s) && steps < CAP) {
       const L = invariants(s);
-      if (steps % LEAK === 0) { leakTest(s); stats.leakChecks++; }
+      if (steps % LEAK === 0) { leakTest(s, known); stats.leakChecks++; }
       const a = L[Math.floor(rnd() * L.length)];
       if (s.pending) stats.pendingKinds[s.pending.kind] = (stats.pendingKinds[s.pending.kind] || 0) + 1;
       const before = steps % 40 === 0 ? JSON.stringify(s) : null;
@@ -132,11 +192,12 @@ for (let g = 0; g < GAMES; g++) {
       }
       if (a.type === 'endTurn') { stats.endTurns++; if (actedThisTurn === 0) stats.emptyTurns++; actedThisTurn = 0; } else if (a.type === 'play') actedThisTurn++;
       s = next;
+      observe(s, known);
       steps++;
       stats.steps++;
     }
     invariants(s);
-    leakTest(s);
+    leakTest(s, known);
     if (!XS.isTerminal(s)) { stats.capped++; failures.push(`game ${g}: capped at ${CAP} steps`); }
     else {
       stats.decisive++;

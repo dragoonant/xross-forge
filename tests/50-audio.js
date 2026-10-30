@@ -13,7 +13,7 @@
   // Copied from docs/ENGINE-API.md "Log". When the contract grows, this grows (the map test then fails until the map does).
   const LOG_TYPES = ['start', 'rps', 'chooseFirst', 'roundStart', 'tacticsPick', 'tacticsPlace', 'draw', 'turnStart', 'turnEnd', 'ppRecover',
     'ppSpend', 'play', 'tacticsPlay', 'equip', 'boost', 'attack', 'damage', 'heal', 'down', 'awaken', 'ability', 'discard', 'trash',
-    'reshuffle', 'tacticsBurn', 'roundEnd', 'matchEnd', 'fizzle'];
+    'reshuffle', 'tacticsBurn', 'roundEnd', 'matchEnd', 'fizzle', 'overkill', 'echo', 'look', 'freePlay', 'revive'];
 
   const view = (o) => Object.assign({ viewer: 0, mode: 'full', needWins: 2, wins: [0, 0] }, o);
   const ent = (type, data, seat) => ({ seq: 0, round: 1, turn: 1, seat: seat === undefined ? 0 : seat, type, data, via: null });

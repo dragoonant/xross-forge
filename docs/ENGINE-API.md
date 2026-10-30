@@ -126,7 +126,8 @@ The tactics rules (one per turn; none on the first player's first turn of each r
   seat: 0 | 1,             // who must answer
   source: iid | null,      // the card whose effect asks (show it); null for rules-level decisions
   prompt: 'Choose a leader to take 10 damage.',   // short engine-authored imperative that names the effect and its numbers
-  purpose: 'first'|'tactics'|'target'|'heal'|'discard'|'handLimit'|'order'|'attack'|'distribute',
+  purpose: 'first'|'tactics'|'target'|'heal'|'discard'|'handLimit'|'order'|'attack'|'distribute'
+         | 'look'|'reveal'|'may'|'freePlay'|'revive'|'awaken',   // the last six: 2026-10-30, see "Changes after freeze"
   options: [iid…],         // candidates (choose / pickTactics); leader iids or hand iids; [0,1] for chooseFirst
   min: 1, max: 1,          // choose: answer length bounds
   // attackPair:  attackers:[leader iid…], targets:[leader iid…], card: iid
@@ -181,7 +182,7 @@ One entry point: `XS.log(s, seat, type, data, via?)`; nothing else writes `s.log
 | `attack` | `{attackId, seg, card, attacker, target, damage, parts:{atk, boost, card}}` | – |
 | `damage` | `{leader, amount, kind:'attack'\|'effect', before, after}` (counters on the leader) | – |
 | `heal` | `{leader, amount, requested}` (`amount` = counters actually removed) | – |
-| `down` | `{leader, seat, slot, cause:'damage'\|'effect'}` | – |
+| `down` | `{leader, seat, slot, cause:'damage'\|'effect'\|'attack'}` | – |
 | `awaken` | `{leader, seat, slot, cause:'attack'\|'effect', atk, hp}` | – |
 | `ability` | `{src, cardId, timing}` (an effect group starts resolving; `via` of what follows) | – |
 | `discard` | `{iids, cardIds, n, cause:'effect'\|'handLimit'\|'roundEnd'}` (face down to the trash) | `{n, cause, hidden:true}` |
@@ -191,6 +192,11 @@ One entry point: `XS.log(s, seat, type, data, via?)`; nothing else writes `s.log
 | `roundEnd` | `{round, winner, loser, wins:[a,b]}` | – |
 | `matchEnd` | `{winner, losers, reason, wins:[a,b]}` | – |
 | `fizzle` | `{src, cardId, reason:'noTarget'\|'emptyHand'}` (notice: an effect that could do nothing) | – |
+| `overkill` | `{leader, n, excess, card}` (an オーバーキル condition held, R-063) | – |
+| `echo` | `{iid, cardId, phase:'sideways'\|'replay'}` (R-071) | – |
+| `look` | `{phase:'see'\|'reveal'\|'take'\|'trash', from:'deck'\|'hand', side, n, iids, cardIds, revealed}` | unless `revealed`: `{phase, from, side, n, revealed:false, hidden:true}` |
+| `freePlay` | `{iid, cardId, type, from:'hand'\|'deck'}` (placed at the far right, R-074) | – |
+| `revive` | `{leader, seat, slot, equipment:[iid], cardIds}` | – |
 
 ## Rules the numbers come from
 
@@ -209,3 +215,11 @@ Every number the UI shows: `leaderStats` (ATK, HP, damage, remaining), `costToPl
 - 2026-10-29: `s.atk` while an attack resolves: `{id, seat, card, seg, attacker, target, downs, excess, closed}` (`seg` = which 【アタックする】 of the card, 0-based).
 - 2026-10-29: a 【アタック後】 `ability` log entry is written even when its condition then turns out false (the entry means "this effect group started resolving"); read `damage` / `draw` / `heal` entries with the same `via` for what happened.
 - 2026-10-29: rulings added with the engine: R-053 … R-062 (`docs/rulings.md`).
+- 2026-10-30 (booster engine groundwork; details in docs/ABILITIES.md and R-063 ... R-075):
+  - **Pending purposes** (all `kind:'choose'`, answered with `{type:'choose', ids}`; `min:0` means the player may decline with `ids:[]`): `look` (cards looked at on a deck; extra field `to:'hand'|'trash'` says where the pick goes), `reveal` (hand cards to reveal), `may` (yes/no: `options:[source]`, answer `[source]` = yes, `[]` = no), `freePlay` (cards to play for free; the order of `ids` is the play order), `revive` (a downed own leader), `awaken` (an own leader). Existing purposes may now carry `min:0` (`discard`, `target`) and `max > 1` (`target` for 最大N体). A pending may carry `limit: {costSumAtMost?, costSumAtLeast?, perType?}`; `apply` refuses a pick that breaks it and `legalActions` only samples picks that respect it. `discard` and the new card-choosing purposes hide `options` from the other seat: `HIDDEN_OPTIONS = discard, handLimit, look, reveal, freePlay` (+ `pickTactics`). The chooser's `view.cards` includes the options, also cards that are on a deck (`look`).
+  - **Log types** (frozen entries, `seat` = the acting player): `overkill {leader, n, excess, card}` (an オーバーキル condition held; public); `echo {iid, cardId, phase:'sideways'|'replay'}` (public); `look {phase:'see'|'reveal'|'take'|'trash', from:'deck'|'hand', side, n, iids, cardIds, revealed}` - **hidden rule**: when `revealed` is false and the viewer is not `seat`, the entry becomes `{phase, from, side, n, revealed:false, hidden:true}` (no ids); `reveal` entries and a `trash` of revealed cards are public; `freePlay {iid, cardId, type, from:'hand'|'deck'}` (public: the card is in the play area); `revive {leader, seat, slot, equipment:[iid], cardIds}` (public). `boost` may carry `afterOnly:true` (armed, a memoria with only an 【アタック後】) and `amount:0` (applied). `down.cause` may be `'attack'` (a down by the attack's own effect, Crossfire/魔王降臨). `fizzle.reason` is unchanged. Cards looked at from a deck are never named to the other seat unless revealed.
+  - **State** (engine-private, absent from `view` except `players[].sideways`): `s.freeQ [iid]` (free-played cards waiting to resolve), `s.once {key: turn}` (once-per-turn marks), `s.lastLoser` (loser of the previous round or null), `players[].sideways [iid]` (Echo cards lying sideways; also in `view`), `players[].buffs [{stat, n, until}]`, `players[].discards` (hand cards discarded this turn). `XS.normalize(s)` gives a state built outside `newGame` the empty value of each (called by `apply` on its copy). `s.atk` also holds `dealt, remain, plus, afterOpen, afterDealt` (`excess` = `dealt - remain`, floor 0, updated by every damage to the attacked leader, R-063).
+  - **Resolution frames** `freeQueue` and `echoStart`; every `play` action first pushes a `freeQueue` frame so effects that play cards for free resolve after the whole play (R-074).
+  - **Functions** (pure, safe for the UI): `XS.costParts(s, iid)` -> `{base, mods:[{src, n}], total}` (`XS.costToPlay` returns `total`; it now includes cost modifiers, FAQ #138), `XS.seatAtkBonus(s, seat)`, `XS.attackTargets(s, seat)` (the legal attack targets after ターゲットフラッグ), `XS.matchesFilter(cardId, filter, srcCardId)`, `XS.limitOk(limit, cardIds)`, `XS.attackStepOps(cardId, seg)`, `XS.boostParts`. `XS.whyNot` also reports a `playIf` restriction. `previewAttack` is unchanged in meaning: it reads the card's "damage +" ops whose conditions hold now; a bonus that depends on a choice made during the attack (そうしたなら) or on an earlier draw is not in the preview.
+  - **Attack step order** (R-065): the card's effects run before the damage; the `attack` log line is written when the damage value is final (before the effects when they cannot change it, as before; otherwise after them).
+  - **Equipment stats** are `CARDS[no].equip` (`hp`, `atk`, `hpBase`, `hpBaseAwakened`), read by `leaderStats`; the Light Shield `statMod` op is gone from `data/abilities.js`.

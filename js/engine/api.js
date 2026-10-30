@@ -13,10 +13,9 @@
   };
 
   // ---- playing cards ------------------------------------------------------------------------------------
-  // PP the card costs now. No cost modifiers exist among the first-slice cards; the hook is here (R-034).
-  XS.costToPlay = function (s, iid) {
-    return XS.CARDS[s.cards[iid].id].cost || 0;
-  };
+  // PP the card costs now: the printed cost plus the modifiers (the card's own costMod / costFloor / costFree, the costAura of 【ラウンド中】
+  // cards in either play area, FAQ #138; XS.costParts lists them), never below 0 (R-034).
+  XS.costToPlay = (s, iid) => XS.costParts(s, iid).total;
 
   const hasOnPlay = (cardId) => XS.hasTiming(cardId, 'onPlay');
 
@@ -41,6 +40,7 @@
     if (P.pp.untapped < cost) return `Needs ${cost} PP, you have ${P.pp.untapped} untapped.`;
     if (d.type === 'attack' && (XS.aliveLeaders(s, seat).length === 0 || XS.aliveLeaders(s, 1 - seat).length === 0)) return 'No leader can attack.';
     if (d.tactics === 'equipment' && XS.aliveLeaders(s, seat).length === 0) return 'Equipment needs a leader that is not down.';
+    for (const op of XS.opsFor(c.id, 'static')) if (op.op === 'playIf' && !XS.cond(op.if, { s, seat, src: iid })) return op.msg;   // 復活ポータル: playable only if ...
     return null;
   };
 
@@ -87,7 +87,11 @@
     switch (p.kind) {
       case 'chooseFirst': return [{ type: 'chooseFirst', first: 0 }, { type: 'chooseFirst', first: 1 }];
       case 'pickTactics': return p.options.map((iid) => ({ type: 'pickTactics', iid }));
-      case 'choose': return subsets(p.options, p.min, p.max, 48).map((ids) => ({ type: 'choose', ids }));
+      case 'choose': {
+        if (p.limit === undefined) return subsets(p.options, p.min, p.max, 48).map((ids) => ({ type: 'choose', ids }));
+        // a pick under a limit (cost sum, one per type): sample the subsets that satisfy it
+        return subsets(p.options, p.min, p.max, 400).filter((ids) => XS.limitOk(p.limit, ids.map((i) => s.cards[i].id))).slice(0, 48).map((ids) => ({ type: 'choose', ids }));
+      }
       case 'attackPair': {
         const out = [];
         for (const attacker of p.attackers) for (const target of p.targets) out.push({ type: 'attack', attacker, target });
@@ -113,7 +117,7 @@
     if (s.pending !== null) return pendingActions(s);
     const seat = s.active, P = s.players[seat];
     const out = [];
-    const mine = XS.aliveLeaders(s, seat), theirs = XS.aliveLeaders(s, 1 - seat);
+    const mine = XS.aliveLeaders(s, seat), theirs = XS.attackTargets(s, seat);
     for (const iid of P.hand) {
       if (XS.whyNot(s, iid) !== null) continue;
       const d = XS.CARDS[s.cards[iid].id];
@@ -154,6 +158,7 @@
         if (a.ids.length < p.min || a.ids.length > p.max) bad(`choose between ${p.min} and ${p.max}`);
         if (new Set(a.ids).size !== a.ids.length) bad('no repeats');
         for (const i of a.ids) if (!p.options.includes(i)) bad('not an option: ' + i);
+        if (p.limit !== undefined && !XS.limitOk(p.limit, a.ids.map((i) => t.cards[i].id))) bad('that pick breaks the limit ' + JSON.stringify(p.limit));
         value = a.ids.slice();
         break;
       }
@@ -187,7 +192,7 @@
     const seat = t.active, P = t.players[seat];
     const card = t.cards[a.iid];
     const d = XS.CARDS[card.id];
-    const mine = XS.aliveLeaders(t, seat), theirs = XS.aliveLeaders(t, 1 - seat);
+    const mine = XS.aliveLeaders(t, seat), theirs = XS.attackTargets(t, seat);
     let pre = null, host = null;
     if (d.type === 'attack') {
       // R-061: the attacker/target ride on the play action unless the card has a 【プレイ時】, which resolves first
@@ -203,12 +208,8 @@
     }
     const cost = XS.costToPlay(t, a.iid);
     D.payPP(t, seat, cost, a.iid);
-    const armBoost = () => {
-      if (XS.hasTiming(card.id, 'boost')) {
-        P.boosts.push(a.iid);
-        XS.log(t, seat, 'boost', { iid: a.iid, cardId: card.id, phase: 'armed' });
-      }
-    };
+    // Cards that effects play for free are queued and resolve once everything this play does has finished (R-027, FAQ #70).
+    t.stack.push({ k: 'freeQueue', ai: 0, ans: [] });
     if (d.type === 'tactics') {
       P.tacPlayed = true;
       XS.log(t, seat, 'tacticsPlay', { iid: a.iid, cardId: card.id, subtype: d.tactics, cost });
@@ -218,21 +219,20 @@
         XS.pushOps(t, XS.opsFor(card.id, 'onPlay'), a.iid, seat, 'onPlay');   // R-039
       } else {
         D.moveZone(t, a.iid, { seat, zone: 'play' });
-        armBoost();
-        XS.pushOps(t, XS.opsFor(card.id, 'onPlay'), a.iid, seat, 'onPlay');
+        XS.resolvePlayed(t, seat, a.iid);
       }
     } else {
       D.moveZone(t, a.iid, { seat, zone: 'play' });
       XS.log(t, seat, 'play', { iid: a.iid, cardId: card.id, type: d.type, cost });
       if (d.type === 'attack') XS.startAttackCard(t, seat, a.iid, pre);
-      else { armBoost(); XS.pushOps(t, XS.opsFor(card.id, 'onPlay'), a.iid, seat, 'onPlay'); }
+      else XS.resolvePlayed(t, seat, a.iid);
     }
   }
 
   XS.apply = function (s, action) {
     if (action === null || typeof action !== 'object' || typeof action.type !== 'string') throw new Illegal('an action is an object with a type');
     if (s.phase === 'over') throw new Illegal('the match is over');
-    const t = XS.cloneState(s);
+    const t = XS.normalize(XS.cloneState(s));
     if (action.type === 'concede') {   // R-060: whole match, either seat, any time
       if (action.seat !== 0 && action.seat !== 1) throw new Illegal('concede needs a seat');
       t.actions.push(XS.deepFreeze(JSON.parse(JSON.stringify(action))));
@@ -257,6 +257,8 @@
 
   // ---- view (hidden information) -----------------------------------------------------------------------------------------
   const HIDDEN = Object.freeze({ hidden: true });
+  // pending purposes whose options are cards only the chooser may see (hand cards, cards looked at on a deck)
+  const HIDDEN_OPTIONS = new Set(['discard', 'handLimit', 'look', 'reveal', 'freePlay']);
   const hiddenArr = (n) => Array.from({ length: n }, () => HIDDEN);
 
   XS.view = function (s, seat) {
@@ -268,6 +270,7 @@
       for (const i of P.play) show(i);
       for (const i of P.aside) show(i);
       const faceUp = (i) => s.cards[i].kind === 'tactics';
+      const sideways = P.sideways === undefined ? [] : P.sideways.slice();   // Echo cards lying sideways (absent in a state the AI rebuilt)
       return {
         name: P.name, deckId: P.deckId, deckName: P.deckName,
         deck: hiddenArr(P.deck.length),
@@ -280,6 +283,7 @@
         pp: { total: P.pp.total, untapped: P.pp.untapped },
         leaders: P.leaders.map((L) => ({ iid: L.iid, cardId: L.cardId, slot: L.slot, damage: L.damage, down: L.down, awakened: L.awakened, equipment: L.equipment.slice() })),
         boosts: P.boosts.slice(),
+        sideways,
         tacPlayed: P.tacPlayed,
         counts: { deck: P.deck.length, hand: P.hand.length, trash: P.trash.length, tdeck: P.tdeck.length, tarea: P.tarea.length },
       };
@@ -288,11 +292,14 @@
     if (s.pending !== null) {
       pending = Object.assign({}, s.pending);
       pending.options = s.pending.options.slice();
-      if (s.pending.seat !== seat && (s.pending.kind === 'pickTactics' || s.pending.purpose === 'discard' || s.pending.purpose === 'handLimit')) pending.options = [];
+      if (s.pending.seat !== seat && (s.pending.kind === 'pickTactics' || HIDDEN_OPTIONS.has(s.pending.purpose))) pending.options = [];
+      // the player who chooses among cards may see them, also cards they only looked at on a deck (purpose 'look')
+      if (s.pending.seat === seat) for (const i of s.pending.options) if (typeof i === 'string' && s.cards[i] !== undefined && !XS.isLeader(i)) show(i);
     }
     const log = s.log.map((e) => {
       if (e.seat === seat) return e;
       if (e.type === 'tacticsPick') return Object.freeze(Object.assign({}, e, { data: HIDDEN }));
+      if (e.type === 'look' && e.data.revealed !== true) return Object.freeze(Object.assign({}, e, { data: Object.freeze({ phase: e.data.phase, from: e.data.from, side: e.data.side, n: e.data.n, revealed: false, hidden: true }) }));
       if (e.type === 'draw') return Object.freeze(Object.assign({}, e, { data: Object.freeze({ cause: e.data.cause, hidden: true }) }));
       if (e.type === 'discard') return Object.freeze(Object.assign({}, e, { data: Object.freeze({ n: e.data.n, cause: e.data.cause, hidden: true }) }));
       return e;

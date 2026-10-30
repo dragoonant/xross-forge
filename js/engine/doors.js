@@ -30,6 +30,7 @@
     const P = s.players[from.seat];
     if (from.zone === 'equip') { const eq = XS.leader(s, from.leader).equipment; eq.splice(eq.indexOf(iid), 1); }
     else P[from.zone].splice(P[from.zone].indexOf(iid), 1);
+    if (from.zone === 'play') { const k = P.sideways.indexOf(iid); if (k >= 0) P.sideways.splice(k, 1); }   // Echo: a card that leaves the play area is upright when it comes back
     const Q = s.players[to.seat];
     if (to.zone === 'equip') XS.leader(s, to.leader).equipment.push(iid);
     else if (to.zone === 'deck' && to.pos === 'top') Q.deck.unshift(iid);
@@ -58,15 +59,25 @@
 
   // ---- damage, healing, down, awaken (PM p.08, p.12) ------------------------------------------------
   // Deals n damage to a leader that is not down (R-002); 0 damage places no counters (R-016). A leader whose
-  // counters reach its HP is downed at once (PM p.12). Returns { dealt, downed, excess } where excess =
-  // damage beyond the HP that was left before this damage (R-005; the overkill input, FAQ #44).
-  D.dealDamage = function (s, leaderIid, n, kind) {
+  // counters reach its HP is downed at once (PM p.12). Returns { dealt, downed, excess } where excess = damage beyond the HP that was left
+  // before this damage. `leave` = "if this would down the leader, its remaining HP becomes `leave` instead" (R-042).
+  // While an attack is open, damage to the attacked leader accumulates in s.atk.dealt and s.atk.excess = dealt - the remaining HP it
+  // had before the attack (FAQ #44, #115, R-005: the 【アタック後】 damage counts too); damage effects during the 【アタック後】 step are
+  // counted in s.atk.afterDealt (オートタレット's condition).
+  D.dealDamage = function (s, leaderIid, n, kind, leave) {
     const L = XS.leader(s, leaderIid);
     if (L.down || n <= 0) return { dealt: 0, downed: false, excess: 0 };
     const st = XS.leaderStats(s, XS.leaderSeat(leaderIid), L.slot);
     const before = L.damage;
+    if (leave !== undefined && before + n >= st.hp) n = Math.max(0, st.hp - leave - before);
+    if (n === 0) return { dealt: 0, downed: false, excess: 0 };
     L.damage += n;
     XS.log(s, XS.leaderSeat(leaderIid), 'damage', { leader: leaderIid, amount: n, kind: kind || 'effect', before, after: L.damage });
+    const a = s.atk;
+    if (a !== null) {
+      if (leaderIid === a.target) { a.dealt += n; a.excess = Math.max(0, a.dealt - a.remain); }
+      if (a.afterOpen && kind === 'effect') a.afterDealt += n;
+    }
     if (L.damage >= st.hp) {
       D.downLeader(s, leaderIid, kind === 'attack' ? 'damage' : 'effect');
       return { dealt: n, downed: true, excess: Math.max(0, n - (st.hp - before)) };
@@ -164,7 +175,60 @@
   D.discard = function (s, seat, iids, cause) {
     if (iids.length === 0) return;
     for (const iid of iids) D.moveZone(s, iid, { seat, zone: 'trash' });
+    if (cause !== 'roundEnd') s.players[seat].discards += iids.length;   // "このターン、あなたが手札を1枚以上捨てているなら" (reset at every turn start)
     XS.log(s, seat, 'discard', { iids: iids.slice(), cardIds: cardsOf(s, iids), n: iids.length, cause });
+  };
+
+  // ---- looking at the deck, free play, revive, buffs, shuffles (docs/ABILITIES.md) ---------------------------------------------
+  // The top n cards of a deck, for 見る / 公開する. A deck that is short runs the deck-out procedure once first (PM p.14 Q1, FAQ #109,
+  // #117, #119: the remaining cards stay on top and the shuffled trash goes under them), then as many cards as exist are returned.
+  D.peek = function (s, seat, n) {
+    const P = s.players[seat];
+    if (P.deck.length < n) D.deckOut(s, seat);
+    return P.deck.slice(0, n);
+  };
+  // A card that was looked at leaves the deck of `owner` for `to` ({seat, zone: 'hand'|'trash'}).
+  D.takeFromDeck = function (s, owner, iid, to) {
+    if (!s.players[owner].deck.includes(iid)) throw new Error('takeFromDeck: ' + iid + ' is not in the deck');
+    D.moveZone(s, iid, to);
+  };
+  // Play a card without paying: it goes to the far right of the play area (FAQ #70) and waits in s.freeQ; its effects resolve when the
+  // play that put it there has finished (the 'freeQueue' frame, R-027/R-044). The cost is simply never paid (no ppSpend).
+  D.freePlace = function (s, seat, iid) {
+    D.moveZone(s, iid, { seat, zone: 'play' });
+    s.freeQ.push(iid);
+  };
+  // Echo (R-024): turn a play-area card sideways / upright.
+  D.setSideways = function (s, seat, iid, on) {
+    const sw = s.players[seat].sideways;
+    const k = sw.indexOf(iid);
+    if (on && k < 0) sw.push(iid);
+    if (!on && k >= 0) sw.splice(k, 1);
+  };
+  // Bring a downed leader back (復活ポータル / 復活ビーコン, FAQ #23): not down, no counters, every card it carries to the trash face up.
+  // Awakening stays. Nobody awakens (R-006).
+  D.reviveLeader = function (s, leaderIid) {
+    const L = XS.leader(s, leaderIid);
+    if (!L.down) return;
+    const seat = XS.leaderSeat(leaderIid);
+    const eq = L.equipment.slice();
+    L.down = false;
+    L.damage = 0;
+    for (const e of eq) D.moveZone(s, e, { seat, zone: 'trash' });
+    XS.log(s, seat, 'revive', { leader: leaderIid, seat, slot: L.slot, equipment: eq, cardIds: cardsOf(s, eq) });
+  };
+  // Buffs that end with the turn or the round (先導者の証): { stat: 'atk', n, until: 'turn'|'round' }.
+  D.addBuff = function (s, seat, b) { s.players[seat].buffs.push(b); };
+  D.endBuffs = function (s, seat, until) { s.players[seat].buffs = s.players[seat].buffs.filter((b) => b.until !== until); };
+  // All face-down trash cards go into the deck and the deck is shuffled (アイテムショップ); tactics cards in the trash stay (face up). No
+  // tactics penalty (R-019).
+  D.shuffleTrashIn = function (s, seat) {
+    const P = s.players[seat];
+    const down = P.trash.filter((i) => s.cards[i].kind !== 'tactics');
+    P.trash = P.trash.filter((i) => s.cards[i].kind === 'tactics');
+    P.deck.push(...down);
+    XS.shuffleInPlace(s, P.deck);
+    XS.log(s, seat, 'reshuffle', { seat, n: down.length });
   };
 
   // ---- asking (the one choice door, CLAUDE.md rule 4) ----------------------------------------------------------

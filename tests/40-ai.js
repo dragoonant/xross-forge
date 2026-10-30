@@ -14,7 +14,7 @@
   const ev = (s, seat, bank) => AI.evaluate(s, seat, W, bank ? { bank: true } : undefined);
 
   // The contract's pending kinds and purposes (docs/ENGINE-API.md "Pending decision"); POLICIES must be exactly this table.
-  const CONTRACT = { chooseFirst: ['first'], pickTactics: ['tactics'], choose: ['target', 'heal', 'discard', 'handLimit', 'order'], attackPair: ['attack'], distribute: ['distribute'] };
+  const CONTRACT = { chooseFirst: ['first'], pickTactics: ['tactics'], choose: ['target', 'heal', 'discard', 'handLimit', 'order', 'look', 'reveal', 'may', 'freePlay', 'revive', 'awaken'], attackPair: ['attack'], distribute: ['distribute'] };
 
   // Play random legal actions until `pred(s)` holds (or the game ends); returns the state.
   function randomUntil(seed, pred, decks) {

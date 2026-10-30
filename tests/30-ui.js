@@ -10,7 +10,7 @@
   // Copied from docs/ENGINE-API.md "Log" and "Pending decision". When the contract grows, this grows.
   const LOG_TYPES = ['start', 'rps', 'chooseFirst', 'roundStart', 'tacticsPick', 'tacticsPlace', 'draw', 'turnStart', 'turnEnd', 'ppRecover',
     'ppSpend', 'play', 'tacticsPlay', 'equip', 'boost', 'attack', 'damage', 'heal', 'down', 'awaken', 'ability', 'discard', 'trash',
-    'reshuffle', 'tacticsBurn', 'roundEnd', 'matchEnd', 'fizzle'];
+    'reshuffle', 'tacticsBurn', 'roundEnd', 'matchEnd', 'fizzle', 'overkill', 'echo', 'look', 'freePlay', 'revive'];
   const PENDING_KINDS = ['chooseFirst', 'pickTactics', 'choose', 'attackPair', 'distribute'];
   const PENDING_PURPOSES = ['first', 'tactics', 'target', 'heal', 'discard', 'handLimit', 'order', 'attack', 'distribute'];
 
@@ -52,6 +52,11 @@
     roundEnd: { round: 1, winner: 0, loser: 1, wins: [1, 0] },
     matchEnd: { winner: 1, losers: [0], reason: 'rounds', wins: [0, 2] },
     fizzle: { src: 'c2', cardId: 'ST01-013', reason: 'noTarget' },
+    overkill: { leader: 'L12', n: 30, excess: 40, card: 'c1' },
+    echo: { iid: 'c2', cardId: 'ST01-013', phase: 'sideways' },
+    look: { phase: 'see', from: 'deck', side: 0, n: 2, iids: ['c1', 'c2'], cardIds: ['ST01-005', 'ST01-013'], revealed: false },
+    freePlay: { iid: 'c1', cardId: 'ST01-005', type: 'attack', from: 'hand' },
+    revive: { leader: 'L01', seat: 0, slot: 1, equipment: ['c2'], cardIds: ['ST01-023'] },
   };
   const entry = (type, data, seat, via) => ({ seq: 0, round: 1, turn: 1, seat: seat === undefined ? 0 : seat, type, data, via: via === undefined ? null : via });
 

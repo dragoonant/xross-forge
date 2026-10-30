@@ -8,6 +8,21 @@
 
   XS.opp = (seat) => 1 - seat;
 
+  // States rebuilt outside newGame (the AI's determinized worlds, js/ai/determinize.js) predate the fields added after the
+  // freeze (docs/ENGINE-API.md "Changes after freeze", 2026-10-30). apply() calls this on its private copy so such a state
+  // gets the empty value of every missing field; a state from newGame already has them all and is untouched.
+  XS.normalize = function (s) {
+    if (s.freeQ === undefined) s.freeQ = [];
+    if (s.once === undefined) s.once = {};
+    if (s.lastLoser === undefined) s.lastLoser = null;
+    for (const P of s.players) {
+      if (P.sideways === undefined) P.sideways = [];
+      if (P.buffs === undefined) P.buffs = [];
+      if (P.discards === undefined) P.discards = 0;
+    }
+    return s;
+  };
+
   // The card record for a card number, or for an instance id when the state is given.
   XS.def = function (idOrIid, s) {
     if (s && s.cards[idOrIid]) return XS.CARDS[s.cards[idOrIid].id];
@@ -53,16 +68,28 @@
 
   XS.hasTag = (cardId, tag) => { const t = XS.TAGS[cardId]; return t !== undefined && t.includes(tag); };
 
-  // Live ATK/HP of a leader: the face showing, plus the static stat modifiers of its equipment
-  // (ライトシールド HP+30, PM p.10). Every number the UI shows about a leader comes from here.
+  // Live ATK/HP of a leader: the face showing, plus the static stat modifiers of its equipment (ライトシールド HP+30, PM p.10;
+  // サイバネアーマー sets the base HP, the stat bonus comes after), plus the seat-wide ATK bonuses (XS.seatAtkBonus: 【ラウンド中】
+  // cards in the play area, "this turn" buffs; R-043). Every number the UI shows about a leader comes from here.
   XS.leaderStats = function (s, seat, slot) {
     const L = s.players[seat].leaders[slot];
     const d = XS.CARDS[L.cardId];
     let atk = L.awakened ? d.awakenAtk : d.atk;
     let hp = L.awakened ? d.awakenHp : d.hp;
+    // Equipment stats are data on the card: CARDS[no].equip = { hp?, atk?, hpBase?, hpBaseAwakened? } (tools/out/card-fields.md); hpBase /
+    // hpBaseAwakened REPLACE the printed HP of the face showing (サイバネアーマー), the additive bonuses of all equipment come after.
+    // The older form, a static statMod op on the card's effects, is still read (ST01-023 until its cards.js entry carries `equip`);
+    // validate-abilities refuses a card that has both.
     for (const e of L.equipment) {
+      const q = XS.CARDS[s.cards[e].id].equip;
+      if (q !== undefined && (q.hpBase !== undefined || q.hpBaseAwakened !== undefined)) hp = L.awakened ? q.hpBaseAwakened : q.hpBase;
+    }
+    for (const e of L.equipment) {
+      const q = XS.CARDS[s.cards[e].id].equip;
+      if (q !== undefined) { hp += q.hp || 0; atk += q.atk || 0; }
       for (const m of XS.staticMods(s.cards[e].id)) { if (m.stat === 'hp') hp += m.n; else if (m.stat === 'atk') atk += m.n; }
     }
+    atk += XS.seatAtkBonus(s, seat);
     return {
       iid: L.iid, cardId: L.cardId, seat, slot, atk, hp, damage: L.damage, remaining: hp - L.damage,
       down: L.down, awakened: L.awakened, tags: XS.TAGS[L.cardId] || [],
@@ -95,6 +122,7 @@
       result: null, winner: null, losing: [],
       players: [], cards: {}, pending: null, atk: null, atkSeq: 0, stack: [],
       log: [], seq: 0, _via: null,
+      freeQ: [], once: {}, lastLoser: null,
       init: null, actions: [],
     };
     const registry = {};
@@ -112,6 +140,7 @@
         name: (opts.names && opts.names[p]) || `Player ${p + 1}`, deckId: deck.id || null, deckName: deck.nameEn || deck.name || deck.id || 'Deck',
         deck: [], hand: [], play: [], trash: [], tdeck: [], tarea: [], aside: [],
         pp: { total: 3, untapped: 3 }, leaders: [], boosts: [], tacPlayed: false,
+        sideways: [], buffs: [], discards: 0,
       };
       s.players.push(P);
       deck.leaders.forEach((id, slot) => {

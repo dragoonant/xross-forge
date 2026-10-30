@@ -92,6 +92,12 @@
         else if (op.op === 'statMod' && op.stat === 'atk') val += op.n * 6 * (1 + left);
       }
     }
+    // equipment stats as data on the card (CARDS[no].equip, tools/out/card-fields.md)
+    const q = XS.CARDS[cardId].equip;
+    if (q !== undefined) {
+      const hp = (q.hp || 0) + (q.hpBase !== undefined ? q.hpBase - 100 : 0);   // a replaced base HP is worth its gain over the usual 100
+      val += (hp * (1 + 0.7 * left) + (hp > 0 ? 12 : 0)) * W.shield + (q.atk || 0) * 6 * (1 + left);
+    }
     return val - 35 * XS.CARDS[cardId].cost;
   };
 
@@ -116,12 +122,52 @@
       // An opposing leader to damage (an effect's single target): the largest drop in the leader's value; a down counts in full.
       target(v, pend, ctx) {
         const n = pendingAmount(v, pend, 'damage');
-        const best = byKey(pend.options, (iid) => {
+        // damage to one of OUR leaders (an optional cost such as 共に至る極致): pay it from the healthiest leader, and only if it stays far from down
+        if (XS.leaderSeat(pend.options[0]) === pend.seat) {
+          const healthy = byKey(pend.options, (iid) => XS.leaderStatsOf(v, iid).remaining);
+          return { type: 'choose', ids: pend.min === 0 && XS.leaderStatsOf(v, healthy).remaining < n + 40 ? [] : [healthy] };
+        }
+        const key = (iid) => {
           const st = XS.leaderStatsOf(v, iid);
           const down = n >= st.hp - st.damage;
           const after = down ? 0 : AI.leaderValue(Object.assign({}, st, { damage: st.damage + n }), ctx.W);
           return (AI.leaderValue(st, ctx.W) - after) * 1e3 - (st.hp - st.damage);
-        });
+        };
+        // 最大N体: the N best (a pick of up to N never needs fewer when each one is hurt)
+        const ids = pend.options.slice().sort((a, b) => key(b) - key(a)).slice(0, pend.max);
+        return { type: 'choose', ids };
+      },
+      // Cards looked at on a deck: take the best into the hand (as many as allowed), or decline the optional trash of the top card.
+      look(v, pend, ctx) {
+        if (pend.to === 'trash') return { type: 'choose', ids: pend.options.slice(0, pend.min) };
+        const hand = v.players[pend.seat].hand;
+        const ranked = pend.options.slice().sort((a, b) => AI.keepValue(v, pend.seat, v.cards[b].id, hand) - AI.keepValue(v, pend.seat, v.cards[a].id, hand));
+        return { type: 'choose', ids: pickWithin(v, pend, ranked, pend.max, pend.min) };
+      },
+      // Cards of the hand to reveal for an effect: the ones we would sooner lose (they are usually thrown away or only shown for a bonus).
+      reveal(v, pend, ctx) {
+        const hand = v.players[pend.seat].hand;
+        const ranked = pend.options.slice().sort((a, b) => AI.keepValue(v, pend.seat, v.cards[a].id, hand) - AI.keepValue(v, pend.seat, v.cards[b].id, hand));
+        const cheap = ranked.filter((i) => AI.keepValue(v, pend.seat, v.cards[i].id, hand) <= 20);
+        return { type: 'choose', ids: pickWithin(v, pend, pend.min > 0 ? ranked : cheap, pend.max, pend.min) };
+      },
+      // "Do it? (random discard for a bonus)": yes while the hand can spare a card.
+      may(v, pend, ctx) { return { type: 'choose', ids: v.players[pend.seat].hand.length >= 3 ? pend.options.slice(0, 1) : [] }; },
+      // Cards to play for free, in play order: memoria first (their boost must be armed before an attack card starts), the strongest first.
+      freePlay(v, pend, ctx) {
+        const hand = v.players[pend.seat].hand;
+        const rank = (i) => (v.cards[i].kind === 'memoria' ? 1000 : 0) + AI.keepValue(v, pend.seat, v.cards[i].id, hand);
+        const ranked = pend.options.slice().sort((a, b) => rank(b) - rank(a));
+        return { type: 'choose', ids: pickWithin(v, pend, ranked, pend.max, pend.min) };
+      },
+      // A downed leader to bring back: the one worth the most (awakened first, then HP).
+      revive(v, pend, ctx) {
+        const best = byKey(pend.options, (iid) => { const L = v.players[pend.seat].leaders.find((l) => l.iid === iid); const d = XS.CARDS[L.cardId]; return (L.awakened ? 1000 : 0) + d.hp + 3 * d.atk; });
+        return { type: 'choose', ids: [best] };
+      },
+      // A leader to awaken: the largest gain in HP and ATK.
+      awaken(v, pend, ctx) {
+        const best = byKey(pend.options, (iid) => { const d = XS.CARDS[XS.leaderStatsOf(v, iid).cardId]; return (d.awakenHp - d.hp) + 3 * (d.awakenAtk - d.atk); });
         return { type: 'choose', ids: [best] };
       },
       // One of our leaders to heal (a leader must be named even if undamaged, FAQ #133): the largest gain; the wounded first.
@@ -191,9 +237,25 @@
     },
   };
 
+  // The first `want` of `ranked` that together respect the pending decision's limit; at least `min` (a limit never blocks the minimum:
+  // the engine builds min 0 for every limited pick).
+  function pickWithin(v, pend, ranked, want, min) {
+    const chosen = [];
+    for (const iid of ranked) {
+      if (chosen.length >= want) break;
+      if (XS.limitOk(pend.limit, chosen.concat(iid).map((i) => v.cards[i].id))) chosen.push(iid);
+    }
+    if (chosen.length < min) throw new Error('ai: cannot satisfy the minimum of the pending ' + pend.purpose + ' under its limit');
+    return chosen;
+  }
+
   function discardAnswer(v, pend) {
     const me = pend.seat;
     const hand = pend.options;
+    if (pend.min === 0) {   // "you may discard": pay with the least valuable card, if it is cheap and the hand has more to give
+      const worst = hand.slice().sort((a, b) => AI.keepValue(v, me, v.cards[a].id, hand) - AI.keepValue(v, me, v.cards[b].id, hand))[0];
+      return { type: 'choose', ids: worst !== undefined && v.players[me].hand.length >= 2 && AI.keepValue(v, me, v.cards[worst].id, hand) < 15 ? [worst] : [] };
+    }
     const ranked = hand.slice().sort((a, b) => {
       const ka = AI.keepValue(v, me, v.cards[a].id, hand), kb = AI.keepValue(v, me, v.cards[b].id, hand);
       return ka - kb;

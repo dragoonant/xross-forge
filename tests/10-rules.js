@@ -299,7 +299,7 @@
 
   test('R-003: downing several leaders with one attack awakens the attacker once and resolves 【覚醒時】 once', () => {
     let s = fx.start({ decks: ['ST02', 'ST01'] });          // seat 0 = Selly (awaken: 10 to 1 opposing leader)
-    s = fx.arrange(s, (h) => { h.hand(0, ['ST02-011']); h.damage(1, 0, 95); h.damage(1, 1, 105); h.damage(1, 2, 95); });
+    s = fx.arrange(s, (h) => { h.hand(0, ['ST02-011']); h.damage(1, 0, 90); h.damage(1, 1, 100); h.damage(1, 2, 90); });
     s = fx.attack(s, 'ST02-011', 0, 0);                      // Multi Grenade: 20 to every other leader
     eq(find(s, 'down').length, 3, 'three leaders downed');
     s = fx.settleWithFirst(s);
@@ -326,7 +326,7 @@
     ok(L(s, 0, 0).awakened, 'it counts as a down by the attack');
   });
 
-  test('Crossfire\'s tag test is per leader: with leaders of another tag in the team it does nothing but the damage', () => {
+  test('Crossfire\'s tag test is per leader: a full team of the tag downs the leader, a team with one leader of another tag does nothing but the damage', () => {
     // seat 0 plays ST01 (all VSPO!): flip the check through Demon King\'s Descent (CR) played by an ST01 team
     let s = fx.start();
     s = fx.arrange(s, (h) => h.hand(0, ['ST01-005']));
@@ -334,6 +334,13 @@
     const t = fx.start({ decks: ['ST02', 'ST01'] });   // CR team
     const u = fx.arrange(t, (h) => h.hand(0, ['ST02-009']));
     eq(XS.previewAttackDetail(u, { type: 'play', iid: fx.idOf(u, 0, 'ST02-009', ['hand']), attacker: 'L00', target: 'L10' }).goesDown, true, 'CR team + CR text');
+    // the negative case: ONE leader of the other tag in the team and the same card no longer downs anything (R-031: the test is per leader)
+    const mixed = Object.assign({}, XS.DECKS.ST01, { leaders: ['ST01-001', 'ST01-002', 'ST01-003', 'ST02-001'] });
+    let m = fx.arrange(fx.start({ decks: [mixed, 'ST02'] }), (h) => h.hand(0, ['ST01-005']));
+    eq(XS.previewAttackDetail(m, { type: 'play', iid: fx.idOf(m, 0, 'ST01-005', ['hand']), attacker: 'L00', target: 'L10' }).goesDown, false, 'a mixed team does not down');
+    m = fx.attack(m, 'ST01-005', 0, 0);
+    ok(!L(m, 1, 0).down, 'the attacked leader only took the damage');
+    eq(L(m, 1, 0).damage, 30, '30 damage, no down');
   });
 
   test('PM p.08 / R-002: a downed leader cannot attack and cannot be attacked: no legal action names it; apply refuses', () => {
@@ -640,8 +647,71 @@
   });
 
   test('contract: leaderStats reports the live face, equipment and remaining HP', () => {
-    const s = fx.arrange(fx.start(), (h) => h.damage(0, 1, 25));
+    const s = fx.arrange(fx.start(), (h) => h.damage(0, 1, 20));
     const st = XS.leaderStats(s, 0, 1);
-    eq([st.cardId, st.atk, st.hp, st.damage, st.remaining, st.down, st.awakened, st.tags], ['ST01-002', 30, 110, 25, 85, false, false, ['VSPO!']]);
+    eq([st.cardId, st.atk, st.hp, st.damage, st.remaining, st.down, st.awakened, st.tags], ['ST01-002', 30, 110, 20, 90, false, false, ['VSPO!']]);
+  });
+
+  // ================= attack-step order, down cause, overkill input, memoria attachments (TODO 1-4, tools/out/m2-review.md) =================
+  // Synthetic cards (fx.withCards): no ST01/ST02 card has these shapes.
+  const defs15 = [
+    // R-005 / FAQ #115: 【アタック後】 damage to the attacked leader counts toward the overkill input
+    { id: 'T-AFTERHIT', type: 'attack', cost: 1, effects: [{ timing: 'attack', ops: [] },
+      { timing: 'afterAttack', ops: [{ op: 'damage', n: 60, to: { side: 'opp', count: 1 } }, { op: 'heal', n: 10, to: { side: 'own', count: 1 } }] }] },
+    // PM p.12 2-2 / FAQ #8: the card's own effects run in printed order BEFORE the damage: draw first, then a bonus that reads the hand
+    { id: 'T-DRAWFIRST', type: 'attack', cost: 1, effects: [{ timing: 'attack', ops: [{ op: 'draw', n: 1 }, { op: 'dmgPlus', n: 40, if: { c: 'handAtMost', n: 0 } }] }] },
+    // FAQ #65: a memoria whose only effect is an 【アタック後】 attaches to the next attack
+    { id: 'T-MEMAFTER', type: 'memoria', cost: 0, effects: [{ timing: 'afterAttack', ops: [{ op: 'draw', n: 1 }] }] },
+  ];
+
+  test('R-005 / FAQ #115 (TODO 1): 【アタック後】 damage to the attacked leader counts toward the overkill excess (remaining HP is the value before the attack, FAQ #44)', () => {
+    fx.withCards(defs15, () => {
+      let s = fx.start({ decks: [fx.deckWith('ST01', [['T-AFTERHIT', 8]]), 'ST02'] });
+      s = fx.arrange(s, (h, t) => { h.hand(0, ['T-AFTERHIT']); h.damage(1, 0, XS.leaderStats(t, 1, 0).hp - 50); });   // 50 left
+      s = fx.attack(s, 'T-AFTERHIT', 0, 0);       // ATK 30 leaves 20; the 【アタック後】 60 on the same leader downs it: 90 dealt against 50
+      s = fx.choose(s, ['L10']);                  // the effect's target: the attacked leader itself
+      eq(s.pending.purpose, 'heal', 'the damage was dealt, the effect now asks for its heal target');
+      ok(L(s, 1, 0).down, 'the attacked leader went down in the 【アタック後】');
+      eq(s.atk.excess, 40, 'excess = 30 + 60 dealt - 50 remaining before the attack');
+      eq(XS.view(s, 0).atk.excess, 40, 'and it is visible in the view');
+    });
+  });
+
+  test('PM p.12 2-2 / FAQ #8 (TODO 2): the attack step runs the card\'s effects in printed order before the damage: a draw changes the hand a later bonus reads', () => {
+    fx.withCards(defs15, () => {
+      let s = fx.start({ decks: [fx.deckWith('ST01', [['T-DRAWFIRST', 8]]), 'ST02'] });
+      s = fx.arrange(s, (h) => h.hand(0, ['T-DRAWFIRST']));
+      s = fx.attack(s, 'T-DRAWFIRST', 0, 0);      // hand is empty after the play; the draw runs first, so "hand <= 0" is false when the bonus is read
+      const atk = find(s, 'attack')[0];
+      eq(atk.data.damage, 30, 'no +40: the draw came first');
+      ok(s.log.findIndex((e) => e.type === 'draw' && e.data.cause === 'effect') < s.log.findIndex((e) => e.type === 'damage'), 'the draw is logged before the damage');
+      eq(P(s, 0).hand.length, 1);
+      eq(L(s, 1, 0).damage, 30);
+    });
+  });
+
+  test('R-026 / PM p.14 Q3 (TODO 2, 3): Crossfire\'s down is the attack\'s down: it happens in the attack step, before the damage, is logged with cause "attack", and the 30 damage then finds the leader already down', () => {
+    let s = fx.start();
+    s = fx.arrange(s, (h) => h.hand(0, ['ST01-005']));
+    s = fx.attack(s, 'ST01-005', 0, 0);
+    const downs = find(s, 'down');
+    eq(downs.length, 1); eq(downs[0].data.cause, 'attack');
+    eq(find(s, 'damage').length, 0, 'a leader that is already down takes no damage (PM p.08)');
+    ok(L(s, 1, 0).down);
+    s = fx.settleWithFirst(s);
+    ok(L(s, 0, 0).awakened, 'the attacker still awakens');
+  });
+
+  test('FAQ #65 / FAQ #36 (TODO 4): a memoria whose only effect is an 【アタック後】 attaches to the next attack and resolves with it, once', () => {
+    fx.withCards(defs15, () => {
+      let s = fx.start({ decks: [fx.deckWith('ST01', [['T-MEMAFTER', 8]]), 'ST02'] });
+      s = fx.arrange(s, (h) => h.hand(0, ['T-MEMAFTER', 'ST01-011', 'ST01-011']));
+      s = fx.play(s, 'T-MEMAFTER');
+      eq(P(s, 0).boosts.length, 1, 'armed although it has no 【アタック強化】');
+      s = fx.attack(s, 'ST01-011', 0, 0);
+      eq(find(s, 'draw', (e) => e.data.cause === 'effect').length, 1, 'its draw resolved after the attack');
+      s = fx.attack(s, 'ST01-011', 0, 1);
+      eq(find(s, 'draw', (e) => e.data.cause === 'effect').length, 1, 'and not again on the second attack (next attack only)');
+    });
   });
 })();

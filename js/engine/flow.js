@@ -56,10 +56,34 @@
     s.turn++;
     s.roundTurn++;
     s.players[seat].tacPlayed = false;
+    for (const P of s.players) P.discards = 0;   // "このターン…捨てている" counts within one turn
     XS.log(s, seat, 'turnStart', { turn: s.turn, roundTurn: s.roundTurn });
     D.untapAll(s, seat);
     D.draw(s, seat, 1, 'turnStart');
+    // Echo (R-024): at the start of the main phase a sideways Echo card of this player is played again for free, left to right
+    const P = s.players[seat];
+    const echoes = P.play.filter((i) => P.sideways.includes(i) && XS.hasEcho(s.cards[i].id));
+    if (echoes.length > 0) s.stack.push({ k: 'echoStart', ai: 0, ans: [], seat, iids: echoes, i: 0 });
   }
+
+  // Cards that effects played for free resolve here, after the play that placed them (and everything it triggered) has finished:
+  // left to right, the order they were placed in (R-027, R-044, FAQ #70, #114). A card placed while one resolves joins the right end.
+  STEP.freeQueue = function (s, f) {
+    if (s.freeQ.length === 0) { s.stack.pop(); return; }
+    const iid = s.freeQ.shift();
+    const seat = s.cards[iid].owner;
+    if (s.cards[iid].kind === 'attack') XS.startAttackCard(s, seat, iid, null);   // a full attack: 【プレイ時】, attacker and target, the lot
+    else XS.resolvePlayed(s, seat, iid);
+  };
+  // Echo replays: each card is played again for free, sideways stays (its 【プレイ時】 runs, its boost is armed again).
+  STEP.echoStart = function (s, f) {
+    if (f.i >= f.iids.length) { s.stack.pop(); return; }
+    const iid = f.iids[f.i++];
+    if (!s.players[f.seat].play.includes(iid)) return;
+    s.stack.push({ k: 'freeQueue', ai: 0, ans: [] });
+    XS.log(s, f.seat, 'echo', { iid, cardId: s.cards[iid].id, phase: 'replay' });
+    XS.resolvePlayed(s, f.seat, iid);
+  };
   XS.startTurn = startTurn;
 
   // End phase (PM p.06, FAQ #35): 1 play-area cards to the trash (tactics face up), 2 draw one per upright PP, 3 hand limit 7.
@@ -87,17 +111,27 @@
       case 'next':
         s.stack.pop();
         XS.log(s, f.seat, 'turnEnd', { turn: s.turn });
+        for (const seat of [0, 1]) D.endBuffs(s, seat, 'turn');   // "このターン" effects end with the turn
         startTurn(s, 1 - f.seat);
         return;
       default: throw new Error('endPhase: bad step ' + f.step);
     }
   };
 
-  // Play area -> trash, left to right: tactics face up, the rest face down (PM p.06, p.11). Unused boosts end (R-014, FAQ #45).
+  // Play area -> trash, left to right: tactics face up, the rest face down (PM p.06, p.11). Unused boosts end (R-014, FAQ #45). At the end of
+  // a turn a 【ラウンド中】 card stays (its reminder text) and an upright Echo card turns sideways instead (R-024); a sideways one is trashed.
   function trashPlayArea(s, seat, cause) {
     const P = s.players[seat];
-    const iids = P.play.slice();
     P.boosts = [];
+    const iids = [];
+    for (const iid of P.play.slice()) {
+      const id = s.cards[iid].id;
+      if (cause === 'endPhase') {
+        if (XS.hasEcho(id) && !P.sideways.includes(iid)) { D.setSideways(s, seat, iid, true); XS.log(s, seat, 'echo', { iid, cardId: id, phase: 'sideways' }); continue; }
+        if (!XS.hasEcho(id) && XS.staysInPlay(id)) continue;
+      }
+      iids.push(iid);
+    }
     if (iids.length === 0) return;
     for (const iid of iids) D.moveZone(s, iid, { seat, zone: 'trash' });
     XS.log(s, seat, 'trash', { iids, cardIds: iids.map((i) => s.cards[i].id), faceUp: iids.map((i) => s.cards[i].kind === 'tactics'), cause });
@@ -185,8 +219,11 @@
       trashPlayArea(s, seat, 'roundEnd');
       D.discard(s, seat, P.hand.slice(), 'roundEnd');
       D.reviveAll(s, seat);
+      D.endBuffs(s, seat, 'turn');
+      D.endBuffs(s, seat, 'round');
       P.tacPlayed = false;
     }
+    s.lastLoser = loser;   // 直前のラウンドで負けている (cost conditions)
     s.roundLoser = null;
     s.atk = null;
     if (s.wins[winner] >= s.needWins) { endMatch(s, winner, 'rounds', [loser]); return; }

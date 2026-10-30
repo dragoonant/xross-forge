@@ -6,27 +6,13 @@ rules review, 2026-10-29, found 0 wrong behaviours for ST01/ST02); they are path
 booster cards will need.
 
 ## Before the first booster batch (from the M2 rules review, `tools/out/m2-review.md`)
-1. **Overkill excess** — today `js/engine/attack.js` records excess only from the attack's own
-   damage. FAQ #115: an 【アタック後】 that downs the attacked leader triggers later オーバーキル.
-   Done when: excess also counts 【アタック後】 damage to the attacked leader (R-005), with a test
-   driven through `apply`.
-2. **Order inside 【アタックする】** — damage is dealt first, then the card's other attack-step
-   effects. PM p.12 ②-② and FAQ #8 put damage-bonus conditions and extra effects before the
-   damage. Same final state for Crossfire/魔王降臨; wrong for draw/discard-then-bonus cards.
-   Done when: the attack step resolves the card's effects in printed order before damage (R-026
-   revised), with a test per pattern.
-3. **Crossfire / 魔王降臨 down cause** — logged `cause:'effect'`; R-026 treats it as a down by the
-   attack (awakening is already correct). Done when: logged as the attack's down.
-4. **Memoria with 【アタック後】 but no 【アタック強化】** (FAQ #65) — `js/engine/api.js` arms only
-   boost cards, so it would never attach to an attack. Done when: any memoria with an
-   【アタック後】 attaches to the next attack.
-5. **Sim leak scan skips the log** (`tools/sim.mjs`) — the review's stricter probe scanned the log
-   too (0 leaks in ~14,500 views). Done when: the sim scans `view().log` for hidden ids.
-6. **Test hygiene** — `tests/10-rules.js` mixed-tag test asserts only the positive case; some
-   fixtures use damage values that real play never produces (95, 105, 25). Done when: negative
-   case added and fixtures use multiples of 10.
-7. Unimplemented ops listed in `docs/ABILITIES.md` (Overkill, Echo, 【ラウンド中】, free play,
-   look at deck, cost modifiers, "may" choices, sanctioned BAN check R-030).
+1. ~~**Overkill excess**~~ **done 2026-10-30 (booster engine groundwork)** - `s.atk.excess` = damage dealt to the attacked leader by the attack and its effects (【アタック後】 included) minus its remaining HP before the attack (FAQ #44, #115; R-005 revised, R-063). Test `tests/10-rules.js` "R-005 / FAQ #115 (TODO 1)" failed first (excess 0, expected 40).
+2. ~~**Order inside 【アタックする】**~~ **done 2026-10-30** - the card's effects run in printed order before the damage, `dmgPlus` is an op that reads its condition at its turn (R-065, R-026 revised). Tests "PM p.12 2-2 / FAQ #8 (TODO 2)" (failed first: 70 instead of 30) and the Crossfire one.
+3. ~~**Crossfire / 魔王降臨 down cause**~~ **done 2026-10-30** - logged `cause:'attack'` (failed first: `'effect'`).
+4. ~~**Memoria with 【アタック後】 but no 【アタック強化】**~~ **done 2026-10-30** - `XS.armAttach` arms any memoria / consumable tactics with a boost or an 【アタック後】 (FAQ #65); log `boost` has `afterOnly`. Test failed first (boosts armed 0).
+5. ~~**Sim leak scan skips the log**~~ **done 2026-10-30** - `tools/sim.mjs` scans the whole view including `view().log` against what each seat was ever shown; `node tools/sim.mjs --selftest` plants ids (the old scan found 0 for a planted log id).
+6. ~~**Test hygiene**~~ **done 2026-10-30** - the mixed-tag test asserts the negative case; fixtures use multiples of 10 and `fx.arrange().damage` refuses anything else.
+7. **Booster ops** - done 2026-10-30: Overkill, Echo, 【ラウンド中】, free play, look at the deck, cost modifiers, "may" choices, equipment stats as data and equipment-granted 【アタック後】, revive, awaken, opponent/both effects, ターゲットフラッグ, conditions (docs/ABILITIES.md). Still open: replay (三銃士, グレイトフルファーマー), ジェイルブレイク, メカニカルエキスパート, 運命のルーレット, 追加マガジン, テラーエンゲージ, the sanctioned BAN check (R-030). The UI prompt needs labels for the new pending purposes (`look`, `reveal`, `may`, `freePlay`, `revive`, `awaken`) in `js/ui/prompt.js` (`PURPOSE_LABEL`, `PROMPT_PURPOSE`, the `verb` table) before a booster deck is playable in the browser.
 
 ## Client
 8. ~~**AI worker cache-busting**~~ **done 2026-10-30 (M7)** — — `js/ai/worker.js` and its `importScripts` list are not `?v=`-stamped (only `index.html` assets are), so a change to the worker alone can be served stale for up to Pages' 10-minute cache. Done when: `tools/stamp-assets.mjs` stamps the worker URL and its imports, and `--check` covers them.

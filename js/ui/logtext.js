@@ -65,8 +65,10 @@
       ` from the tactics area (${e.data.subtype === 'equipment' ? 'equipment' : 'one-use'}, ${e.data.cost} PP).`],
     equip: (e, v) => [cardRef(v, e.data.iid, e.data.cardId), ' is equipped to ', leaderRef(v, e.data.leader), '.'],
     boost: (e, v) => (e.data.phase === 'armed'
-      ? [cardRef(v, e.data.iid, e.data.cardId), ` is armed: ${e.seat === v.viewer ? 'your' : "the opponent's"} next attack gets stronger.`]
-      : [cardRef(v, e.data.iid, e.data.cardId), ` adds ${e.data.amount} damage to the attack.`]),
+      ? [cardRef(v, e.data.iid, e.data.cardId), e.data.afterOnly === true
+        ? ` is armed: ${e.seat === v.viewer ? 'your' : "the opponent's"} next attack gets its After Attack effect.`
+        : ` is armed: ${e.seat === v.viewer ? 'your' : "the opponent's"} next attack gets stronger.`]
+      : [cardRef(v, e.data.iid, e.data.cardId), e.data.amount === 0 ? ' adds its effect to the attack.' : ` adds ${e.data.amount} damage to the attack.`]),
     attack: (e, v) => {
       const p = e.data.parts;
       const bits = [`ATK ${p.atk}`];
@@ -98,10 +100,37 @@
       ? `Match over: nobody wins (${REASON[e.data.reason]}).`
       : `Match over: ${e.data.winner === v.viewer ? 'you win' : 'the opponent wins'} (${REASON[e.data.reason]}). ` +
         `Rounds ${e.data.wins[v.viewer]} to ${e.data.wins[1 - v.viewer]}.`],
+    overkill: (e, v) => ['Overkill ' + e.data.n + '! ', leaderRef(v, e.data.leader), ` took ${e.data.excess} more than it had left, so `, cardRef(v, e.data.card), ' takes effect.'],
+    echo: (e, v) => [cardRef(v, e.data.iid, e.data.cardId), e.data.phase === 'sideways'
+      ? ' echoes: it stays in the play area, turned sideways.'
+      : ' echoes: it is played again for free.'],
+    look: (e, v) => lookLine(e, v),
+    freePlay: (e, v) => [`${U.who(v, e.seat)} play${e.seat === v.viewer ? '' : 's'} `, cardRef(v, e.data.iid, e.data.cardId),
+      ` for free (${e.data.type}, from the ${e.data.from === 'deck' ? 'cards looked at' : 'hand'}).`],
+    revive: (e, v) => [leaderRef(v, e.data.leader), ' is back on its feet' + (e.data.equipment.length ? ', and its equipment goes to the trash: ' : '.'),
+      ...cardList(v, e.data.equipment, e.data.cardIds)],
     fizzle: (e, v) => [cardRef(v, e.data.src, e.data.cardId), e.data.reason === 'emptyHand'
       ? ': there was no card in hand, so nothing happened.'
       : ': there was nothing to target, so nothing happened.'],
   };
+  // `look` entries: looking at / revealing / taking / trashing cards of a deck or the hand. The other seat gets only counts when the cards
+  // were not revealed (data.hidden), so no card is named for them.
+  function lookLine(e, v) {
+    const d = e.data;
+    const me = e.seat === v.viewer;
+    const who = U.who(v, e.seat), s = me ? '' : 's';
+    const deckOf = d.side === v.viewer ? 'your deck' : "the opponent's deck";
+    const cards = d.hidden === true ? [U.plural(d.n, 'card')] : cardList(v, d.iids, d.cardIds);
+    switch (d.phase) {
+      case 'see': return [`${who} look${s} at the top `, ...cards, ` of ${deckOf}.`];
+      case 'reveal': return d.from === 'hand'
+        ? [`${who} reveal${s} `, ...cards, ' from hand.']
+        : [`${who} reveal${s} the top `, ...cards, ` of ${deckOf}.`];
+      case 'take': return [`${who} add${s} `, ...cards, ' to hand.'];
+      case 'trash': return [`${who} put${me ? '' : 's'} `, ...cards, ` from ${deckOf} into the trash.`];
+      default: throw new Error('ui/logtext: unknown look phase ' + d.phase);
+    }
+  }
   const TIMING = { onPlay: 'play', attack: 'attack', afterAttack: 'after-attack', boost: 'boost', onAwaken: 'awaken', round: 'round', static: 'passive' };
 
   function timingWord(t) {

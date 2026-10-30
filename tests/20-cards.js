@@ -136,7 +136,7 @@
 
   test('ST01-008 Winning Blow [After Attack]: if the attacked leader is down, draw 1 card; otherwise nothing', () => {
     let s = fx.start();
-    s = fx.arrange(s, (h) => { h.hand(0, ['ST01-008']); h.damage(1, 0, 95); });
+    s = fx.arrange(s, (h) => { h.hand(0, ['ST01-008']); h.damage(1, 0, 90); });
     s = fx.attack(s, 'ST01-008', 1, 0);       // Toto
     s = fx.settleWithFirst(s);
     eq(find(s, 'draw', (e) => e.data.cause === 'effect').length, 1, 'down -> drew');
@@ -320,7 +320,7 @@
 
   test('ST02-008 Killing Spree [After Attack]: if the attacked leader is down, 20 damage to 1 other opposing leader; otherwise nothing', () => {
     let s = fx.start({ decks: ['ST02', 'ST01'] });
-    s = fx.arrange(s, (h) => { h.hand(0, ['ST02-008']); h.damage(1, 0, 95); });
+    s = fx.arrange(s, (h) => { h.hand(0, ['ST02-008']); h.damage(1, 0, 90); });
     s = fx.attack(s, 'ST02-008', 0, 0);
     eq(s.pending.options, ['L11', 'L12', 'L13']); ok(/20 damage/.test(s.pending.prompt));
     s = fx.choose(s, ['L11']);
@@ -328,7 +328,7 @@
     let t = fx.arrange(fx.start({ decks: ['ST02', 'ST01'] }), (h) => h.hand(0, ['ST02-008']));
     t = fx.attack(t, 'ST02-008', 0, 0);
     eq(t.pending, null, 'attacked leader not down: nothing happens'); eq(L(t, 1, 1).damage, 0);
-    let u = fx.arrange(fx.start({ decks: ['ST02', 'ST01'] }), (h) => { h.hand(0, ['ST02-008']); h.damage(1, 0, 95); h.down(1, 2); h.down(1, 3); });
+    let u = fx.arrange(fx.start({ decks: ['ST02', 'ST01'] }), (h) => { h.hand(0, ['ST02-008']); h.damage(1, 0, 90); h.down(1, 2); h.down(1, 3); });
     u = fx.attack(u, 'ST02-008', 0, 0);
     eq(u.pending.options, ['L11'], 'single candidate still asked');
   });

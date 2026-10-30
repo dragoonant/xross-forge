@@ -21,31 +21,52 @@ if (!fs.existsSync(DUMP) && !selftest) {
 }
 const XS = loadPage('tests.html').XS;
 
+// Keywords with no 【tag】: each must appear in the compiled entry (オーバーキル as an `overkill` condition, エコー as the `echo` op) and vice versa.
+const KEYWORDS = ['オーバーキル', 'エコー'];
 const zen = (t) => t.replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
 function printed(text) {
   const t = zen(text || '').replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '');
   const tags = new Set([...t.matchAll(/【([^】]+)】/g)].map((m) => m[1]));
   const numbers = new Set([...t.replace(/【[^】]*】/g, '').matchAll(/\d+/g)].map((m) => +m[0]));
-  return { tags, numbers };
+  const keywords = new Set(KEYWORDS.filter((k) => t.includes(k)));
+  return { tags, numbers, keywords };
 }
-function compiled(entry) {
+// Keys whose numbers are structure, not printed amounts (the step of a split, "may" = min 0).
+const STRUCTURAL = new Set(['unit', 'min']);
+function compiled(entry, card) {
   const nums = new Set();
   const walk = (v, key) => {
-    if (typeof v === 'number') { if (key !== 'unit') nums.add(v); }
+    if (typeof v === 'number') { if (!STRUCTURAL.has(key)) nums.add(Math.abs(v)); }   // ダメージ-20 / コストを-1: the printed digits carry no sign
     else if (Array.isArray(v)) v.forEach((x) => walk(x, key));
     else if (v && typeof v === 'object') for (const k of Object.keys(v)) walk(v[k], k);
   };
   walk(entry.effects, '');
+  if (card && card.equip) walk(card.equip, 'equip');   // equipment stats live on the card (CARDS.equip), printed as 体力+30
   const tags = new Set(entry.effects.filter((e) => e.timing !== 'static').map((e) => TAG[e.timing]));
-  return { tags, numbers: nums };
+  // keywords printed without a tag: オーバーキルN (a condition `overkill` on an op) and エコー (the static `echo` marker)
+  const kw = new Set();
+  const scan = (v) => {
+    if (Array.isArray(v)) v.forEach(scan);
+    else if (v && typeof v === 'object') {
+      if (v.c === 'overkill') kw.add('オーバーキル');
+      if (v.op === 'echo') kw.add('エコー');
+      Object.values(v).forEach(scan);
+    }
+  };
+  scan(entry.effects);
+  return { tags, numbers: nums, kw };
 }
-function audit(text, entry) {
+function audit(text, entry, card) {
   const fails = [];
-  const p = printed(text), c = compiled(entry);
+  const p = printed(text), c = compiled(entry, card);
   for (const n of p.numbers) if (!c.numbers.has(n)) fails.push(`printed number ${n} is missing from the compiled entry`);
   for (const n of c.numbers) if (!p.numbers.has(n)) fails.push(`compiled number ${n} is not printed on the card`);
   for (const t of p.tags) if (!c.tags.has(t)) fails.push(`printed tag 【${t}】 has no effect`);
   for (const t of c.tags) if (!p.tags.has(t)) fails.push(`effect for 【${t}】 is not printed on the card`);
+  for (const k of KEYWORDS) {
+    if (p.keywords.has(k) && !c.kw.has(k)) fails.push(`printed keyword ${k} has no compiled counterpart`);
+    if (c.kw.has(k) && !p.keywords.has(k)) fails.push(`compiled keyword ${k} is not printed on the card`);
+  }
   return fails;
 }
 
@@ -60,13 +81,31 @@ if (selftest) {
     ['extra tag', mut((e) => { e.effects.push({ timing: 'boost', ops: [] }); }), 1],
     ['dropped clause', mut((e) => { e.effects[1].ops = []; }), 1],
   ];
+  // keywords (no tag): the printed text names オーバーキル30 / エコー; the entry must carry them, and only then
+  const ok = { effects: [{ timing: 'attack', ops: [] }, { timing: 'afterAttack', ops: [{ op: 'draw', n: 2, if: { c: 'overkill', n: 30 } }] }] };
+  const okText = '【アタックする】\n【アタック後】オーバーキル30：カードを2枚引く。（reminder 30 words）';
+  const kwCases = [
+    ['overkill compiled', okText, ok, 0],
+    ['overkill printed, condition dropped', okText, { effects: [ok.effects[0], { timing: 'afterAttack', ops: [{ op: 'draw', n: 2 }] }] }, 1],
+    ['overkill compiled but not printed', '【アタックする】\n【アタック後】カードを2枚引く。 30', ok, 1],
+    ['overkill with a wrong N', okText, { effects: [ok.effects[0], { timing: 'afterAttack', ops: [{ op: 'draw', n: 2, if: { c: 'overkill', n: 20 } }] }] }, 2],
+    ['echo printed, op missing', '【プレイ時】カードを1枚引く。\nエコー（reminder）', { effects: [{ timing: 'onPlay', ops: [{ op: 'draw', n: 1 }] }] }, 1],
+    ['echo compiled', '【プレイ時】カードを1枚引く。\nエコー（reminder）', { effects: [{ timing: 'onPlay', ops: [{ op: 'draw', n: 1 }] }, { timing: 'static', ops: [{ op: 'echo' }] }] }, 0],
+    ['negative cost modifier prints without a sign', 'このカードのコストを-1する。', { effects: [{ timing: 'static', ops: [{ op: 'costMod', n: -1 }] }] }, 0],
+    ['equipment stat read from CARDS.equip', '体力+30', { effects: [] }, 0, { equip: { hp: 30 } }],
+  ];
   let bad = 0;
   for (const [name, entry, min] of cases) {
     const n = audit(text, entry).length;
     const ok = min === 0 ? n === 0 : n >= min;
     if (!ok) { bad++; console.log(`FAIL selftest ${name}: ${n} findings, wanted ${min === 0 ? 0 : '>= ' + min}`); }
   }
-  console.log(bad ? 'audit-cards: selftest FAILED' : `audit-cards: selftest ok (${cases.length} cases)`);
+  for (const [name, txt, entry, min, card] of kwCases) {
+    const n = audit(txt, entry, card).length;
+    const okk = min === 0 ? n === 0 : n >= min;
+    if (!okk) { bad++; console.log(`FAIL selftest ${name}: ${n} findings, wanted ${min === 0 ? 0 : '>= ' + min}`); }
+  }
+  console.log(bad ? 'audit-cards: selftest FAILED' : `audit-cards: selftest ok (${cases.length + kwCases.length} cases)`);
   process.exit(bad ? 1 : 0);
 }
 
@@ -82,7 +121,7 @@ for (const no of Object.keys(XS.CARDS)) {
   const entry = XS.ABIL[no];
   if (!r) { console.log(`FAIL ${no}: not in the card dump`); fails++; continue; }
   if (!entry) { console.log(`FAIL ${no}: no entry in data/abilities.js`); fails++; continue; }
-  const f = audit(r.effect, entry);
+  const f = audit(r.effect, entry, XS.CARDS[no]);
   for (const m of f) { console.log(`FAIL ${no} ${XS.CARDS[no].nameEn}: ${m}`); fails++; }
   const p = printed(r.effect);
   nums += p.numbers.size; tags += p.tags.size;
