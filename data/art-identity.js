@@ -247,7 +247,7 @@
       },
       // BP04-013 Inui Shinichirou (REJECT): ninja, spiky brown hair, headband, red scarf, navy wave-print top.
       'BP04-013': {
-        head: 'a young man with spiky brown hair, a navy forehead-guard headband, light green eyes, light stubble and a confident wide grin',
+        head: 'a young man with spiky brown hair, a plain navy cloth headband tied across his forehead, light green eyes, light stubble and a confident wide grin',
         outfit: 'a navy short-sleeved ninja top with a blue wave pattern over mesh, a long red scarf, black fingerless gloves and arm guards, a sword hilt over one shoulder',
         pose: 'two fingers raised in a ninja hand seal, leaning into a ready stance',
         palette: 'navy, red, brown and blue',
@@ -333,7 +333,7 @@
       // Link Assault [A03 nqrse + Inui]
       'BP01-044': '{BP01-016:head} and {BP04-013:head} dash side by side across a bridge of floating neon hexagon tiles over a night skyline, a long chain of glowing links passing from one to the other',
       // Crazy Burst [C04 Zuzu]
-      'BP01-045': '{BP03-005} bounces wildly through the night sky over an amusement park, a ring of rainbow fireworks bursting outward in every direction, streamers swirling around a manic grin',
+      'BP01-045': '{BP03-005} bounces wildly through the night sky above a dark open field of cheering silhouettes, a ring of rainbow fireworks bursting outward in every direction, streamers swirling around a manic grin',
       // Prank Drone [C06 Sena]
       'BP01-047': '{BP01-013} giggles behind one hand in a moonlit mansion hallway while a small round drone zooms off trailing pink streamers and dropping confetti on a gloomy party',
       // Thrifty Play [C07 Arisaka]
@@ -361,7 +361,7 @@
       // Taken Down with Shadow [C02 Mondo]
       'BP03-023': '{ST02-002} stands under a single lamp in a dim arena, his long shadow on the floor stretching into a second figure that drags a target drone down with it, the gold hook cane in his hand',
       // Ruthless Feud [A02 Zuzu + Kuromu]
-      'BP03-027': '{BP03-005:head} and {BP04-008:head} glare at each other across a rain-slick neon alley, lightning cracking between their raised fists, steam rising from the pavement',
+      'BP03-027': '{BP03-005:head} and {BP04-008:head} glare at each other across a rain-slick dark alley lit only by bare neon tubes, lightning cracking between their raised fists, steam rising from the pavement',
       // Power Setup [A02 Kokage]
       'BP03-028': '{BP03-006} kneels beside a glass-sided gaming PC tower glowing blue, tightening a cable with a screwdriver, a headset around her neck, glowing cables looping across a tidy practice-room floor',
       // Demon's Pursuit [C01 Mondo]
@@ -381,9 +381,9 @@
       // Shield Slam [A02 Zuzu]
       'BP04-030': '{BP03-005} charges forward behind a big round glowing shield and slams through a wall of target drones, shockwave rings spreading, a toothy grin',
       // Invasion Begins [C07 Tooko]
-      'BP04-037': '{BP04-012} marches across a giant playroom floor at the head of a parade of chunky toy soldiers toward a toy castle, one arm pointing forward, a confident smile',
+      'BP04-037': '{BP04-012} marches across a plain pastel carpet at the head of a parade of chunky toy soldiers toward a toy castle, bare soft-coloured walls, one arm pointing forward, a confident smile',
       // Annihilation [C01 Kuromu + Ras]
-      'BP04-038': '{BP04-008:head} and {ST02-004:head} stand back to back as an enormous column of multicoloured light erupts from the stage between them, shockwave rings and flying sparkles',
+      'BP04-038': '{BP04-008:head} kneels on one knee beside {ST02-004:head}, the tiny cat avatar at her side at half her height, looking up as an enormous column of multicoloured light erupts from the stage behind them, shockwave rings and flying sparkles',
       // Great Whirlwind [A03 Inui]
       'BP04-039': '{BP04-013} spins like a top on a sunset rooftop with his red scarf and a swirling tornado of leaves and petals around him, arms spread wide',
       // Earth Surfer [A03 nqrse]
@@ -427,7 +427,7 @@
       // Popular Food Truck [C04 Zuzu]
       'BP03-070': '{BP03-005} cheerfully serves steaming skewers through the window of a small food truck with a striped awning, a long queue of silhouettes under glowing string lights on a warm night street',
       // Careful Preparation [C07 Wokka]
-      'BP04-048': '{BP04-001} sits on a bench tying his sneaker beside neat rows of gadgets laid out before a match, a calm focused look, warm backstage light',
+      'BP04-048': '{BP04-001} sits on a bench tying his sneaker beside neat rows of gadgets laid out on a plain dark floor before a match, bare walls, a calm focused look, warm backstage light',
       // What is This Guy... [C05 Hanabi + Dogura]
       'BP04-049': '{BP02-004:head} gapes in confused shock with a sweat drop at {BP02-014:head}, who sits placidly with the mantis on his head sipping a drink, a bright stage corner',
       // Peaceful Moment [C07 Ramune]

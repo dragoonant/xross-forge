@@ -801,6 +801,1276 @@
       "estCostUSD": 0,
       "seed": 470257688,
       "promptSha1": "b19244970b96c6b14912febca459327c8356ed93"
+    },
+    {
+      "date": "2026-10-30T05:29:40.730Z",
+      "key": "BP02-078",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 8,
+      "estCostUSD": 0,
+      "seed": 1267905365,
+      "promptSha1": "7b2dde469916dd3e9f8b9797c86fa6f06a53bf04"
+    },
+    {
+      "date": "2026-10-30T05:29:45.310Z",
+      "key": "BP03-014",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 998419792,
+      "promptSha1": "138eb9e4dad8fd01973e9722be65cc9c4c89c1de"
+    },
+    {
+      "date": "2026-10-30T05:29:49.902Z",
+      "key": "BP04-056",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 530296272,
+      "promptSha1": "79376163e7035a4117b1e8b89ecf96fdca4aaa15"
+    },
+    {
+      "date": "2026-10-30T05:30:30.525Z",
+      "key": "BP01-003",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 8,
+      "estCostUSD": 0,
+      "seed": 1059854235,
+      "promptSha1": "d2977cf15c707cb71c8eecacfc0d4cad7ed45fd9"
+    },
+    {
+      "date": "2026-10-30T05:30:35.124Z",
+      "key": "BP01-003/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 659412046,
+      "promptSha1": "83fb84df4d4b3f71d59e8b84b3b0fd650fe840c9"
+    },
+    {
+      "date": "2026-10-30T05:30:38.199Z",
+      "key": "BP01-013",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 611831836,
+      "promptSha1": "d2a1a29e8c630e12c6752c724003d35ee3835068"
+    },
+    {
+      "date": "2026-10-30T05:30:42.804Z",
+      "key": "BP01-013/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 341770942,
+      "promptSha1": "abab34f149c8c8ae5c0780c78192169d379446bc"
+    },
+    {
+      "date": "2026-10-30T05:30:45.875Z",
+      "key": "BP01-014",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 51315686,
+      "promptSha1": "6d19b884382cfd846953111975dcb1dea4f513fd"
+    },
+    {
+      "date": "2026-10-30T05:30:50.473Z",
+      "key": "BP01-014/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 857892257,
+      "promptSha1": "541e05c042891d9c48593dcb4b089e96676be335"
+    },
+    {
+      "date": "2026-10-30T05:30:55.071Z",
+      "key": "BP01-016",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1766460328,
+      "promptSha1": "154a04bd71111a1f99c03d9506f89cf5befc0fd1"
+    },
+    {
+      "date": "2026-10-30T05:30:59.655Z",
+      "key": "BP01-016/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 104944279,
+      "promptSha1": "cb04d557d2e426c939cc89180685b1ea7d304e48"
+    },
+    {
+      "date": "2026-10-30T05:31:04.262Z",
+      "key": "BP01-018",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1066907762,
+      "promptSha1": "8337c0f1466fd7a3695459a3a690d7b1a563c73c"
+    },
+    {
+      "date": "2026-10-30T05:31:07.343Z",
+      "key": "BP01-023",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 474674068,
+      "promptSha1": "05169dbe1f1f9173d0f5a224229ede2731b6e5c3"
+    },
+    {
+      "date": "2026-10-30T05:31:11.940Z",
+      "key": "BP01-027",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 932593984,
+      "promptSha1": "4ae92073200efcc21069bb6d8e04161b84525e0d"
+    },
+    {
+      "date": "2026-10-30T05:31:16.549Z",
+      "key": "BP01-043",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 524149374,
+      "promptSha1": "5ba40d62290bdaa167eec3d452cdf6ced86094fa"
+    },
+    {
+      "date": "2026-10-30T05:31:19.627Z",
+      "key": "BP01-044",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 547781716,
+      "promptSha1": "6dff778928450ad973fcaf5ff9355947c902f6c4"
+    },
+    {
+      "date": "2026-10-30T05:31:22.699Z",
+      "key": "BP01-045",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1223701940,
+      "promptSha1": "5deb5f3b9f82d25ec5813ca4f8d0ff752c1fe808"
+    },
+    {
+      "date": "2026-10-30T05:31:27.305Z",
+      "key": "BP01-047",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1674269443,
+      "promptSha1": "e1b4f345c5955938e0e7fa0d5ff001577b8ec23d"
+    },
+    {
+      "date": "2026-10-30T05:31:31.897Z",
+      "key": "BP01-048",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 89861800,
+      "promptSha1": "7b0b124ea22657099009b24d80d48122c27cd8f2"
+    },
+    {
+      "date": "2026-10-30T05:31:36.488Z",
+      "key": "BP01-059",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1488616461,
+      "promptSha1": "a72b6215e00a1441b4b4fd4ce2008cdbbf373f73"
+    },
+    {
+      "date": "2026-10-30T05:31:41.090Z",
+      "key": "BP01-061",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 2042838247,
+      "promptSha1": "e493466922ba5813973916f93c3a1d1a7356a9c3"
+    },
+    {
+      "date": "2026-10-30T05:31:45.687Z",
+      "key": "BP01-071",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1155124428,
+      "promptSha1": "f43c729d8641ce61c3f05aadb17cf7aab9c9e794"
+    },
+    {
+      "date": "2026-10-30T05:31:50.280Z",
+      "key": "BP01-083",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1447745811,
+      "promptSha1": "eedee562951380f2a3a435e82165622298564cc6"
+    },
+    {
+      "date": "2026-10-30T05:31:54.875Z",
+      "key": "BP01-088",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1013458235,
+      "promptSha1": "be0f33920a518009586d2261833bf7954d2208fa"
+    },
+    {
+      "date": "2026-10-30T05:31:59.482Z",
+      "key": "BP01-092",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1908660725,
+      "promptSha1": "b1f2f47e8ce04ce4cd89ea3c75220db82e9cf427"
+    },
+    {
+      "date": "2026-10-30T05:32:02.556Z",
+      "key": "BP01-093",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1232740499,
+      "promptSha1": "4c01adf59bb5358025393a61597261d9fc3d06a3"
+    },
+    {
+      "date": "2026-10-30T05:32:07.155Z",
+      "key": "BP01-094",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1209108159,
+      "promptSha1": "86c84bf4f6cb6ac72b34711946ca352045822550"
+    },
+    {
+      "date": "2026-10-30T05:32:11.746Z",
+      "key": "BP02-004",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1985278022,
+      "promptSha1": "2b52c8daf8ef459988e7d5ae188881c01290c80c"
+    },
+    {
+      "date": "2026-10-30T05:32:14.836Z",
+      "key": "BP02-004/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 2031520642,
+      "promptSha1": "64571b4ddce7f122813e2ef2176548ab6e3a4dff"
+    },
+    {
+      "date": "2026-10-30T05:32:17.918Z",
+      "key": "BP02-010",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1846540492,
+      "promptSha1": "e02f914cc3e8522cae71735868a7b40aea702472"
+    },
+    {
+      "date": "2026-10-30T05:32:24.010Z",
+      "key": "BP02-010/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 6,
+      "estCostUSD": 0,
+      "seed": 677426734,
+      "promptSha1": "02a93f777eddc7708d1e7c88236ab881eb216554"
+    },
+    {
+      "date": "2026-10-30T05:32:28.604Z",
+      "key": "BP02-014",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 696472008,
+      "promptSha1": "3ae395cbc26dde59e3bdc77ffbaab85c8a7fc221"
+    },
+    {
+      "date": "2026-10-30T05:32:33.213Z",
+      "key": "BP02-014/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1744794546,
+      "promptSha1": "7f86b08485ff89b71af41a1291147635a46fefcc"
+    },
+    {
+      "date": "2026-10-30T05:32:37.820Z",
+      "key": "BP02-018",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1154391924,
+      "promptSha1": "21e34310eaca1716de7ca8090d35772d2016481c"
+    },
+    {
+      "date": "2026-10-30T05:32:42.426Z",
+      "key": "BP02-023",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 717507661,
+      "promptSha1": "5f94049df04bb12b807bd82a3c59e4d7aec22054"
+    },
+    {
+      "date": "2026-10-30T05:32:45.501Z",
+      "key": "BP02-026",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 126239307,
+      "promptSha1": "d6275835d6298a4b49e87eb5cb1231e3c18ad9b9"
+    },
+    {
+      "date": "2026-10-30T05:32:50.106Z",
+      "key": "BP02-032",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1924156563,
+      "promptSha1": "495bd7244b098f1aaa71947b91f9042dc1b8c07a"
+    },
+    {
+      "date": "2026-10-30T05:32:54.701Z",
+      "key": "BP02-035",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1900524223,
+      "promptSha1": "4829df7600c536c1e0e21d4acacacf4dc3e58408"
+    },
+    {
+      "date": "2026-10-30T05:32:59.281Z",
+      "key": "BP02-040",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 989093391,
+      "promptSha1": "48481b23e88934d6c737b280ddf59fd375610428"
+    },
+    {
+      "date": "2026-10-30T05:33:03.888Z",
+      "key": "BP02-042",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 19818993,
+      "promptSha1": "eb5ba834cb6592d62de793bfaf93d6226ffbb30c"
+    },
+    {
+      "date": "2026-10-30T05:33:08.471Z",
+      "key": "BP02-046",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1709382724,
+      "promptSha1": "480a66681e96ccab95c2ec329e53fc7f6c0c9067"
+    },
+    {
+      "date": "2026-10-30T05:33:13.075Z",
+      "key": "BP02-051",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1468048960,
+      "promptSha1": "a9d53ca6033334bf747a7bc8ca5a7561de9e1925"
+    },
+    {
+      "date": "2026-10-30T05:33:16.155Z",
+      "key": "BP02-054",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 313472051,
+      "promptSha1": "fcaea35dcdbe0437441bb36b0e200d85b58d0d0d"
+    },
+    {
+      "date": "2026-10-30T05:33:20.751Z",
+      "key": "BP02-063",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1853332833,
+      "promptSha1": "473e59f1a526845ec9f51c1e948de77a3a2e0c31"
+    },
+    {
+      "date": "2026-10-30T05:33:25.337Z",
+      "key": "BP02-068",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1137551925,
+      "promptSha1": "068d26e9e8eadec9cab989db8aefcf0a0dc1f38f"
+    },
+    {
+      "date": "2026-10-30T05:33:29.921Z",
+      "key": "BP02-070",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1939265581,
+      "promptSha1": "470e5f560736995c103bd0e90e5a0914c16aa3db"
+    },
+    {
+      "date": "2026-10-30T05:33:34.505Z",
+      "key": "BP02-076",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 242349435,
+      "promptSha1": "07d0010e02b9d8d6c09d54d5eb241a080d2d03a7"
+    },
+    {
+      "date": "2026-10-30T05:33:39.088Z",
+      "key": "BP03-003",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 319954464,
+      "promptSha1": "4c2e3425416dff6d2c0d3cf3442f1b9164f940f9"
+    },
+    {
+      "date": "2026-10-30T05:33:43.703Z",
+      "key": "BP03-003/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1256735824,
+      "promptSha1": "4f01aba27f8e38476743476d1d988576e9911191"
+    },
+    {
+      "date": "2026-10-30T05:33:49.822Z",
+      "key": "BP03-004",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 6,
+      "estCostUSD": 0,
+      "seed": 2012362185,
+      "promptSha1": "ee6f948cd682d3bf46a5c0e47264ca89458b95b9"
+    },
+    {
+      "date": "2026-10-30T05:33:54.403Z",
+      "key": "BP03-004/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 413558257,
+      "promptSha1": "7cc7f83233978f8d323c2a162078140e90bbdcd3"
+    },
+    {
+      "date": "2026-10-30T05:33:59.026Z",
+      "key": "BP03-005",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 291813699,
+      "promptSha1": "ec437f17063c2301f4c931cc3c0e2e575884e59d"
+    },
+    {
+      "date": "2026-10-30T05:34:03.619Z",
+      "key": "BP03-005/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1697684918,
+      "promptSha1": "3875a0c55b4d4fc13c9b8752f5c4f57dc6a72145"
+    },
+    {
+      "date": "2026-10-30T05:34:08.204Z",
+      "key": "BP03-006",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1312809619,
+      "promptSha1": "f27146c098a85694677c75af3ec8826993ea303d"
+    },
+    {
+      "date": "2026-10-30T05:34:12.779Z",
+      "key": "BP03-006/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1444069846,
+      "promptSha1": "a843a53bd14b6d4dbdfca58d7e72fd5bc6166644"
+    },
+    {
+      "date": "2026-10-30T05:34:17.348Z",
+      "key": "BP03-014/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 53982911,
+      "promptSha1": "15caeb6baf774a9187e317cef043934bd544a718"
+    },
+    {
+      "date": "2026-10-30T05:34:21.927Z",
+      "key": "BP03-017",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1561495798,
+      "promptSha1": "411938cf4efc1f70892ab1960d3952111726b01b"
+    },
+    {
+      "date": "2026-10-30T05:34:25.004Z",
+      "key": "BP03-018",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 695764636,
+      "promptSha1": "28ac64ebe624dbd79da0216f1d036761e910ab16"
+    },
+    {
+      "date": "2026-10-30T05:34:29.617Z",
+      "key": "BP03-022",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 784626045,
+      "promptSha1": "dfaec361f6945a40b5a95abde211236dc3b5beea"
+    },
+    {
+      "date": "2026-10-30T05:34:34.197Z",
+      "key": "BP03-023",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 674677398,
+      "promptSha1": "affd8de52a592936d522febc2cfd6d20a65a13d2"
+    },
+    {
+      "date": "2026-10-30T05:34:38.783Z",
+      "key": "BP03-027",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 214146043,
+      "promptSha1": "ba8d0d6c1bda80bed2496eb77bd7a8320408fbf7"
+    },
+    {
+      "date": "2026-10-30T05:34:41.860Z",
+      "key": "BP03-028",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1540460143,
+      "promptSha1": "5ac27ab80f3c20ca7030d4263925bd199e9c21f1"
+    },
+    {
+      "date": "2026-10-30T05:34:46.447Z",
+      "key": "BP03-032",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 941540488,
+      "promptSha1": "e2671aa4541ad928e3bb628a0737e4fc99bb22f8"
+    },
+    {
+      "date": "2026-10-30T05:34:51.038Z",
+      "key": "BP03-038",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1218666318,
+      "promptSha1": "aba670085152ccee2d3d42e0a87e240f4429b235"
+    },
+    {
+      "date": "2026-10-30T05:34:55.628Z",
+      "key": "BP03-042",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 677606059,
+      "promptSha1": "352c254497d6eba3f72565246325f8ffa78490a8"
+    },
+    {
+      "date": "2026-10-30T05:35:00.211Z",
+      "key": "BP03-050",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1012663104,
+      "promptSha1": "47abb93948ecb3390de9ccf0d5f54143bae66901"
+    },
+    {
+      "date": "2026-10-30T05:35:04.791Z",
+      "key": "BP03-051",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 855501360,
+      "promptSha1": "f90731c50f4b27b4421fa792e6422d38b04ba805"
+    },
+    {
+      "date": "2026-10-30T05:35:09.383Z",
+      "key": "BP03-053",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1575790693,
+      "promptSha1": "a188be61bad69df660734f20c46904d44dca0435"
+    },
+    {
+      "date": "2026-10-30T05:35:13.979Z",
+      "key": "BP03-055",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 2005569844,
+      "promptSha1": "471ba83c9f5f8e162d5ed37efbd090ec14f33df0"
+    },
+    {
+      "date": "2026-10-30T05:35:17.052Z",
+      "key": "BP03-056",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 984522339,
+      "promptSha1": "eb1f00c8d398d3ca3f79171a8dcaa340e40beb78"
+    },
+    {
+      "date": "2026-10-30T05:35:21.625Z",
+      "key": "BP03-059",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1547649928,
+      "promptSha1": "5ab1ce46d8bae34cfc81f097d81e4243c165b88a"
+    },
+    {
+      "date": "2026-10-30T05:35:26.222Z",
+      "key": "BP03-070",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 447774787,
+      "promptSha1": "81f586a0c2c2a16d09fbbdc9e0ca84e37cd8e0b3"
+    },
+    {
+      "date": "2026-10-30T05:35:29.288Z",
+      "key": "BP03-077",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 318702223,
+      "promptSha1": "9f1d5df1d07f3dd098c52f5c2f707fa283d46f98"
+    },
+    {
+      "date": "2026-10-30T05:35:33.864Z",
+      "key": "BP03-078",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1139923355,
+      "promptSha1": "6486ffde25237a6d06273d594e680239afc878d4"
+    },
+    {
+      "date": "2026-10-30T05:35:38.436Z",
+      "key": "BP03-079",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 712988194,
+      "promptSha1": "e3df0b3c943b7754e6d9d61277c51805c31064fc"
+    },
+    {
+      "date": "2026-10-30T05:35:43.029Z",
+      "key": "BP03-080",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 262121805,
+      "promptSha1": "7b62ec3ddaf8948a7399ad2e11e2f07c878d475c"
+    },
+    {
+      "date": "2026-10-30T05:35:47.603Z",
+      "key": "BP04-001",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 889200108,
+      "promptSha1": "dfdec28cd7a9a516b781bf42dd63099a48cabab2"
+    },
+    {
+      "date": "2026-10-30T05:35:52.198Z",
+      "key": "BP04-001/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 882704975,
+      "promptSha1": "151085b1fe497885fd171d659df8ee8d6197645f"
+    },
+    {
+      "date": "2026-10-30T05:35:56.795Z",
+      "key": "BP04-002",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 2036476187,
+      "promptSha1": "9c49b52f08443d47cfb397d1e46079f6dc27c107"
+    },
+    {
+      "date": "2026-10-30T05:35:59.879Z",
+      "key": "BP04-002/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1640001742,
+      "promptSha1": "e4f1e9d0136c1a0cf66e4038b2fc50ab18ec46b1"
+    },
+    {
+      "date": "2026-10-30T05:36:04.492Z",
+      "key": "BP04-006",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 349523895,
+      "promptSha1": "a2ff9409669cc809b0480c75e9475a223ea3266f"
+    },
+    {
+      "date": "2026-10-30T05:36:09.096Z",
+      "key": "BP04-006/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1022560305,
+      "promptSha1": "3d249b7d56665300c131f1d737fc1ae3cd0966ae"
+    },
+    {
+      "date": "2026-10-30T05:36:13.706Z",
+      "key": "BP04-008",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 893760116,
+      "promptSha1": "9b7fa3072348eab594e0b48366e23dcf5df54995"
+    },
+    {
+      "date": "2026-10-30T05:36:16.780Z",
+      "key": "BP04-008/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 596762652,
+      "promptSha1": "8ee8a8d8ec428afd5a74f2f6e4261ffffab12b98"
+    },
+    {
+      "date": "2026-10-30T05:36:21.356Z",
+      "key": "BP04-012",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 995921208,
+      "promptSha1": "5c077c096c820a74348d97c7de2dd80ca4f10d7e"
+    },
+    {
+      "date": "2026-10-30T05:36:25.952Z",
+      "key": "BP04-012/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 2001256034,
+      "promptSha1": "b7044bedc0909cbb628c5f9274e3ef7174f8b0a5"
+    },
+    {
+      "date": "2026-10-30T05:36:29.020Z",
+      "key": "BP04-013",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1153134537,
+      "promptSha1": "e85b41e0bdc40db8ef53b45f35a22d12db2fc192"
+    },
+    {
+      "date": "2026-10-30T05:36:32.097Z",
+      "key": "BP04-013/awakened",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1819196343,
+      "promptSha1": "e9af21b0ce3722d8aa8b5cbdbc613a0eae67cbd7"
+    },
+    {
+      "date": "2026-10-30T05:36:36.684Z",
+      "key": "BP04-018",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1024113558,
+      "promptSha1": "3a8fdb8d1722786e6c6e2a2aa44c81b0521475e7"
+    },
+    {
+      "date": "2026-10-30T05:36:39.755Z",
+      "key": "BP04-020",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 745301582,
+      "promptSha1": "be4731b3cd3ed2cd3805002321a6a85ef80509ee"
+    },
+    {
+      "date": "2026-10-30T05:36:44.363Z",
+      "key": "BP04-024",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1895370066,
+      "promptSha1": "cf596f9f0428b4c69833888aead1b8159fdffab9"
+    },
+    {
+      "date": "2026-10-30T05:36:48.964Z",
+      "key": "BP04-028",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 900566342,
+      "promptSha1": "e6b3d4148c91587339ffd53c34d956edb3038bb7"
+    },
+    {
+      "date": "2026-10-30T05:36:52.025Z",
+      "key": "BP04-030",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1067095407,
+      "promptSha1": "102e3ad1313c4ed062a872afca817b6147ee5081"
+    },
+    {
+      "date": "2026-10-30T05:36:55.108Z",
+      "key": "BP04-037",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1196116386,
+      "promptSha1": "8b7473b128fa4e3e7b4b9ed5cf310159f2fe895d"
+    },
+    {
+      "date": "2026-10-30T05:36:59.710Z",
+      "key": "BP04-038",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1759243975,
+      "promptSha1": "0237a89e758a967e81b5bbdd7b4e7d0d68fb0498"
+    },
+    {
+      "date": "2026-10-30T05:37:02.779Z",
+      "key": "BP04-039",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1916405721,
+      "promptSha1": "6e6a30b9b23681339a3b952ee200029c96dfcdf0"
+    },
+    {
+      "date": "2026-10-30T05:37:07.372Z",
+      "key": "BP04-041",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1900910168,
+      "promptSha1": "df2bd23c372746e631f10910885885eb465b1fca"
+    },
+    {
+      "date": "2026-10-30T05:37:11.969Z",
+      "key": "BP04-048",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1365974929,
+      "promptSha1": "2bbe87965814bba9771b4236e8698e621b8ca3a3"
+    },
+    {
+      "date": "2026-10-30T05:37:15.027Z",
+      "key": "BP04-049",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1229549952,
+      "promptSha1": "71c7d80c12e20f90d7becad614815852236096fd"
+    },
+    {
+      "date": "2026-10-30T05:37:19.629Z",
+      "key": "BP04-053",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 208801333,
+      "promptSha1": "8ceefcd3bbc6393e4c8b42a0a720abdf55934216"
+    },
+    {
+      "date": "2026-10-30T05:37:24.239Z",
+      "key": "BP04-054",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1229797253,
+      "promptSha1": "730cb19be3b387e174018642097c19e82c234b4f"
+    },
+    {
+      "date": "2026-10-30T05:37:27.322Z",
+      "key": "BP04-058",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 924582241,
+      "promptSha1": "7b4c836f327663a145975060a4326ab3559f7ba6"
+    },
+    {
+      "date": "2026-10-30T05:37:31.902Z",
+      "key": "BP04-061",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 854019697,
+      "promptSha1": "eeb9e17fff0d6878a6c6c75096a56887f9fb94c0"
+    },
+    {
+      "date": "2026-10-30T05:37:36.493Z",
+      "key": "BP04-065",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1851434862,
+      "promptSha1": "bd21eafc95117063bd18a3d2389a3b0db9fd32be"
+    },
+    {
+      "date": "2026-10-30T05:37:39.568Z",
+      "key": "BP04-066",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1309095625,
+      "promptSha1": "c98e3b7524d67584383ee7b835a4667aebf41aaa"
+    },
+    {
+      "date": "2026-10-30T05:37:44.157Z",
+      "key": "BP04-067",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1151882296,
+      "promptSha1": "2ebdf548c8443d6d07edb6410327f69753e0116c"
+    },
+    {
+      "date": "2026-10-30T05:37:48.715Z",
+      "key": "BP04-069",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 161871129,
+      "promptSha1": "449f0b8d97d2a93e02e6106a041cfe9ca91a4d0e"
+    },
+    {
+      "date": "2026-10-30T05:37:53.290Z",
+      "key": "BP04-076",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1152181182,
+      "promptSha1": "5a1498b74425be370dcd0f1c1337535729c5ad0b"
+    },
+    {
+      "date": "2026-10-30T05:37:57.888Z",
+      "key": "BP04-079",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1607257108,
+      "promptSha1": "109ef48ed8d2f5c98b212b8f010adce7e80ab849"
+    },
+    {
+      "date": "2026-10-30T05:38:00.955Z",
+      "key": "BP04-080",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1994588612,
+      "promptSha1": "006fb9bed6a4569b47ea5cfb1c8d3df92daf0ec2"
+    },
+    {
+      "date": "2026-10-30T05:39:39.488Z",
+      "key": "BP01-045",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 8,
+      "estCostUSD": 0,
+      "seed": 1240479559,
+      "promptSha1": "5deb5f3b9f82d25ec5813ca4f8d0ff752c1fe808"
+    },
+    {
+      "date": "2026-10-30T05:39:44.084Z",
+      "key": "BP03-027",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 230923662,
+      "promptSha1": "ba8d0d6c1bda80bed2496eb77bd7a8320408fbf7"
+    },
+    {
+      "date": "2026-10-30T05:39:48.666Z",
+      "key": "BP03-042",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 660828440,
+      "promptSha1": "352c254497d6eba3f72565246325f8ffa78490a8"
+    },
+    {
+      "date": "2026-10-30T05:39:51.744Z",
+      "key": "BP04-024",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1912147685,
+      "promptSha1": "cf596f9f0428b4c69833888aead1b8159fdffab9"
+    },
+    {
+      "date": "2026-10-30T05:39:56.354Z",
+      "key": "BP04-037",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1212894005,
+      "promptSha1": "8b7473b128fa4e3e7b4b9ed5cf310159f2fe895d"
+    },
+    {
+      "date": "2026-10-30T05:40:00.962Z",
+      "key": "BP04-038",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1742466356,
+      "promptSha1": "0237a89e758a967e81b5bbdd7b4e7d0d68fb0498"
+    },
+    {
+      "date": "2026-10-30T05:40:04.036Z",
+      "key": "BP04-039",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1933183340,
+      "promptSha1": "6e6a30b9b23681339a3b952ee200029c96dfcdf0"
+    },
+    {
+      "date": "2026-10-30T05:40:07.107Z",
+      "key": "BP04-048",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1382752548,
+      "promptSha1": "2bbe87965814bba9771b4236e8698e621b8ca3a3"
+    },
+    {
+      "date": "2026-10-30T05:41:19.700Z",
+      "key": "BP01-045",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 8,
+      "estCostUSD": 0,
+      "seed": 1257257178,
+      "promptSha1": "ea66d365201ad719b92ba45a500cbe45e31d1018"
+    },
+    {
+      "date": "2026-10-30T05:41:24.303Z",
+      "key": "BP03-027",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 180590805,
+      "promptSha1": "920646e46247a9fb3cd118a27f8d219ff0260273"
+    },
+    {
+      "date": "2026-10-30T05:41:28.905Z",
+      "key": "BP03-042",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 711161297,
+      "promptSha1": "2087bfcb2f2d24bcb7afe6c23e6984d48dd206f4"
+    },
+    {
+      "date": "2026-10-30T05:41:31.972Z",
+      "key": "BP04-037",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1162561148,
+      "promptSha1": "a4d8c5f74993a9a854ca3a45b249e9e48bb607f7"
+    },
+    {
+      "date": "2026-10-30T05:41:35.047Z",
+      "key": "BP04-038",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 3,
+      "estCostUSD": 0,
+      "seed": 1792799213,
+      "promptSha1": "58615f3e638132ba879df4b492c030da25d07e79"
+    },
+    {
+      "date": "2026-10-30T05:41:39.651Z",
+      "key": "BP04-039",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1949960959,
+      "promptSha1": "7221e689c7317871d18a2685304cda9697c33338"
+    },
+    {
+      "date": "2026-10-30T05:41:44.238Z",
+      "key": "BP04-048",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 5,
+      "estCostUSD": 0,
+      "seed": 1399530167,
+      "promptSha1": "daa5229be706d0e699d6e30c0d9465119ba077be"
+    },
+    {
+      "date": "2026-10-30T05:42:15.257Z",
+      "key": "BP04-038",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 8,
+      "estCostUSD": 0,
+      "seed": 1776021594,
+      "promptSha1": "20335162cb2e3f25a98bea3ac6915b9937295299"
+    },
+    {
+      "date": "2026-10-30T05:43:35.573Z",
+      "key": "BP04-038",
+      "model": "FLUX.2-klein-4B",
+      "provider": "flux-studio-local",
+      "seconds": 8,
+      "estCostUSD": 0,
+      "seed": 1776021594,
+      "promptSha1": "1ec3f01afcda435a089c6f85cf5a6c8e4423e0a6"
     }
   ]
 }
