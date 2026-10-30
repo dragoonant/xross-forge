@@ -22,16 +22,17 @@ backs, 41 sound cues and an announcer.
 - **M6 audio (done, D18):** the 41-cue sheet run on the Audio Studio by `tools/gen-audio-local.mjs`
   (Stable Audio Open 1.0, ACE-Step 1.5 turbo, Qwen3-TTS Voice Design for the ORIGINAL announcer),
   `measure-audio` delivered 41 clips (2.9 MB; 2 flagged: the ui ticks are shorter than planned,
-  which a tick should be), `REQUIRE_SOUND` on with a per-cue rule. **Not verified by ear**
-  (`sounds.html`, TODO 10).
+  which a tick should be), `REQUIRE_SOUND` on with a per-cue rule. Approved by the owner's ear
+  on 2026-10-29 (`sounds.html`).
 - Gate green (15 steps); tests 209; e2e in Chromium with the real assets.
 
 **Next:** the owner's playtest with art and sound; the booster paths in `TODO.md` 1-7.
 
-**Owner, when convenient:** listen on `sounds.html` and look at the art in a match (TODO 10/11:
-name the re-rolls; a re-pick of STYLE is a free re-render); D15 (starter Energy Charger); delete
-the stale `claude/wip-backup` branch; the first-pass branch `claude/m5m6-local-studios` can go once
-nothing in it is wanted (its 51 landscape plates are in gitignored `art/archive/pass1-landscape/`).
+**Owner approved the art and sound as they are (2026-10-29; TODO 10/11 closed, STYLE A stands).**
+
+**Owner, when convenient:** D15 (starter Energy Charger); delete the stale `claude/wip-backup`
+branch; the first-pass branch `claude/m5m6-local-studios` can go once nothing in it is wanted (its
+51 landscape plates are in gitignored `art/archive/pass1-landscape/`).
 
 ---
 
