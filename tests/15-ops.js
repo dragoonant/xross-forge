@@ -800,4 +800,18 @@
       eq([L(s, 0, 0).damage, L(s, 0, 1).damage, L(s, 1, 2).damage], [0, 10, 70], 'damage = 30 + 40 actually healed');
     });
   });
+
+  // ---- 2026-11-02: what an op reads from the player's own choices (the data side of XS.previewChoice / previewAttackDetail().variable) ----
+  test('opReadsChoice / choiceVariables: perRevealed, revealedCost, healed and "if you did" are choice readers; the variable list is read from the ops, in print order', () => {
+    eq([{ op: 'draw', n: { perRevealed: { type: 'memoria', each: 2 } } }, { op: 'draw', n: { revealedCost: true } }, { op: 'damage', n: { healed: true } }, { op: 'dmgPlus', n: 30, if: { c: 'did' } },
+      { op: 'draw', n: 1, if: { c: 'seenType', type: 'memoria' } }, { op: 'draw', n: 1 }, { op: 'dmgPlus', n: { perPlay: { each: 10 } } }].map((o) => XS.opReadsChoice(o)),
+    ['cards', 'cards', 'healed', 'did', 'cards', null, null], 'perPlay counts the play area, not a choice');
+    eq(XS.choiceVariables([{ op: 'reveal', n: 3, optional: true }, { op: 'draw', n: { revealedCost: true } }]),
+      [{ stat: 'draw', amount: 1, per: 'point of cost of the card you reveal', perType: null, max: 3 }], 'キャプテンズ・リターン shape: draw as many as the revealed cost');
+    eq(XS.choiceVariables([{ op: 'reveal', n: 2, optional: true }, { op: 'discard', of: 'revealed' }, { op: 'dmgPlus', n: { perRevealed: { each: 5 } } }]),
+      [{ stat: 'damage', amount: 5, per: 'card you discard', perType: null, max: 2 }], 'no type filter: "card you discard"');
+    eq(XS.choiceVariables([{ op: 'dmgPlus', n: 30 }, { op: 'draw', n: 2 }]), [], 'flat numbers are not variable');
+    eq(XS.choiceVariables([{ op: 'discard', n: 1, optional: true }, { op: 'dmgPlus', n: 20, if: { c: 'did' } }]),
+      [{ stat: 'damage', amount: 20, when: 'you discard a card' }], 'a non-random optional discard');
+  });
 })();

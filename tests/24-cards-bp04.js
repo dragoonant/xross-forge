@@ -149,6 +149,61 @@
     eq(lastAttack(w).damage, 30 + 60); eq(drawsBy(w, find(w, 'play')[0].data.iid), 0);
   });
 
+  // ---- 2026-11-02: count-scaled effects are legible before and while they are chosen (XS.previewAttackDetail().variable, XS.previewChoice) ----
+  test('BP04-024 オーバードライブ: previewAttackDetail lists the bonuses that depend on the later choices, read from the ability data, and leaves total at ATK', () => {
+    let s = game([['BP04-024', 4]]);
+    s = fx.arrange(s, (h) => h.hand(0, ['BP04-024', PLAIN, 'ST01-013']));
+    const a = { type: 'play', iid: fx.idOf(s, 0, 'BP04-024', ['hand']), attacker: 'L00', target: 'L10' };
+    const d = XS.previewAttackDetail(s, a);
+    eq(d.total, 30, 'the number is ATK alone: nothing is chosen yet');
+    eq(d.variable.map((v) => [v.stat, v.amount, v.per, v.max]), [['damage', 30, 'attack card you discard', 2], ['draw', 2, 'memoria card you discard', 2]]);
+    eq(XS.previewAttackDetail(s, { type: 'play', iid: fx.idOf(s, 0, PLAIN, ['hand']), attacker: 'L00', target: 'L10' }).variable, [], 'a card with no later choice lists nothing');
+    // 仁義なき抗争 (a yes/no, not a count): a flat bonus "if you discarded"
+    let w = game([['BP03-027', 4]]);
+    w = fx.arrange(w, (h) => h.hand(0, ['BP03-027', PLAIN]));
+    const dw = XS.previewAttackDetail(w, { type: 'play', iid: fx.idOf(w, 0, 'BP03-027', ['hand']), attacker: 'L00', target: 'L10' });
+    eq(dw.variable.map((v) => [v.stat, v.amount, v.when]), [['damage', 30, 'you discard a card at random']]);
+  });
+
+  test('BP04-024 オーバードライブ: previewChoice reports the same numbers apply then produces, for every pick (the tally the reveal prompt shows)', () => {
+    let s = game([['BP04-024', 4]]);
+    s = fx.arrange(s, (h) => h.hand(0, ['BP04-024', PLAIN, 'ST01-009', 'ST01-013', 'ST01-014']));
+    s = fx.attack(s, 'BP04-024', 0, 0);
+    const before = JSON.stringify(s.log.length) + JSON.stringify(s.players[0].hand);
+    const [a1, a2, m1, m2] = [PLAIN, 'ST01-009', 'ST01-013', 'ST01-014'].map((n) => fx.idOf(s, 0, n, ['hand']));
+    const src = find(s, 'play')[0].data.iid;
+    for (const ids of [[], [a1], [m1], [a1, m1], [a1, a2], [m1, m2], [a2, m2]]) {
+      const pv = XS.previewChoice(s, ids);
+      const t = fx.choose(s, ids);
+      const atk = lastAttack(t);
+      eq([pv.discard, pv.draw, pv.damagePlus, pv.attackDamage, pv.complete], [ids.length, drawsBy(t, src), atk.parts.card, atk.damage, true], 'preview = outcome for ' + JSON.stringify(ids.map((i) => nameOf(s, i))));
+    }
+    eq(JSON.stringify(s.log.length) + JSON.stringify(s.players[0].hand), before, 'the preview never touches the state');
+    throws(() => XS.previewChoice(s, [a1, a2, m1]), 'at most 2', XS.Illegal);
+    throws(() => XS.previewChoice(fx.choose(s, []), []), 'no decision is pending', XS.Illegal);
+    eq(XS.previewChoice(s, [a1, m1]).seat, 0);
+  });
+
+  test('previewChoice: a decision whose later ops do not read the answer has nothing to preview (null); a yes/no that a later "if you did" reads previews both answers', () => {
+    // 1TAP: After Attack draw 1 then discard 1 -> the discard pick is not read by anything
+    let s = game([['BP04-018', 4]]);
+    s = fx.arrange(s, (h) => h.hand(0, ['BP04-018', PLAIN, 'ST01-013']));
+    s = fx.attack(s, 'BP04-018', 0, 0);
+    ok(s.pending !== null && s.pending.purpose === 'discard', 'the 1TAP discard is pending');
+    eq(XS.choiceReaders(s), []);
+    eq(XS.previewChoice(s, [s.pending.options[0]]), null);
+    // 仁義なき抗争: the "may" asks first, damage +30 reads "did"
+    let w = game([['BP03-027', 4]]);
+    w = fx.arrange(w, (h) => h.hand(0, ['BP03-027', PLAIN]));
+    w = fx.attack(w, 'BP03-027', 0, 0);
+    eq(w.pending.purpose, 'may');
+    const yes = XS.previewChoice(w, [w.pending.options[0]]), no = XS.previewChoice(w, []);
+    eq([yes.damagePlus, yes.discard, yes.attackDamage], [30, 1, 60]);
+    eq([no.damagePlus, no.discard, no.attackDamage], [0, 0, 30]);
+    const t = fx.choose(w, [w.pending.options[0]]);
+    eq(lastAttack(t).damage, 60, 'and apply agrees');
+  });
+
   test('BP04-028 シンクロトリニティ [After Attack]: look at the top 3; you may reveal 1 non-ACE card with cost 0 and add it to your hand; the rest go to the trash (FAQ #119)', () => {
     const run = (top, answerFn, withAce) => {
       const body = () => {

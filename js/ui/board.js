@@ -35,6 +35,7 @@
       if (pv !== undefined) {
         const b = el('div', 'l-preview' + (pv.goesDown ? ' is-down' : ''), pv.short);
         b.setAttribute('data-preview', pv.goesDown ? 'DOWN' : String(pv.total));
+        if (pv.more) b.title = pv.more;
         tile.appendChild(b);
       }
       wrap.appendChild(slotEl);
@@ -209,6 +210,8 @@
     slot.replaceChildren();
     if (PM === null && M.confirm !== null) {
       const c = el('button', 'btn primary', M.confirm.label);
+      // a second line for what the number does not include yet (a bonus that depends on a choice made during the attack)
+      if (M.confirm.sub) c.appendChild(el('span', 'btn-sub', M.confirm.sub));
       c.type = 'button'; c.id = 'confirm'; c.setAttribute('data-cue', 'ui-confirm');
       slot.appendChild(c);
     }

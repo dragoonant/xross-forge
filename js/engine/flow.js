@@ -29,9 +29,12 @@
   // ---- the resolution loop --------------------------------------------------------------------------
   // Runs the top frame of the stack until a decision is pending, the stack is empty (the active player is to act), or the
   // match is over. A round that has been decided closes only when the stack is empty: pending effects still resolve (FAQ #15, #16, R-059).
-  XS.settle = function (s) {
+  // `until` (optional, 2026-11-02, XS.previewChoice): a function of the state; the loop stops, before running the next frame, as soon as it
+  // returns true. apply() never passes it.
+  XS.settle = function (s, until) {
     let guard = 0;
     while (s.pending === null && s.phase !== 'over') {
+      if (until !== undefined && until(s)) break;
       if (++guard > 50000) throw new Error('settle: runaway resolution');
       if (s.losing.length > 0) { endByLoss(s); break; }
       const f = s.stack.length > 0 ? s.stack[s.stack.length - 1] : null;

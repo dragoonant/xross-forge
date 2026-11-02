@@ -23,6 +23,16 @@
   XS.attackStepOps = (cardId, seg) => stepOps(cardId, seg).all;
   XS.attackOps = (cardId, seg) => stepOps(cardId, seg).rest;
 
+  // The bonuses of attack `seg` that depend on choices made while it resolves ("discard up to 2 cards, +30 per attack card"), read from the
+  // card's ops (XS.choiceVariables): not in previewAttack's number, listed beside it as previewAttackDetail(...).variable (2026-11-02).
+  const varCache = new WeakMap();
+  XS.attackVariables = function (cardId, seg) {
+    const e = effectOf(cardId, seg);
+    let r = varCache.get(e);
+    if (r === undefined) { r = Object.freeze(XS.choiceVariables(e.ops).map(Object.freeze)); varCache.set(e, r); }
+    return r;
+  };
+
   // The boosts' share of the damage (PM p.09; conditions are checked now, R-051): { boost, boosts: [{iid, amount}] }.
   XS.boostParts = function (s, seat, boostIids) {
     const x = { s, seat };
@@ -71,6 +81,7 @@
         return;
 
       case 'choose': { // 2-1: attacker and attacked leader (FAQ #20, #27)
+        a.seg = f.seg;   // the attack being chosen: previewAttack of the pending pair reads it (it still named the finished attack until the pair was answered; 2026-11-02)
         const ownAlive = XS.aliveLeaders(s, f.seat), oppAlive = XS.attackTargets(s, f.seat);
         if (oppAlive.length === 0 || ownAlive.length === 0) { f.step = 'finish'; return; }   // FAQ #76
         const pre = f.pre;

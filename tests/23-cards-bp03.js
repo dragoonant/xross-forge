@@ -105,6 +105,9 @@
     eq(find(s, 'awaken').length, 1);
     eq(s.pending.attackers, ['L00', 'L01', 'L02', 'L03']); eq(s.pending.targets, ['L11', 'L12', 'L13'], 'a downed leader cannot be attacked');
     eq(XS.leaderStats(s, 0, 0).atk, 40, 'the awakened ATK is already in force');
+    // the preview of a pending attackPair says which of the three attacks it is (it read the finished attack's number before: seg 0 again), found by the 2026-11-02 UI check
+    const pv2 = XS.previewAttackDetail(s, { type: 'attack', attacker: 'L00', target: 'L11' });
+    eq([pv2.seg, pv2.attacks, pv2.total, pv2.atk], [1, 3, 40, 40], 'attack 2 of 3 with the awakened ATK');
     s = XS.apply(s, { type: 'attack', attacker: 'L01', target: 'L11' });   // attack 2: a different attacker and target
     eq(s.pending.kind, 'attackPair', 'attack 3');
     s = XS.apply(s, { type: 'attack', attacker: 'L00', target: 'L12' });   // attack 3: the awakened L00 again

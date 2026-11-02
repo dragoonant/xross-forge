@@ -32,12 +32,26 @@
     const d = XS.previewAttackDetail(S.raw, action);
     return d;
   };
+  // Bonuses that depend on choices made while the attack resolves (previewAttackDetail(...).variable, read from the card's ability data by the
+  // engine), as phrases: "+30 per attack card you discard, up to 2", "draw 2 per memoria card you discard, up to 2".
+  T.variablePhrases = function (d) {
+    const lead = d.attacks > 1 ? [`attack ${d.seg + 1} of ${d.attacks}, each picks its own attacker and target`] : [];
+    return lead.concat(d.variable.map((v) => {
+      const amt = v.stat === 'damage' ? `+${v.amount}` : `draw ${v.amount}`;
+      if (v.when !== undefined) return v.stat === 'damage' ? `${amt} damage if ${v.when}` : `${amt} if ${v.when}`;
+      return `${amt} per ${v.per}${v.max > 1 ? ', up to ' + v.max : ''}`;
+    }));
+  };
+  // "Crossfire: Uruha -> Selly, 30 damage" or "... DOWN" (previewAttackDetail.goesDown); a card whose bonus depends on a later choice says so:
+  // "Overdrive: Uruha -> Selly, 30 damage (+30 per attack card you discard, up to 2; draw 2 per memoria card you discard, up to 2)".
   T.previewLine = function (S, action, cardIid) {
     const d = T.previewDetail(S, action);
     const cardName = U.cardTitle(U.cardIdOf(S.view, cardIid === undefined ? action.iid : cardIid));
     const a = nameOfLeader(S, action.attacker), t = nameOfLeader(S, action.target);
-    const dmg = d.goesDown ? 'DOWN' : d.total + ' damage';
-    return { text: `${cardName}: ${a} → ${t}, ${dmg}`, short: d.goesDown ? 'DOWN' : '−' + d.total, detail: d, total: d.total, goesDown: d.goesDown };
+    const more = T.variablePhrases(d);
+    const dmg = d.goesDown ? 'DOWN' : d.total + ' damage' + (more.length > 0 ? ` (${more.join('; ')})` : '');
+    const scaled = d.variable.some((v) => v.stat === 'damage');
+    return { text: `${cardName}: ${a} → ${t}, ${dmg}`, short: d.goesDown ? 'DOWN' : '−' + d.total + (scaled ? '+' : ''), detail: d, total: d.total, goesDown: d.goesDown, more: more.join('; ') };
   };
   T.breakdown = function (S, d) {
     const parts = ['ATK ' + d.atk];
@@ -122,7 +136,7 @@
       const pv = M.previews.get(st.target);
       M.stage = 'confirm';
       M.hint = pv.text + '  ·  ' + T.breakdown(S, pv.detail);
-      M.confirm = { action, label: `Attack ${nameOfLeader(S, st.target)}: ${pv.goesDown ? 'DOWN' : pv.total + ' damage'}` };
+      M.confirm = { action, label: `Attack ${nameOfLeader(S, st.target)}: ${pv.goesDown ? 'DOWN' : pv.total + ' damage'}`, sub: pv.goesDown ? '' : pv.more };
       return M;
     }
     if (hasTargetOnly) {

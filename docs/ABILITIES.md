@@ -148,6 +148,10 @@ PP, zone moves); never write a leader's `damage` or a card's zone from an op.
 Test cards are built with `XS.T.fx.withCards(defs, fn)` and `fx.deckWith('ST01', [[id, qty]], [tacticsIds])` (tests/05-fixtures.js);
 a def is `{ id, type, cost?, color?, name?, ace?, tactics?, equip?, tags?, effects }` with `effects` exactly as in `data/abilities.js`.
 
+## What the UI may show about a choice (2026-11-02)
+
+An effect whose later ops read an earlier choice (`perRevealed`, `revealedCost`, `healed`, `if: {c: 'did'}`, `if: {c: 'seenType'}`) is **legible by construction**: the engine derives the previews from the same data, so a new card of this shape needs no UI work. `XS.opReadsChoice(op)` names what an op reads; `XS.choiceVariables(ops)` turns a card's attack effect into the `variable` list of `previewAttackDetail`; `XS.previewChoice(s, answer)` simulates the answer on a copy and reports `{discard, draw, damagePlus, attackDamage, dealt, heal, pp, freePlay, next}`. When you add an op that reads a choice, add it to `XS.opReadsChoice` (and, if it makes the attack's damage depend on the choice, to `XS.choiceVariables`), and `tests/24-cards-bp04.js` (previewChoice equals what `apply` then does) is the pattern for its test. See docs/ENGINE-API.md "Changes after freeze", 2026-11-02.
+
 ## Adding an op or a condition
 
 1. Add the handler to `XS.OPS` (or `XS.COND`) in `js/engine/abilities.js`, ask-first.

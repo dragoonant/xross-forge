@@ -979,3 +979,16 @@ body.reduce-motion .handcard, body.reduce-motion .leader, body.reduce-motion #dr
   .title-links .btn { min-height: 34px; padding: 6px 10px; font-size: 0.66rem; letter-spacing: 0.06em; }
   .play { min-height: 52px; }
 }
+
+/* ---- count-scaled effects (2026-11-02): the line under a confirm number, and the live tally in a prompt ------------------ */
+#confirm-slot .btn .btn-sub, #prompt-confirm .btn-sub { display: block; margin-top: 2px; font-size: 0.78em; font-weight: 600; letter-spacing: 0.02em; text-transform: none; opacity: 0.92; }
+.p-tally { margin-top: 6px; padding: 5px 10px; font-size: 0.86rem; font-weight: 700; line-height: 1.35; color: var(--ink); background: color-mix(in srgb, var(--gold) 16%, var(--bg-2)); border-left: 3px solid var(--gold); }
+.p-tally .t-lead { color: var(--gold); }
+.p-srctext { margin-top: 6px; white-space: pre-line; }
+.p-may-outcomes { display: grid; gap: 4px; margin-top: 8px; }
+/* rows take the height of their cards (a squeezed prompt scrolls instead of laying one row of cards over the next) */
+.p-cards { grid-auto-rows: max-content; }
+@media (max-width: 700px) {
+  .p-srctext { padding: 4px 8px; font-size: 0.72rem; line-height: 1.3; }
+  .p-tally { padding: 4px 8px; font-size: 0.8rem; }
+}

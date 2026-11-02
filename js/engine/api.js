@@ -58,7 +58,8 @@
     if (s.cards[card].kind !== 'attack') throw new Illegal('not an attack card');
     const parts = XS.damageParts(s, seat, action.attacker, card, seg, boosts);
     const goesDown = XS.attackOps(s.cards[card].id, seg).some((o) => o.op === 'downAttacked' && (o.if === undefined || XS.cond(o.if, { s, seat })));
-    return { total: parts.total, atk: parts.atk, boosts: parts.boosts, card: parts.card, goesDown, attackerId: action.attacker, targetId: action.target };
+    // variable: bonuses that depend on choices made during the attack (XS.attackVariables), not part of `total`; attacks: how many 【アタックする】 the card has (ストームラッシュ: 3), seg: which of them this is (0-based)
+    return { total: parts.total, atk: parts.atk, boosts: parts.boosts, card: parts.card, goesDown, attackerId: action.attacker, targetId: action.target, variable: XS.attackVariables(s.cards[card].id, seg), attacks: XS.attackEffects(s.cards[card].id).length, seg };
   };
   XS.previewAttack = (s, action) => XS.previewAttackDetail(s, action).total;
 
@@ -267,6 +268,53 @@
     t.actions.push(XS.deepFreeze(JSON.parse(JSON.stringify(action))));
     XS.settle(t);
     return t;
+  };
+
+  // What answering the pending decision with `choice` (an `ids` array for 'choose', or the answer action) would do to the numbers the
+  // rest of the same effect group reads (2026-11-02, docs/ENGINE-API.md). The UI shows these while the player is still choosing, so a
+  // count-scaled effect (オーバードライブ: +30 per attack card discarded, 2 cards per memoria) is never a surprise. It runs the real
+  // resolution on a copy, `s` is not touched, and stops when the asking effect group is done (damage of the attack, 【アタック後】 effects
+  // and awakenings after it are not part of the answer's outcome). Returns null when nothing later in the group reads the answer
+  // (XS.choiceReaders), and for a random pick whose outcome would show the pick. Throws Illegal for an answer apply would refuse.
+  //   { seat, discard, draw, damagePlus, attackDamage, dealt, heal, pp, freePlay, next, complete }
+  //   damagePlus    extra damage this answer adds to the attack in progress; attackDamage the attack's final damage once its effects are done (else null)
+  //   dealt / heal  effect damage to opposing leaders / counters healed on own leaders, `next`: {op, n} of the op the effect parks at
+  //                 (a number it will use for the NEXT decision, e.g. the damage a Drain Rod split sets up), `complete`: no decision left in the group.
+  XS.previewChoice = function (s, choice) {
+    const p = s.pending;
+    if (p === null) throw new Illegal('no decision is pending');
+    const readers = XS.choiceReaders(s);
+    if (readers.length === 0) return null;
+    const f = s.stack[s.stack.length - 1];
+    if (f.ops[f.pc].random === true && readers.some((o) => XS.opReadsChoice(o) === 'cards')) return null;
+    const action = Array.isArray(choice) ? { type: 'choose', ids: choice } : choice;
+    const t = XS.normalize(XS.cloneState(s));
+    answer(t, action);
+    const depth = t.stack.length, top = t.stack[depth - 1];
+    XS.settle(t, () => t.stack.length < depth || t.stack[depth - 1] !== top);
+    const seat = p.seat;
+    const r = { seat, discard: 0, draw: 0, damagePlus: 0, attackDamage: null, dealt: 0, heal: 0, pp: 0, freePlay: 0, next: null, complete: t.pending === null };
+    for (const e of t.log.slice(s.log.length)) {
+      const d = e.data;
+      if (e.type === 'discard' && e.seat === seat && d.cause === 'effect') r.discard += d.n;
+      else if (e.type === 'draw' && e.seat === seat && d.cause === 'effect') r.draw++;
+      else if (e.type === 'damage' && d.kind === 'effect' && XS.leaderSeat(d.leader) !== seat) r.dealt += d.amount;
+      else if (e.type === 'heal' && XS.leaderSeat(d.leader) === seat) r.heal += d.amount;
+      else if (e.type === 'ppRecover' && e.seat === seat && d.cause === 'effect') r.pp += d.n;
+      else if (e.type === 'freePlay' && e.seat === seat) r.freePlay++;
+    }
+    if (s.atk !== null && t.atk !== null && t.atk.id === s.atk.id) {
+      r.damagePlus = t.atk.plus - s.atk.plus;
+      const af = t.stack.find((g) => g.k === 'attackCard');
+      if (af !== undefined && af.step === 'damage' && af.announced !== true) {   // effects done, damage not yet dealt: the number the attack will deal
+        r.attackDamage = Math.max(0, XS.leaderStatsOf(t, t.atk.attacker).atk + XS.boostParts(t, af.seat, af.boostSrc).boost + t.atk.plus);
+      }
+    }
+    if (t.pending !== null && t.stack[depth - 1] === top && top.k === 'ops') {
+      const op = top.ops[top.pc];
+      if (op !== undefined && op.n !== undefined) r.next = { op: op.op, n: XS.val(op.n, { s: t, f: top, seat: top.seat, src: top.src }) };
+    }
+    return r;
   };
 
   XS.replay = function (init, actions) {

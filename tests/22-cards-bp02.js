@@ -281,6 +281,20 @@
     eq(find(s, 'damage', (e) => e.data.kind === 'effect' && e.data.leader[1] === '0').map((e) => [e.data.leader, e.data.amount]), [['L02', 40]], 'one damage event on the chosen opposing leader');
   });
 
+  test('BP02-076 Drain Rod: previewChoice tells a split what it will heal and what damage that sets up (FAQ #64), before the split is confirmed', () => {
+    let s = rod((h) => { h.damage(1, 0, 30); h.damage(1, 1, 10); });
+    s = fx.play(s, 'BP02-076');
+    eq(XS.choiceReaders(s).length, 1, 'the damage after the split reads what was healed');
+    const all = XS.previewChoice(s, { type: 'distribute', alloc: { L10: 40 } });
+    eq([all.heal, all.next, all.complete], [30, { op: 'damage', n: 30 }, false], 'only 30 can be removed from the leader with 30 damage');
+    const split = XS.previewChoice(s, { type: 'distribute', alloc: { L10: 30, L11: 10 } });
+    eq([split.heal, split.next.n], [40, 40]);
+    const waste = XS.previewChoice(s, { type: 'distribute', alloc: { L12: 40 } });
+    eq([waste.heal, waste.next], [0, null], 'healing an undamaged leader heals 0, so the damage is 0 and nothing is asked (R-062)');
+    const real = XS.apply(s, { type: 'distribute', alloc: { L10: 40 } });
+    eq([rodHeals(real), real.pending.purpose], [[30], 'target'], 'apply agrees: 30 healed, then the damage target is asked');
+  });
+
   test('BP02-076 Drain Rod: FAQ #64 - a leader with 30 damage heals 30 of the 40, so the damage is 30, not 40', () => {
     let s = rod((h) => h.damage(1, 0, 30));
     s = fx.play(s, 'BP02-076');

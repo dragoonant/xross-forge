@@ -143,6 +143,7 @@
     ok(fx.has(s, 0, 'trash', FLAT) && fx.has(s, 0, 'trash', 'ST01-014'), 'the rest went to the trash');
     eq(find(s, 'look', (e) => e.data.phase === 'trash')[0].data.n, 2);
     eq(P(s, 0).boosts, [free], 'its Attack Boost is armed for the next attack');
+    eq(find(s, 'freePlay').map((e) => [e.data.iid, e.data.cardId, e.data.type, e.data.from]), [[free, 'BP01-059', 'memoria', 'deck']], 'the freePlay log entry carries the card number (docs/ENGINE-API.md Log), found by the 2026-11-02 probe: it was undefined');
     // you may decline: all three go to the trash
     let t = fx.arrange(game([['BP01-044', 2], ['BP01-059', 2]]), (h) => { h.hand(0, ['BP01-044']); h.top(0, [FLAT, 'BP01-059', 'ST01-014']); });
     t = fx.attack(t, 'BP01-044', 0, 0);

@@ -73,7 +73,7 @@
       const p = e.data.parts;
       const bits = [`ATK ${p.atk}`];
       if (p.boost) bits.push(`boosts ${p.boost}`);
-      if (p.card) bits.push(`card ${p.card}`);
+      if (p.card) bits.push(`card effect ${p.card > 0 ? '+' : ''}${p.card}`);
       return [leaderRef(v, e.data.attacker), ' attacks ', leaderRef(v, e.data.target), ' with ', cardRef(v, e.data.card),
         `: ${e.data.damage} damage (${bits.join(' + ')}).`];
     },

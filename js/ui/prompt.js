@@ -128,6 +128,53 @@
     }
   }
 
+  // ---- count-scaled decisions: what the current answer will do (XS.previewChoice, 2026-11-02) -------------------------------------------
+  // When a later op of the same effect reads the answer (perRevealed, a split that heals, "if you did"), the engine can run the answer on a copy
+  // and report the numbers; the prompt words them. Nothing is computed here: every number is a field of the engine's result.
+  Pr.effectText = function (pv) {
+    const bits = [];
+    if (pv.damagePlus > 0) bits.push(`+${pv.damagePlus} damage`);
+    if (pv.draw > 0) bits.push(`draw ${pv.draw}`);
+    if (pv.heal > 0) bits.push(`heal ${pv.heal}`);
+    if (pv.dealt > 0) bits.push(`${pv.dealt} damage to the opposing leaders`);
+    if (pv.pp > 0) bits.push(`${pv.pp} PP back`);
+    if (pv.freePlay > 0) bits.push(`play ${U.plural(pv.freePlay, 'card')} free`);
+    if (pv.next !== null && pv.next.op === 'damage') bits.push(`then ${pv.next.n} damage to a leader you choose`);
+    return (bits.length === 0 ? 'no bonus' : bits.join(', ')) + (pv.attackDamage === null ? '' : ` (the attack deals ${pv.attackDamage})`);
+  };
+  // "Discarding 1 attack, 1 memoria -> +30 damage, draw 2 (the attack deals 60)"
+  Pr.tallyText = function (S, pend, ids, pv) {
+    let lead;
+    if (pend.kind === 'distribute') lead = `Healing ${pv.heal} of ${pend.total}`;
+    else {
+      const verb = pv.discard > 0 ? 'Discarding' : pend.purpose === 'reveal' ? 'Revealing' : 'Choosing';
+      if (ids.length === 0) lead = pend.purpose === 'reveal' ? 'Revealing nothing' : 'Choosing nothing';
+      else if (ids.every((i) => U.isLeaderIid(i))) lead = `${verb} ${ids.map((i) => nameOfLeader(S, i)).join(', ')}`;
+      else {
+        const by = {};
+        for (const i of ids) { const t = U.card(U.cardIdOf(S.view, i)).type; by[t] = (by[t] || 0) + 1; }
+        lead = `${verb} ${Object.keys(by).map((t) => `${by[t]} ${t}`).join(', ')}`;
+      }
+    }
+    return `${lead} \u2192 ${Pr.effectText(pv)}`;
+  };
+  // PM.tally = { text } | { lines: [{ label, text }] } (a yes/no decision shows both outcomes) | null; PM.srcText = the source card's text.
+  function tallyModel(S, ps, PM, pend, answerOk) {
+    PM.tally = null;
+    if (XS.choiceReaders(S.raw).length === 0) return;
+    const id = sourceId(S, pend);
+    if (id !== null) PM.srcText = U.card(id).text;
+    if (pend.purpose === 'may') {
+      const yes = XS.previewChoice(S.raw, [pend.options[0]]), no = XS.previewChoice(S.raw, []);
+      if (yes !== null && no !== null) PM.tally = { lines: [{ label: 'Use it', text: Pr.effectText(yes) }, { label: 'Decline', text: Pr.effectText(no) }] };
+      return;
+    }
+    if (!answerOk) { PM.tally = { text: pend.kind === 'distribute' ? `Assign all ${pend.total} to see what it does.` : 'Make a legal pick to see what it does.' }; return; }
+    const action = pend.kind === 'distribute' ? PM.confirm.action : { type: 'choose', ids: ps.picked.slice() };
+    const pv = XS.previewChoice(S.raw, action);
+    if (pv !== null) PM.tally = { text: Pr.tallyText(S, pend, ps.picked, pv) };
+  }
+
   // ---- model ---------------------------------------------------------------------------------
   // Returns null when nothing is pending. PM.mine is false while the OTHER seat decides.
   Pr.model = function (S, ps) {
@@ -137,7 +184,7 @@
     if (ps.key !== key) { Object.assign(ps, Pr.fresh()); ps.key = key; }
     const PM = {
       pending: pend, mine: pend.seat === S.me, kind: pend.kind, leaderRole: new Map(), cardRole: new Map(),
-      title: pend.prompt, purposeLabel: U.PURPOSE_LABEL[pend.purpose], hint: '', confirm: null, decline: null, previews: new Map(),
+      title: pend.prompt, purposeLabel: U.PURPOSE_LABEL[pend.purpose], hint: '', confirm: null, decline: null, previews: new Map(), tally: null,
     };
     if (PM.purposeLabel === undefined) throw new Error('ui/prompt: no label for pending purpose "' + pend.purpose + '"');
     if (U.PROMPT_KIND[pend.kind] === undefined) throw new Error('ui/prompt: no renderer for pending kind "' + pend.kind + '"');
@@ -226,6 +273,8 @@
         const f = DECLINE[pend.purpose];
         PM.decline = { label: f === undefined ? 'Choose none (skip this)' : f(pend), action: { type: 'choose', ids: [] } };
       }
+      tallyModel(S, ps, PM, pend, n >= pend.min && n <= pend.max && limitOk);
+      if (PM.tally !== null && PM.tally.text !== undefined) PM.hint += '  ·  ' + PM.tally.text;
     },
     click(S, ps, PM, kind, iid) {
       const pend = PM.pending;
@@ -305,6 +354,7 @@
     PM.hint = pend.prompt + '  Use the effect, or decline it.';
     PM.confirm = { enabled: true, label: 'Use it', action: { type: 'choose', ids: [pend.options[0]] } };
     PM.decline = { label: 'Decline', action: { type: 'choose', ids: [] } };
+    tallyModel(S, ps, PM, pend, true);
   }
   function mayBody(S, PM) {
     const pend = PM.pending;
@@ -313,6 +363,11 @@
     if (id !== null) {
       box.appendChild(el('div', 'p-may-name', U.cardTitle(id) + ' — optional effect'));
       box.appendChild(el('div', 'p-quote', U.card(id).text));
+    }
+    if (PM.tally !== null && PM.tally !== undefined) {
+      const out = el('div', 'p-may-outcomes');
+      for (const l of PM.tally.lines) out.appendChild(el('div', 'p-tally', `${l.label} \u2192 ${l.text}`));
+      box.appendChild(out);
     }
     box.appendChild(el('div', 'p-note', 'If you decline, nothing happens and the rest of the card goes on.'));
     return box;
@@ -352,7 +407,7 @@
       PM.hint = pv.text + '  ·  ' + U.targeting.breakdown(S, pv.detail);
       PM.confirm = {
         enabled: true, label: `Attack ${nameOfLeader(S, ps.target)} — ${pv.goesDown ? 'DOWN' : pv.total + ' damage'}`,
-        action: acts.find((a) => a.attacker === ps.attacker && a.target === ps.target),
+        action: acts.find((a) => a.attacker === ps.attacker && a.target === ps.target), sub: pv.goesDown ? '' : pv.more,
       };
     },
     click(S, ps, PM, kind, iid) {
@@ -380,6 +435,8 @@
       const alloc = {};
       for (const k in ps.alloc) if (ps.alloc[k] > 0) alloc[k] = ps.alloc[k];
       PM.confirm = { enabled: sum === pend.total, label: sum === pend.total ? 'Confirm split' : `Assign ${pend.total - sum} more`, action: { type: 'distribute', alloc } };
+      tallyModel(S, ps, PM, pend, sum === pend.total);
+      if (PM.tally !== null) PM.hint += '  ·  ' + PM.tally.text;
     },
     click(S, ps, PM, kind, iid) {
       if (kind !== 'leader' || !PM.pending.options.includes(iid)) return false;
@@ -510,6 +567,12 @@
     titles.appendChild(el('div', 'p-text', PM.variant === 'nothing' ? `${PM.nothing} — Continue` : pend.prompt));
     if (PM.rule !== undefined && PM.rule.length > 0) titles.appendChild(el('div', 'p-rule', PM.rule.join(' · ')));
     if (PM.notes !== undefined) for (const t of PM.notes) titles.appendChild(el('div', 'p-rule p-notes', t));
+    if (PM.srcText !== undefined && PM.variant !== 'may') titles.appendChild(el('div', 'p-quote p-srctext', PM.srcText));
+    if (PM.tally !== null && PM.tally !== undefined && PM.tally.text !== undefined) {
+      const t = el('div', 'p-tally', PM.tally.text);
+      t.setAttribute('aria-live', 'polite');
+      titles.appendChild(t);
+    }
     head.appendChild(titles);
     card.appendChild(head);
     const body = U.PROMPT_KIND[PM.kind].body(S, ps, PM, redraw, act);
@@ -526,6 +589,7 @@
     }
     if (PM.confirm !== null) {
       const c = el('button', 'btn primary', PM.confirm.label); c.type = 'button';
+      if (PM.confirm.sub) c.appendChild(el('span', 'btn-sub', PM.confirm.sub));
       c.disabled = !PM.confirm.enabled;
       c.id = 'prompt-confirm'; c.setAttribute('data-cue', 'ui-confirm');
       c.addEventListener('click', () => act(PM.confirm.action));

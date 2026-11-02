@@ -176,6 +176,57 @@
     return f(c, x);
   };
 
+  // ---- what an effect reads from the player's own choices (previews; docs/ENGINE-API.md "Changes after freeze", 2026-11-02) -------------
+  // An op READS A CHOICE when its number or its condition depends on what the player decided earlier in the same effect group: the cards
+  // revealed or discarded (perRevealed, revealedCost, seenType), whether an optional action was done (did), or what a split healed (healed).
+  // Returns 'cards' | 'did' | 'healed' | null. Pure data reading: no card number appears here.
+  XS.opReadsChoice = function (op) {
+    const n = op.n;
+    if (n !== null && typeof n === 'object') {
+      if (n.perRevealed !== undefined || n.revealedCost === true) return 'cards';
+      if (n.healed === true) return 'healed';
+    }
+    if (op.if !== undefined) {
+      if (op.if.c === 'seenType') return 'cards';
+      if (op.if.c === 'did') return 'did';
+    }
+    return null;
+  };
+  // The ops that come AFTER the pending decision in its effect group and read the answer: [] when the pending decision is not asked by an
+  // effect group, or when nothing later depends on the answer (then the decision does not "scale" and has nothing to preview).
+  XS.choiceReaders = function (s) {
+    const p = s.pending;
+    if (p === null || (p.kind !== 'choose' && p.kind !== 'distribute')) return [];
+    const f = s.stack[s.stack.length - 1];
+    if (f === undefined || f.k !== 'ops') return [];
+    return f.ops.slice(f.pc + 1).filter((o) => XS.opReadsChoice(o) !== null);
+  };
+  // The bonuses of an effect's op list that depend on choices the player makes while it resolves, as data for the UI:
+  //   [{ stat: 'damage'|'draw', amount, per?, perType?, max?, when? }]
+  //   per    "attack card you discard" - every such card adds `amount` (perType = its card type, max = how many can be chosen);
+  //   when   "you discard a card at random" - `amount` is added when that optional action is done.
+  // Read from the ops (the choosing op that comes first, then the ops that read it); the phrases are fragments for the UI to put in a sentence.
+  XS.choiceVariables = function (ops) {
+    const out = [];
+    let step = null;   // the optional choosing op seen so far: { action: 'reveal'|'discard', max, random }
+    ops.forEach((op, k) => {
+      if (op.op === 'reveal') step = { action: ops.slice(k + 1).some((o) => o.op === 'discard' && o.of === 'revealed') ? 'discard' : 'reveal', max: op.n, random: false };
+      else if (op.op === 'discard' && op.of === undefined && op.optional === true) step = { action: 'discard', max: op.n, random: op.random === true };
+      const stat = op.op === 'dmgPlus' ? 'damage' : op.op === 'draw' ? 'draw' : null;
+      if (stat === null || step === null) return;
+      const n = op.n;
+      if (n !== null && typeof n === 'object' && n.perRevealed !== undefined) {
+        const t = n.perRevealed.type;
+        out.push({ stat, amount: n.perRevealed.each, per: `${t === undefined ? '' : t + ' '}card you ${step.action}`, perType: t === undefined ? null : t, max: step.max });
+      } else if (n !== null && typeof n === 'object' && n.revealedCost === true) {
+        out.push({ stat, amount: 1, per: `point of cost of the card you ${step.action}`, perType: null, max: step.max });
+      } else if (typeof n === 'number' && op.if !== undefined && op.if.c === 'did') {
+        out.push({ stat, amount: n, when: `you ${step.action} ${step.max === 1 ? 'a card' : step.max + ' cards'}${step.random ? ' at random' : ''}` });
+      }
+    });
+    return out;
+  };
+
   // ---- cost and ATK modifiers (read by XS.costToPlay and XS.leaderStats) --------------------------------------------------
   // The cost of a card now: printed cost + its own static costMod ops + the costAura ops of 【ラウンド中】 cards in either play
   // area. costFloor limits how far REDUCTIONS may go (復活ビーコン: "コストは1までしか下がらない"); the floor applies after every
@@ -420,7 +471,7 @@
     for (const i of ids) {
       D.freePlace(x.s, x.seat, i);
       const d = XS.CARDS[cardIdOf(x, i)];
-      XS.log(x.s, x.seat, 'freePlay', { iid: i, cardId: d.id, type: d.type, from: op.from === 'look' ? 'deck' : 'hand' });
+      XS.log(x.s, x.seat, 'freePlay', { iid: i, cardId: cardIdOf(x, i), type: d.type, from: op.from === 'look' ? 'deck' : 'hand' });   // (CARDS records carry no `id` field: the number is the card instance's)
     }
     if (x.f.look !== undefined) x.f.look.iids = x.f.look.iids.filter((i) => !ids.includes(i));
     x.f.did = ids.length > 0;

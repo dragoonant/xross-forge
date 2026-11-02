@@ -241,7 +241,7 @@
   });
 
   function fakeS(pending, extra) {
-    return Object.assign({ raw: null, view: Object.assign(stubView(0), { pending, phase: 'main' }), me: 0, live: true, spectate: false, legal: [] }, extra);
+    return Object.assign({ raw: { pending: null, stack: [] }, view: Object.assign(stubView(0), { pending, phase: 'main' }), me: 0, live: true, spectate: false, legal: [] }, extra);
   }
   const pend = (o) => Object.assign({ seat: 0, source: null, prompt: 'Choose a leader to take 10 damage.', purpose: 'target', options: ['L10', 'L11'], min: 1, max: 1 }, o);
 
@@ -630,5 +630,110 @@
       }
     }
     ok(found, 'some real game reaches a turn with nothing to play');
+  });
+
+  // ---- count-scaled effects (2026-11-02): every number the confirm and the tally show comes from the engine ----------------------------------------
+  const fxs = XS.T.fx;
+  // Seat 0 plays ST01 plus 4 copies of `no`, holding `hand`; the card is in hand, nothing pending.
+  function handGame(no, hand) {
+    const s = fxs.start({ decks: [fxs.deckWith('ST01', [[no, 4]]), 'ST02'] });
+    return fxs.arrange(s, (h) => h.hand(0, [no, ...hand]));
+  }
+  function selectAttack(s, no) {
+    const S = snap(s);
+    const iid = fxs.idOf(s, 0, no, ['hand']);
+    const st = U.targeting.fresh();
+    st.iid = iid; st.attacker = 'L00'; st.target = 'L10';
+    return { S, M: U.targeting.model(S, st), iid };
+  }
+
+  test('ui targeting: Overdrive\'s hint and confirm say the 30 is ATK alone and name the per-card bonus (engine previewAttackDetail().variable); a plain card says nothing extra', () => {
+    const { S, M, iid } = selectAttack(handGame('BP04-024', ['ST01-011', 'ST01-013']), 'BP04-024');
+    const d = XS.previewAttackDetail(S.raw, M.confirm.action);
+    eq(d.total, 30);
+    ok(M.hint.includes('Overdrive') && M.hint.includes('30 damage (+30 per attack card you discard, up to 2; draw 2 per memoria card you discard, up to 2)'), 'hint: ' + M.hint);
+    ok(M.confirm.label.endsWith('30 damage'), 'confirm label keeps the number: ' + M.confirm.label);
+    eq(M.confirm.sub, '+30 per attack card you discard, up to 2; draw 2 per memoria card you discard, up to 2');
+    eq(M.previews.get('L10').short, '\u221230+', 'the leader badge marks a number that can still grow');
+    eq(M.previews.get('L10').more, M.confirm.sub);
+    // a card with no later choice: no parentheses, no sub line
+    const plain = selectAttack(handGame('BP04-030', ['ST01-011']), 'BP04-030');
+    ok(!plain.M.hint.includes('(') && plain.M.confirm.sub === '' && plain.M.previews.get('L10').short === '\u221240', 'plain card: ' + plain.M.hint + ' / ' + plain.M.previews.get('L10').short);
+    // the yes/no card: a flat bonus phrased as a condition
+    const feud = selectAttack(handGame('BP03-027', ['ST01-011']), 'BP03-027');
+    ok(feud.M.confirm.sub === '+30 damage if you discard a card at random', feud.M.confirm.sub);
+    void iid;
+    // ストームラッシュ: three 【アタックする】, each with its own attacker and target; the number shown is the first attack only
+    const storm = selectAttack(handGame('BP03-017', ['ST01-011']), 'BP03-017');
+    ok(storm.M.hint.includes('attack 1 of 3, each picks its own attacker and target'), storm.M.hint);
+    eq(storm.M.confirm.sub, 'attack 1 of 3, each picks its own attacker and target');
+    eq(XS.previewAttackDetail(storm.S.raw, storm.M.confirm.action).attacks, 3);
+    // the second attack is asked as a pending decision: its confirm says which attack of the three it is
+    let t = fxs.attack(handGame('BP03-017', ['ST01-011']), 'BP03-017', 0, 0);
+    eq(t.pending.kind, 'attackPair');
+    const S2 = snap(t), ps2 = U.prompt.fresh();
+    U.prompt.model(S2, ps2);   // a new decision resets the selection
+    ps2.attacker = 'L00'; ps2.target = 'L11';
+    const PM2 = U.prompt.model(S2, ps2);
+    ok(PM2.confirm.label.endsWith('damage') && PM2.confirm.sub === 'attack 2 of 3, each picks its own attacker and target', PM2.confirm.label + ' / ' + PM2.confirm.sub);
+  });
+
+  test('ui prompt: the Overdrive reveal shows a live tally from XS.previewChoice - a memoria says "draw 2" and no "+30", an attack card says "+30 damage"; the card text is in the prompt', () => {
+    let s = handGame('BP04-024', ['ST01-011', 'ST01-009', 'ST01-013', 'ST01-014']);
+    s = fxs.attack(s, 'BP04-024', 0, 0);
+    const [a1, a2, m1] = ['ST01-011', 'ST01-009', 'ST01-013'].map((n) => fxs.idOf(s, 0, n, ['hand']));
+    const S = snap(s);
+    const ps = U.prompt.fresh();
+    const tally = (ids) => { ps.picked = ids.slice(); const PM = U.prompt.model(S, ps); return { PM, text: PM.tally.text }; };
+    let r = tally([]);
+    eq(r.text, 'Revealing nothing \u2192 no bonus (the attack deals 30)');
+    eq(r.PM.srcText, XS.CARDS['BP04-024'].text, 'the card\'s own text is in the prompt');
+    r = tally([m1]);
+    ok(r.text.includes('Discarding 1 memoria') && r.text.includes('draw 2') && !r.text.includes('+30') && !r.text.includes('+'), 'memoria: ' + r.text);
+    r = tally([a1]);
+    ok(r.text.includes('Discarding 1 attack') && r.text.includes('+30 damage') && !r.text.includes('draw') && r.text.includes('the attack deals 60'), 'attack: ' + r.text);
+    r = tally([a1, m1]);
+    eq(r.text, 'Discarding 1 attack, 1 memoria \u2192 +30 damage, draw 2 (the attack deals 60)');
+    ok(r.PM.hint.endsWith(r.text), 'the hint line carries the tally too');
+    r = tally([a1, a2]);
+    ok(r.text.includes('Discarding 2 attack') && r.text.includes('+60 damage') && r.text.includes('the attack deals 90'), 'two attack cards: ' + r.text);
+    // every figure in the tally is a field of the engine result
+    const pv = XS.previewChoice(s, [a1, m1]);
+    ok(r.PM !== null && pv.damagePlus === 30 && pv.draw === 2);
+    // a pick that apply would refuse (3 of max 2) shows no number, only the way forward
+    ps.picked = [a1, a2, m1];
+    const bad = U.prompt.model(S, ps);
+    eq(bad.confirm.enabled, false); ok(bad.tally.text.startsWith('Make a legal pick'), bad.tally.text);
+  });
+
+  test('ui prompt: a yes/no whose later op reads "if you did" shows both outcomes (仁義なき抗争); a decision nothing reads has no tally', () => {
+    let s = handGame('BP03-027', ['ST01-011']);
+    s = fxs.attack(s, 'BP03-027', 0, 0);
+    const PM = U.prompt.model(snap(s), U.prompt.fresh());
+    eq(PM.variant, 'may');
+    eq(PM.tally.lines.map((l) => l.label + ': ' + l.text), ['Use it: +30 damage (the attack deals 60)', 'Decline: no bonus (the attack deals 30)']);
+    let t = handGame('BP04-018', ['ST01-011']);
+    t = fxs.attack(t, 'BP04-018', 0, 0);
+    const PM2 = U.prompt.model(snap(t), U.prompt.fresh());
+    eq(PM2.tally, null, 'discard after 1TAP: nothing reads the pick');
+    eq(PM2.srcText, undefined);
+  });
+
+  test('ui prompt: Drain Rod\'s split shows what it heals and the damage it sets up, only once the split is complete (FAQ #64)', () => {
+    let s = fxs.start({ decks: ['ST02', fxs.deckWith('ST01', [], ['BP02-076'])], pick: [null, 'BP02-076'] });
+    s = fxs.toTurnOf(s, 1);
+    s = fxs.arrange(s, (h) => h.damage(1, 0, 30));
+    s = fxs.play(s, 'BP02-076');
+    const S = { raw: s, view: XS.view(s, 1), me: 1, live: true, spectate: false, legal: XS.legalActions(s) };
+    const ps = U.prompt.fresh();
+    let PM = U.prompt.model(S, ps);
+    ok(PM.tally.text.startsWith('Assign all 40'), PM.tally.text);
+    ps.alloc = { L10: 40 };
+    PM = U.prompt.model(S, ps);
+    eq(PM.tally.text, 'Healing 30 of 40 \u2192 heal 30, then 30 damage to a leader you choose');
+    ok(PM.hint.endsWith(PM.tally.text));
+    ps.alloc = { L12: 40 };
+    PM = U.prompt.model(S, ps);
+    eq(PM.tally.text, 'Healing 0 of 40 \u2192 no bonus', 'healing an undamaged leader heals nothing, so no damage follows');
   });
 })();

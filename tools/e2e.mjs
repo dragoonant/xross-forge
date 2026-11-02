@@ -17,6 +17,9 @@
 //     cost changes struck on the cards, keyword and equipment text in the zoom, Echo; screenshots tools/out/comp-ui-*.png.
 // (k) a human match by clicks with a competitive deck chosen on the title.
 // (l) every competitive deck against another one, bot=ai at instant speed, one seed each (10 games).
+// (m) count-scaled effects (2026-11-02): Overdrive played by clicks from a real position: the confirm and hint name the per-card bonus, the reveal
+//     prompt shows the live tally (a memoria says "draw 2" and no "+30", an attack card "+30 damage"), the damage pop equals the engine's damage;
+//     screenshots tools/out/debug/overdrive-*.png at 1280x800 and 390x844.
 // The script starts `node tools/serve.mjs` on port 8232 (E2E_PORT overrides) and stops it afterwards.
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -1542,6 +1545,110 @@ async function testCompAutoplay(browser) {
   }
 }
 
+// ---- (m) count-scaled effects: Overdrive by clicks ---------------------------------------------------------------------------------------
+// A real position (random bots on decks that run Overdrive) where seat 0 may play BP04-024 holding at least one attack and one memoria besides it.
+async function findOverdrive(page) {
+  return page.evaluate(() => {
+    const U = XS.ui;
+    const decks = Object.keys(XS.DECKS).filter((d) => XS.DECKS[d].main.some(([n]) => n === 'BP04-024'));
+    for (let seed = 1; seed < 200; seed++) {
+      const a = decks[seed % decks.length], b = decks[(seed + 1) % decks.length];
+      let s = XS.newGame({ decks: [a, b], seed, mode: 'full', first: 0, names: ['You', 'Bot'] });
+      const bots = [U.makeRandomBot(seed, 0), U.makeRandomBot(seed, 1)];
+      for (let n = 0; n < 4000 && !XS.isTerminal(s); n++) {
+        if (s.pending === null && s.phase === 'main' && XS.whoActs(s) === 0) {
+          const od = XS.legalActions(s).find((x) => x.type === 'play' && s.cards[x.iid].id === 'BP04-024');
+          if (od !== undefined) {
+            const types = s.players[0].hand.filter((i) => i !== od.iid).map((i) => s.cards[i].kind);
+            if (types.includes('attack') && types.includes('memoria')) return { init: s.init, actions: s.actions, iid: od.iid, deck: a, seed };
+          }
+        }
+        s = XS.apply(s, bots[XS.whoActs(s)].choose(s));
+      }
+    }
+    return null;
+  });
+}
+const POP_SPY = () => {
+  window.__pops = [];
+  new MutationObserver((ms) => { for (const m of ms) for (const n of m.addedNodes) if (n.classList && n.classList.contains('fx-float')) window.__pops.push({ text: n.textContent, cls: n.className }); }).observe(document, { childList: true, subtree: true });
+};
+async function testScaled(browser) {
+  fs.mkdirSync(path.join(OUT, 'debug'), { recursive: true });
+  for (const [w, h] of [[1280, 800], [390, 844]]) {
+    const tag = `${w}x${h}`;
+    TAP = w < 600;
+    const { ctx, page, errors } = await open(browser, `${BASE}?speed=quick`, { width: w, height: h }, POP_SPY);
+    const rep = await findOverdrive(page);
+    check(`scaled ${tag}: a real game reaches a turn where Overdrive can be played with an attack card and a memoria in hand`, rep !== null);
+    if (rep === null) { await ctx.close(); continue; }
+    await page.evaluate((r) => XS.ui.game.resume(r), rep);
+    await waitMyDecision(page);
+    await press(page.locator(`[data-play="${rep.iid}"]`));
+    await press(page.locator('#board .r-actor').first());
+    await press(page.locator('#board .r-target').first());
+    const engine = await page.evaluate(([iid]) => {
+      const d = XS.ui.game.debug();
+      const a = XS.legalActions(d.live).find((x) => x.type === 'play' && x.iid === iid && x.attacker === document.querySelector('#board .r-picked.r-actor, #board .r-actor.r-picked').getAttribute('data-leader') && x.target === document.querySelector('#board .r-target.r-picked').getAttribute('data-leader'));
+      return { total: XS.previewAttackDetail(d.live, a).total, variable: XS.previewAttackDetail(d.live, a).variable.length };
+    }, [rep.iid]);
+    const hint = await page.textContent('#hint');
+    const confirm = await page.textContent('#confirm');
+    check(`scaled ${tag}: the target preview says "Overdrive: ... ${engine.total} damage (+30 per attack card you discard, up to 2; ...)"`,
+      hint.startsWith('Overdrive: ') && hint.includes(`${engine.total} damage (+30 per attack card you discard, up to 2; draw 2 per memoria card you discard, up to 2)`), hint);
+    check(`scaled ${tag}: the confirm button keeps the number and names the per-card bonus under it`,
+      confirm.includes(`${engine.total} damage`) && confirm.includes('+30 per attack card you discard') && (await page.locator('#confirm .btn-sub').count()) === 1, confirm);
+    check(`scaled ${tag}: the leader badge marks a number that can still grow ("-${engine.total}+")`, (await page.locator('#board .l-preview').first().textContent()).endsWith('+'));
+    await page.mouse.move(2, 2);
+    await page.screenshot({ path: path.join(OUT, 'debug', `overdrive-confirm-${tag}.png`) });
+    const before = await nActions(page);
+    await press(page.locator('#confirm'));
+    await page.waitForSelector('#prompt .prompt-card');
+    const pend = await page.evaluate(() => XS.ui.game.debug().presented.view.pending);
+    check(`scaled ${tag}: the reveal prompt is up, up to 2, none allowed`, pend.purpose === 'reveal' && pend.min === 0 && pend.max === 2, JSON.stringify([pend.purpose, pend.min, pend.max]));
+    await page.mouse.move(2, 2);
+    await page.screenshot({ path: path.join(OUT, 'debug', `overdrive-reveal-open-${tag}.png`) });
+    const tally = () => page.textContent('#prompt .p-tally');
+    check(`scaled ${tag}: the printed card text is in the prompt`, (await page.textContent('#prompt .p-srctext')).includes('Reveal'), await page.textContent('#prompt .p-srctext'));
+    check(`scaled ${tag}: nothing picked reads "Revealing nothing -> no bonus"`, (await tally()).startsWith('Revealing nothing') && (await tally()).includes('no bonus'), await tally());
+    const mem = page.locator('#prompt .card.pick.type-memoria').first(), atk = page.locator('#prompt .card.pick.type-attack').first();
+    await press(mem);
+    const tm = await tally();
+    check(`scaled ${tag}: one memoria picked says "draw 2" and no "+30"`, tm.includes('Discarding 1 memoria') && tm.includes('draw 2') && !tm.includes('+30'), tm);
+    await press(mem);
+    await press(atk);
+    const ta = await tally();
+    check(`scaled ${tag}: one attack card picked says "+30 damage" and no draw`, ta.includes('Discarding 1 attack') && ta.includes('+30 damage') && !ta.includes('draw'), ta);
+    await press(mem);
+    const tb = await tally();
+    check(`scaled ${tag}: attack card + memoria says both`, tb.includes('Discarding 1 attack, 1 memoria') && tb.includes('+30 damage') && tb.includes('draw 2'), tb);
+    const want = await page.evaluate(() => {
+      const d = XS.ui.game.debug(), p = d.presented.view.pending;
+      return XS.previewChoice(d.live, { type: 'choose', ids: Array.from(document.querySelectorAll('#prompt .card.pick.is-picked')).map((n) => n.getAttribute('data-iid')) });
+    });
+    check(`scaled ${tag}: the "(the attack deals N)" in the tally is the engine's attackDamage`, tb.includes(`(the attack deals ${want.attackDamage})`), tb + ' / ' + JSON.stringify(want));
+    check(`scaled ${tag}: fits the window`, await promptFits(page));
+    await page.mouse.move(2, 2);
+    await page.screenshot({ path: path.join(OUT, 'debug', `overdrive-reveal-${tag}.png`) });
+    await press(page.locator('#prompt-confirm'));
+    await page.waitForFunction((n) => XS.ui.game.debug().live.actions.length > n + 1, before);
+    await waitMyDecision(page);
+    const res = await page.evaluate(() => {
+      const d = XS.ui.game.debug();
+      const atkE = d.live.log.filter((e) => e.type === 'attack').pop(), dmgE = d.live.log.filter((e) => e.type === 'damage' && e.data.kind === 'attack').pop();
+      return { damage: atkE.data.damage, parts: atkE.data.parts, dealt: dmgE.data.amount, pops: window.__pops.filter((p) => p.cls.includes('is-dmg')).map((p) => p.text) };
+    });
+    check(`scaled ${tag}: the attack dealt what the tally promised (${want.attackDamage}), and the damage pop shows the engine's damage`,
+      res.damage === want.attackDamage && res.dealt === res.damage && res.pops.includes('\u2212' + res.damage), JSON.stringify(res));
+    const logTop = await (async () => { await page.click('#btn-log'); const t = await page.textContent('#log-list li.type-attack'); await page.click('#log-close'); return t; })();
+    check(`scaled ${tag}: the log line names the card's share ("card effect +30")`, logTop.includes('card effect +30') && logTop.includes(`${res.damage} damage`), logTop);
+    const diag = await page.evaluate(() => XS.ui.game.debug().diagnostics.slice());
+    check(`scaled ${tag}: no UI diagnostics, zero console/page errors`, diag.length === 0 && errors.length === 0, diag.concat(errors).slice(0, 3).join(' | '));
+    await ctx.close();
+  }
+  TAP = false;
+}
+
 // ---- main ------------------------------------------------------------------------------------------------------------
 (async () => {
   await startServer();
@@ -1559,6 +1666,7 @@ async function testCompAutoplay(browser) {
     if (only === null || only === 'j') { await testCompPrompts(browser); await testCompCards(browser); }
     if (only === null || only === 'k') await testCompHuman(browser);
     if (only === null || only === 'l') await testCompAutoplay(browser);
+    if (only === null || only === 'm') await testScaled(browser);
   } finally {
     await browser.close();
     stopServer();
