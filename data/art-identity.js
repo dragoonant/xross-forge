@@ -34,7 +34,7 @@
   const AWAKEN_CR = 'bathed in a prismatic aura of silver crystal shards, red-orange glints and a golden glow';
   // The competitive-deck leaders use this shorter form of the same aura (their face clauses are longer).
   const GLOW = (colour) => `bathed in a prismatic aura of silver crystal shards, drifting ${colour} glints and a golden glow`;
-  const CHIBI = 'a chibi cartoon avatar with a big head, small body';
+  const AVATAR = 'a stylised cartoon avatar with a large head and a compact body';
 
   XS.ART_IDENTITY = {
     leaders: {
@@ -72,7 +72,7 @@
       },
       // ST02-001 Selly (CR): cartoon avatar, pink hair with blue streaks, red devil horns, headphones.
       'ST02-001': {
-        head: CHIBI + ', long pink-lavender ponytail with sky-blue streaks, two red devil horns, black headphones, purple eyes, a huge toothy grin',
+        head: AVATAR + ', long pink-lavender ponytail with sky-blue streaks, two red devil horns, black headphones, purple eyes, a huge toothy grin',
         outfit: 'white gloves, a black tee with a yellow star, a layered blue-violet skirt with a short cape, black and yellow boots',
         pose: 'one arm thrust up with a pointing finger',
         palette: 'pink, lavender, blue and black with yellow and red accents',
@@ -80,7 +80,7 @@
       },
       // ST02-002 Mondo (CR): cartoon avatar pirate, black hair, blue tricorn hat, eye patch, hook cane.
       'ST02-002': {
-        head: CHIBI + ', messy black hair, a blue tricorn pirate hat with white fur trim, one red eye, a white eye patch with a bone-cross mark over the other, a sharp-toothed grin',
+        head: AVATAR + ', messy black hair, a blue tricorn pirate hat with white fur trim, one red eye, a white eye patch with a bone-cross mark over the other, a sharp-toothed grin',
         outfit: 'a long black military-style coat with gold trim, a white cravat and a curved gold hook cane in one hand',
         pose: 'one hand tucked behind him in a cocky lean',
         palette: 'black, royal blue, gold and white',
@@ -88,15 +88,15 @@
       },
       // ST02-003 Cpt (CR): cartoon avatar, spiky red hair with a yellow bolt streak, black jacket.
       'ST02-003': {
-        head: CHIBI + ', short spiky red hair with a yellow lightning-bolt streak, amber eyes, a stud earring, a calm half-smile',
+        head: AVATAR + ', short spiky red hair with a yellow lightning-bolt streak, amber eyes, a stud earring, a calm half-smile',
         outfit: 'a black jacket over a blue shirt, black trousers and black and orange sneakers',
-        pose: 'holding a big grey toy-like handgun upright beside his face',
+        pose: 'holding a big grey smooth moulded handgun upright beside his face',
         palette: 'black, red, blue and amber',
         awakened: AWAKEN_CR,
       },
       // ST02-004 Ras (CR): cartoon avatar of a fluffy white cat, odd-coloured eyes, purple jacket.
       'ST02-004': {
-        head: 'a chibi cartoon avatar of a fluffy white cat with a big head, small body, pink inner ears, one red eye and one green eye, a cheeky tongue-out grin',
+        head: 'a stylised cartoon avatar of a fluffy white cat with a large head and a compact body, pink inner ears, one red eye and one green eye, a cheeky tongue-out grin',
         outfit: 'a black neck scarf, a purple jacket with a lime-yellow chevron panel, black trousers and white paw gloves',
         pose: 'holding a chunky cartoon blaster with yellow and black hazard stripes, a small ring-handled throwing blade at the belt',
         palette: 'white, purple, lime-yellow and black',
@@ -126,7 +126,7 @@
       },
       // BP01-014 Arisaka (CR): cartoon avatar, auburn hair with red streaks, oni half-mask, yellow jacket, katana.
       'BP01-014': {
-        head: CHIBI + ', swept auburn hair with red streaks over one amber eye, a white and red horned oni half-mask on the side of his head',
+        head: AVATAR + ', swept auburn hair with red streaks over one amber eye, a white and red horned oni half-mask on the side of his head',
         outfit: 'a yellow-orange bomber jacket with a pink scribble patch over a grey tee, dark trousers, a black katana across his back',
         pose: 'one hand raised to his brow in a lazy salute',
         palette: 'yellow-orange, auburn, black and navy',
@@ -134,7 +134,7 @@
       },
       // BP01-016 nqrse (free agent): cartoon avatar, pink fluffy bob, big red-pink eyes, grey hoodie, white cat.
       'BP01-016': {
-        head: CHIBI + ', a fluffy short pink bob with pale highlighted bangs, big round red-pink eyes, rosy cheeks, a small open mouth',
+        head: AVATAR + ', a fluffy short pink bob with pale highlighted bangs, big round red-pink eyes, rosy cheeks, a small open mouth',
         outfit: 'a grey zip hoodie, a pink skirt, dark sneakers, and a small smiling white cat floating at one side',
         pose: 'one arm stretched out with a two-finger V gesture, one foot kicked up',
         palette: 'pink, grey, white and soft blue',
@@ -158,7 +158,7 @@
       },
       // BP02-014 Dogura (CR): cartoon avatar, indigo messy hair, bat wings, mantis on his head, black hoodie.
       'BP02-014': {
-        head: CHIBI + ', messy indigo hair over closed eyes, silver ear piercings, a gentle smirk, small purple bat wings on his back, a bright green praying mantis perched on top of his head',
+        head: AVATAR + ', messy indigo hair over closed eyes, silver ear piercings, a gentle smirk, small purple bat wings on his back, a bright green praying mantis perched on top of his head',
         outfit: 'a black hoodie with a purple lining, loose blue jeans and white sneakers',
         pose: 'crouched low with his forearms resting on his knees',
         palette: 'indigo, black, lime green and purple',
@@ -174,7 +174,7 @@
       },
       // BP03-004 rion (CR): cartoon avatar, spiky red hair, red eyes, panda-ear hood, striped white hoodie.
       'BP03-004': {
-        head: CHIBI + ', spiky red hair under a white panda hood with round black ears and pink cheek spots, sharp red eyes, a toothy grin',
+        head: AVATAR + ', spiky red hair under a white panda hood with round black ears and pink cheek spots, sharp red eyes, a toothy grin',
         outfit: 'a white hoodie with black sleeve stripes, black trousers and black and red sneakers',
         pose: 'squatting low, one finger hooked in the corner of his mouth',
         palette: 'white, black and red with pink spots',
@@ -207,7 +207,7 @@
       },
       // BP04-001 Wokka (CR): cartoon avatar, brown hair, amber eyes, plaster on nose, red spiked collar, teal jacket.
       'BP04-001': {
-        head: CHIBI + ', tousled brown hair fading lighter at the tips, bright amber eyes, a small green plaster across the nose, a cheeky fanged grin, a red spiked collar',
+        head: AVATAR + ', tousled brown hair fading lighter at the tips, bright amber eyes, a small green plaster across the nose, a cheeky fanged grin, a red spiked collar',
         outfit: 'a turquoise zip track jacket with a white paw print, black trousers and white sneakers',
         pose: 'one hand raised with the fingers curled like a claw, the other in a pocket',
         palette: 'turquoise, brown, black and red',
@@ -259,9 +259,9 @@
     scenes: {
       // ---- ST01 (VSPO! leaders ST01-001 .. 004) ----
       // Crossfire
-      'ST01-005': '{ST01-001:head} and {ST01-003:head} stand back to back on a neon arena stage, each aiming a glowing toy-like blaster outward so that two bright beams cross in the centre of the frame, stage lights sweeping, confetti in the air',
+      'ST01-005': '{ST01-001:head} and {ST01-003:head} stand back to back on a neon arena stage, each aiming a glowing smooth moulded blaster outward so that two bright beams cross in the centre of the frame, stage lights sweeping, confetti in the air',
       // Risky Entry
-      'ST01-006': '{ST01-002} sprints boldly through a doorway of sliding neon light panels into a dim arena, one foot off the ground, a cheeky determined grin, a toy-like blaster held low, stage dust lit by a single spotlight',
+      'ST01-006': '{ST01-002} sprints boldly through a doorway of sliding neon light panels into a dim arena, one foot off the ground, a cheeky determined grin, a smooth moulded blaster held low, stage dust lit by a single spotlight',
       // Bounty Hunter
       'ST01-007': '{ST01-004:head} in a wide-brimmed hunter hat and a dusty long coat, crouched on a neon-lit rooftop at dusk, looking through a long scope toward the glittering city while a glowing target ring hovers in the air ahead of her',
       // Winning Blow
@@ -269,11 +269,11 @@
       // Proof of Strength
       'ST01-009': '{ST01-001} proudly lifts a huge glowing dumbbell overhead with one hand on a training stage, a bright smile, spotlight beams and sparkles around her',
       // Critical Shot
-      'ST01-010': '{ST01-004} fires one powerful shot from a sleek long-barrelled toy-like blaster, a bright comet of pink light streaking toward the viewer, shockwave rings, hair and dress blown back',
+      'ST01-010': '{ST01-004} fires one powerful shot from a sleek long-barrelled smooth moulded blaster, a bright comet of pink light streaking toward the viewer, shockwave rings, hair and dress blown back',
       // Cool Head
       'ST01-011': '{ST01-002} stands perfectly still with her arms crossed and a calm face on a dark stage while streaks of coloured light whip around her and fade into a quiet blue glow',
       // Blind Shot
-      'ST01-012': '{ST01-003} faces away from the target with her chin lifted to the sky, firing a toy-like blaster backward over her shoulder while a glowing target ring far behind her bursts into sparkles',
+      'ST01-012': '{ST01-003} faces away from the target with her chin lifted to the sky, firing a smooth moulded blaster backward over her shoulder while a glowing target ring far behind her bursts into sparkles',
       // Gambit Master
       'ST01-013': '{ST01-002} sits at a polished table with a sly smile, sliding a glowing chess piece forward with one finger, a board of glowing pieces between her and a shadowy rival seat, dim arena lounge',
       // In the Zone
@@ -293,7 +293,7 @@
       // Wild Prank
       'ST02-006': '{ST02-004} laughs with the tongue out while tipping a huge bucket of rainbow confetti and balloons across a stage, a mischievous grin, streamers flying',
       // Impact Shot
-      'ST02-007': '{ST02-003} fires his big grey toy-like handgun, a huge shockwave ring and a flash of orange light bursting from the barrel, his jacket whipping back, floating sparks',
+      'ST02-007': '{ST02-003} fires his big grey smooth moulded handgun, a huge shockwave ring and a flash of orange light bursting from the barrel, his jacket whipping back, floating sparks',
       // Killing Spree
       'ST02-008': '{ST02-004} sprints along a neon obstacle arena firing bolts of bright light left and right, many glowing target drones bursting into colourful sparks all around, speed streaks behind him',
       // Demon King's Descent
@@ -325,7 +325,7 @@
       // Elegant Dominate [C03 Hinano]
       'BP01-018': '{BP01-003} descends a grand staircase in an elegant sweeping pose, one hand lifting her skirt hem, glowing target orbs bursting into pink petals on every step below her, a crystal chandelier overhead',
       // Sneak Attack [C02 rion]
-      'BP01-023': '{BP03-004} tiptoes out from behind a stack of crates in a dim warehouse arena with a mischievous grin, a toy-like blaster raised, a glowing target drone turned the other way, one shaft of light through the dust',
+      'BP01-023': '{BP03-004} tiptoes out from behind a stack of crates in a dim warehouse arena with a mischievous grin, a smooth moulded blaster raised, a glowing target drone turned the other way, one shaft of light through the dust',
       // Flashbang [A02 Kokage]
       'BP01-027': '{BP03-006} tosses a glowing capsule over her shoulder while a blinding white burst of light fills the dark corridor behind her, one arm raised to shield her eyes, lens flare rays and fleeing target drones',
       // Booby Trap [C01 Ras]
@@ -339,7 +339,7 @@
       // Thrifty Play [C07 Arisaka]
       'BP01-048': '{BP01-014} crouches in a half-lit arcade aisle with a tiny stack of gold coins in his palm, lining up one careful shot at a glowing prize capsule, neon light on the floor',
       // Psycho Fortress [C02 rion]
-      'BP02-018': '{BP03-004} sits cross-legged with a mad grin inside a towering fortress built from cushions and crates, glowing toy-like blasters poking out of its windows, a violet twilight sky behind',
+      'BP02-018': '{BP03-004} sits cross-legged with a mad grin inside a towering fortress built from cushions and crates, glowing smooth moulded blasters poking out of its windows, a violet twilight sky behind',
       // Overwhelming Me [C05 Hanabi]
       'BP02-023': '{BP02-004} strikes a huge confident pose in the centre of a stage under a wall of beaming spotlights, arms wide, the crowd of lightstick silhouettes leaning back from the force of her presence',
       // Dread Form [C01 Kuromu]
@@ -347,13 +347,13 @@
       // Unstoppable [C03 Wokka]
       'BP02-032': '{BP04-001} charges straight through a wall of crumbling neon bricks with his shoulder forward and a clenched claw hand, chunks of light flying outward, a fanged grin',
       // Deadly Camp [C03 Yui]
-      'BP02-035': '{BP03-003} crouches beside a small glowing campfire in a dark forest clearing, a lit tent behind her, a sly smile and a toy-like blaster across her lap, embers floating up into the starry sky',
+      'BP02-035': '{BP03-003} crouches beside a small glowing campfire in a dark forest clearing, a lit tent behind her, a sly smile and a smooth moulded blaster across her lap, embers floating up into the starry sky',
       // Machine-gun Talk [C07 Tooko]
       'BP02-040': '{BP04-012} chatters excitedly with both hands waving while a rapid stream of glowing sparkles shoots from her toward the viewer like gunfire, her long tail swaying, a pastel pop stage',
       // General's Dignity [C05 Dogura]
       'BP02-042': '{BP02-014} sits slumped yet regal on an oversized cushion throne with the green mantis on his head like a crown, one raised hand commanding a row of silhouette target drones, deep violet spotlights',
       // Storm Rush [C02 rion + Mondo]
-      'BP03-017': '{BP03-004:head} and {ST02-002:head} charge side by side through a whirlwind of confetti and neon rain, both toy-like blasters firing in rapid bursts, streaks of coloured light behind',
+      'BP03-017': '{BP03-004:head} and {ST02-002:head} charge side by side through a whirlwind of confetti and neon rain, both smooth moulded blasters firing in rapid bursts, streaks of coloured light behind',
       // No Escape [C05 Aria]
       'BP03-018': '{BP04-002} stands at the end of a long narrow arena hallway with her black wings spread wide to fill the passage, arms open, glowing doors sliding shut along both walls, a calm smile',
       // Piercing Bullet [C03 Kyupi]
@@ -381,7 +381,7 @@
       // Shield Slam [A02 Zuzu]
       'BP04-030': '{BP03-005} charges forward behind a big round glowing shield and slams through a wall of target drones, shockwave rings spreading, a toothy grin',
       // Invasion Begins [C07 Tooko]
-      'BP04-037': '{BP04-012} marches across a plain pastel carpet at the head of a parade of chunky toy soldiers toward a toy castle, bare soft-coloured walls, one arm pointing forward, a confident smile',
+      'BP04-037': '{BP04-012} marches across a plain pastel carpet at the head of a parade of chunky miniature soldiers toward a miniature castle, bare soft-coloured walls, one arm pointing forward, a confident smile',
       // Annihilation [C01 Kuromu + Ras]
       'BP04-038': '{BP04-008:head} kneels on one knee beside {ST02-004:head}, the tiny cat avatar at her side at half her height, looking up as an enormous column of multicoloured light erupts from the stage behind them, shockwave rings and flying sparkles',
       // Great Whirlwind [A03 Inui]
@@ -445,7 +445,7 @@
       // Harvest Time [C06 Sena]
       'BP04-066': '{BP01-013} gathers glowing pumpkins into a wicker basket in a moonlit field with a gentle smile, a scarecrow silhouette and drifting fireflies, harvest-gold light',
       // Little Empress [C06 Hanabi]
-      'BP04-067': '{BP02-004} sits proudly on a tall velvet cushion throne wearing a tiny golden crown, legs swinging, a toy sceptre in one hand, a short red carpet, a mock-solemn look',
+      'BP04-067': '{BP02-004} sits proudly on a tall velvet cushion throne wearing a tiny golden crown, legs swinging, a small sceptre in one hand, a short red carpet, a mock-solemn look',
       // Strongest of the Abyss [C04 Inui + Zuzu]
       'BP04-069': '{BP04-013:head} and {BP03-005:head} stand shoulder to shoulder on the lip of a vast glowing chasm, backs to the viewer, a pale light rising from the depths and lifting their scarf and fur',
     },

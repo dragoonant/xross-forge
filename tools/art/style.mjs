@@ -20,9 +20,9 @@ export const CANDIDATES = {
     ui: 'bold anime cel-shaded backdrop painting with crisp shapes, flat saturated colour blocks, vivid neon rim light and soft haze, esports broadcast stage energy',
   },
   B: {
-    label: 'chibi SD',
-    style: 'super-deformed chibi figures about two and a half heads tall with oversized heads, big sparkling eyes and short stubby limbs, glossy cel shading, bright arena colours and a neon rim light',
-    ui: 'cheerful chibi-world backdrop painting with clean rounded shapes, glossy cel shading, bright arena colours and a neon glow',
+    label: 'large-head figures',
+    style: 'figures about two and a half heads tall with oversized heads and short thick limbs, glossy cel shading, bright arena colours and a neon rim light',
+    ui: 'cheerful backdrop painting with clean rounded shapes, glossy cel shading, bright arena colours and a neon glow',
   },
   C: {
     label: 'painterly splash art',
@@ -36,7 +36,7 @@ export const CANDIDATES = {
   },
   E: {
     label: '3D toon render',
-    style: 'stylised 3D toon render with smooth sculpted shapes, soft studio lighting, a subtle outline shader and a polished vinyl-toy sheen',
+    style: 'stylised 3D toon render with smooth sculpted shapes, soft studio lighting, a subtle outline shader and a polished vinyl sheen',
     ui: 'stylised 3D toon environment render with smooth sculpted shapes, soft studio lighting, subtle outline shading and a polished sheen',
   },
   F: {

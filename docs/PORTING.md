@@ -92,11 +92,11 @@ number shown comes from an engine function, and a missing module throws (no `if 
 | `tools/check-art.mjs` @ L | ADAPT (M1 as a failing gate; passes after M5/M6) | See below | `tools/check-art.mjs` |
 | `tools/contact-sheet.ps1` @ L | DROP | Windows PowerShell and `System.Drawing`; this environment is Linux. PLAN D4 wants contact sheets of 16 for art QC: write a Node + ffmpeg or Playwright version in M5 | none |
 | `tools/art/gpu.mjs` @ L | DROP | Local GPU lock file and Windows process probes for a local image studio; neither exists for a hosted API | none |
-| `tools/art/style.mjs` @ L | ADAPT (M5) | One byte-identical style block per card prompt, linted like any prompt. The MGSD chibi / feature-animation direction was Lorcana's owner pick; Xross Stars needs its own decision | `tools/art/style.mjs` |
+| `tools/art/style.mjs` @ L | ADAPT (M5) | One byte-identical style block per card prompt, linted like any prompt. The earlier large-head figure / feature-animation direction was Lorcana's owner pick; Xross Stars needs its own decision | `tools/art/style.mjs` |
 | `tools/art/who.mjs` @ L | ADAPT (M5) | Identity table, one clause per character, so every version looks the same (PLAN D4: one entry per talent avatar). Keep the shape; the entries are Lorcana characters (DROP) | `tools/art/who.mjs` |
 | `tools/art/scenes.mjs` @ L | ADAPT (M5) | Per-card scene table (act and setting). Keep the shape; the entries are DROP | `tools/art/scenes.mjs` |
 | `tools/art/ui.mjs` @ L | ADAPT (M5) | UI plates (title, boards, deck chooser) as prompt table; PLAN M5 lists playmat, title and UI plates. Castle ban (PLAN D16) is a Lorcana trade-dress rule; re-decide for Xross | `tools/art/ui.mjs` |
-| `tools/art/audition-mgsd.mjs` @ L | DROP | The MGSD style audition for Lorcana | none |
+| `tools/art/audition-*.mjs` @ L | DROP | The figure-style audition script for Lorcana | none |
 | `tools/art/art-prompts.json`, `tools/art/audition-prompts.json` @ L | DROP | Generated prompt files keyed on Lorcana card ids | none |
 
 ### Nearly verbatim later: what each tool must change

@@ -14,7 +14,7 @@ environment variables); the rights reading is `docs/rights.md` §2 and §7. This
   name (a proper noun invites lettering). The lint refuses them, Japanese characters, and any
   photo or "realistic face" wording: the Crazy Raccoon members are real players and streamers, and
   only their cartoon avatar persona is described.
-- **Nothing sexual, nothing gory** (VSPO! prohibition 6). Weapon scenes are toy-like blasters, light
+- **Nothing sexual, nothing gory** (VSPO! prohibition 6). Weapon scenes are smooth moulded blasters, light
   bolts, target drones and confetti.
 - **Label every place the art appears** as an AI illustration (see "Labelling").
 
